@@ -14,14 +14,14 @@ const navItems = [
   { href: "/contact", label: "تماس با ما" },
 ];
 
-export default function Header() {
+export default function Header({ nameLatin, tagline }: { nameLatin: string; tagline: string }) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur border-b border-paper-soft">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
-          <Logo />
+          <Logo nameLatin={nameLatin} tagline={tagline} />
 
           <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (

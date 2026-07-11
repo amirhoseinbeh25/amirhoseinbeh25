@@ -1,17 +1,20 @@
 import Link from "next/link";
 import Logo from "./Logo";
-import { site } from "@/data/site";
-import { categories } from "@/data/products";
+import { getSiteSettings, getCategories } from "@/lib/repo";
 
 const swatches = ["var(--color-amber)", "var(--color-coral)", "var(--color-teal)", "var(--color-indigo)", "var(--color-olive)"];
 
 export default function Footer() {
+  const site = getSiteSettings();
+  const categories = getCategories();
+  const phones = [site.phone1, site.phone2].filter(Boolean);
+
   return (
     <footer className="bg-ink text-paper mt-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-14">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Logo inverted />
+            <Logo nameLatin={site.nameLatin} tagline={site.tagline} inverted />
             <p className="mt-4 text-sm text-paper-soft leading-7">{site.shortDescription}</p>
             <div className="mt-5 flex items-center gap-1.5">
               {swatches.map((c) => (
@@ -49,7 +52,7 @@ export default function Footer() {
             <h4 className="font-bold mb-4">اطلاعات تماس</h4>
             <ul className="space-y-2.5 text-sm text-paper-soft leading-6">
               <li>{site.address || "آدرس به‌زودی تکمیل می‌شود"}</li>
-              <li>{site.phones.filter(Boolean).join(" - ") || "تلفن به‌زودی تکمیل می‌شود"}</li>
+              <li>{phones.join(" - ") || "تلفن به‌زودی تکمیل می‌شود"}</li>
               <li>{site.email || "ایمیل به‌زودی تکمیل می‌شود"}</li>
             </ul>
           </div>

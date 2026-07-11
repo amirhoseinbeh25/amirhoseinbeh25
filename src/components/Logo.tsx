@@ -1,8 +1,15 @@
 import Link from "next/link";
 import PaintDrop from "./PaintDrop";
-import { site } from "@/data/site";
 
-export default function Logo({ inverted = false }: { inverted?: boolean }) {
+export default function Logo({
+  nameLatin,
+  tagline,
+  inverted = false,
+}: {
+  nameLatin: string;
+  tagline: string;
+  inverted?: boolean;
+}) {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0">
       <span className="relative flex items-center justify-center">
@@ -15,12 +22,12 @@ export default function Logo({ inverted = false }: { inverted?: boolean }) {
             inverted ? "text-paper" : "text-ink"
           }`}
         >
-          {site.nameLatin}
+          {nameLatin}
         </span>
         <span
           className={`text-[11px] ${inverted ? "text-paper-soft" : "text-ink-soft"}`}
         >
-          {site.tagline}
+          {tagline}
         </span>
       </span>
     </Link>

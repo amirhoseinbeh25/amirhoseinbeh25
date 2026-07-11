@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { site } from "@/data/site";
 
-export default function ContactForm() {
+export default function ContactForm({ email }: { email: string }) {
   const [sent, setSent] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -16,8 +15,8 @@ export default function ContactForm() {
       `تلفن: ${data.get("phone")}`,
       `پیام: ${data.get("message")}`,
     ].join("\n");
-    if (site.email) {
-      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
+    if (email) {
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(
         subject
       )}&body=${encodeURIComponent(body)}`;
     }

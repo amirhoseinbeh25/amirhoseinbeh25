@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { categories } from "@/data/products";
-import { site } from "@/data/site";
 
-export default function EnquiryForm() {
+export default function EnquiryForm({
+  categories,
+  email,
+}: {
+  categories: { slug: string; title: string }[];
+  email: string;
+}) {
   const [sent, setSent] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -18,8 +22,8 @@ export default function EnquiryForm() {
       `دسته محصول: ${data.get("category")}`,
       `توضیحات: ${data.get("message")}`,
     ].join("\n");
-    if (site.email) {
-      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
+    if (email) {
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(
         subject
       )}&body=${encodeURIComponent(body)}`;
     }

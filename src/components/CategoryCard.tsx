@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Category } from "@/data/products";
+import type { Category } from "@/lib/repo";
 
 export default function CategoryCard({ category }: { category: Category }) {
   return (

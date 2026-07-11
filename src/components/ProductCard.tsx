@@ -1,9 +1,7 @@
 import Link from "next/link";
-import type { Product } from "@/data/products";
-import { getCategory } from "@/data/products";
+import type { Product } from "@/lib/repo";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const category = getCategory(product.category);
   return (
     <Link
       href={`/products/${product.slug}`}
@@ -12,11 +10,11 @@ export default function ProductCard({ product }: { product: Product }) {
       <div
         className="h-32 flex items-center justify-center"
         style={{
-          background: `linear-gradient(135deg, var(--color-${category?.color ?? "amber"}) 0%, var(--color-paper-soft) 100%)`,
+          background: `linear-gradient(135deg, var(--color-${product.categoryColor}) 0%, var(--color-paper-soft) 100%)`,
         }}
       >
         <span className="text-paper/90 font-extrabold text-lg drop-shadow-sm px-4 text-center">
-          {category?.title}
+          {product.categoryTitle}
         </span>
       </div>
       <div className="p-5 flex-1 flex flex-col">

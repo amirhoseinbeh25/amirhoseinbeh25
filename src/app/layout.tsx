@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { site } from "@/data/site";
+import { getSiteSettings } from "@/lib/repo";
 
-export const metadata: Metadata = {
-  title: `${site.nameLatin} | ${site.tagline}`,
-  description: site.shortDescription,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = getSiteSettings();
+  return {
+    title: `${site.nameLatin} | ${site.tagline}`,
+    description: site.shortDescription,
+  };
+}
 
 export default function RootLayout({
   children,
@@ -24,11 +25,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
