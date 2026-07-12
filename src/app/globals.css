@@ -106,6 +106,25 @@ body {
   transform: translateY(-2px);
 }
 
+.btn-outline-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--color-paper) 70%, transparent);
+  padding: 0.8rem 1.85rem;
+  font-weight: 800;
+  color: var(--color-paper);
+  transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.btn-outline-light:hover {
+  background: var(--color-paper);
+  border-color: var(--color-paper);
+  color: var(--color-ink);
+  transform: translateY(-2px);
+}
+
 .shadow-glow-primary {
   box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--color-primary) 65%, transparent);
   transition: box-shadow 0.25s ease, transform 0.25s ease;

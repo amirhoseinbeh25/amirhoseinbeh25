@@ -32,11 +32,16 @@ export default function Home() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-paper-soft">
-        <div className="pointer-events-none absolute inset-0">
-          <span className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary/25 blur-3xl" />
-          <span className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-teal/20 blur-3xl" />
-          <span className="absolute inset-0 bg-dot-grid text-ink opacity-[0.04]" />
-        </div>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/hero-bg.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/80 via-ink/70 to-ink/90" />
 
         <div className="pointer-events-none absolute inset-0 opacity-90">
           {heroDrops.map((d, i) => (
@@ -51,24 +56,24 @@ export default function Home() {
         </div>
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-20 sm:py-28 text-center">
-          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-paper-soft px-4 py-1.5 text-xs font-bold text-ink-soft shadow-sm">
+          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-bold text-paper backdrop-blur-sm">
             <span className="swatch-dot bg-primary" />
             {site.nameFa} — {site.tagline}
           </span>
           <h1
-            className="animate-fade-up mt-6 text-3xl sm:text-5xl font-extrabold text-ink leading-tight"
+            className="animate-fade-up mt-6 text-3xl sm:text-5xl font-extrabold text-paper leading-tight"
             style={{ animationDelay: "0.1s" }}
           >
             تامین رزین، رنگ و مواد شیمیایی صنعتی
             <br className="hidden sm:block" />
             با{" "}
-            <span className="bg-gradient-to-l from-primary via-coral to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-l from-primary-light via-coral to-primary-light bg-clip-text text-transparent">
               کیفیت پایدار
             </span>{" "}
             و مشاوره تخصصی
           </h1>
           <p
-            className="animate-fade-up mt-5 max-w-2xl mx-auto text-ink-soft leading-8"
+            className="animate-fade-up mt-5 max-w-2xl mx-auto text-paper-soft leading-8"
             style={{ animationDelay: "0.2s" }}
           >
             {site.shortDescription}
@@ -80,7 +85,7 @@ export default function Home() {
             <Link href="/products" className="btn-primary w-full sm:w-auto">
               مشاهده محصولات
             </Link>
-            <Link href="/enquiry" className="btn-outline w-full sm:w-auto">
+            <Link href="/enquiry" className="btn-outline-light w-full sm:w-auto">
               درخواست استعلام قیمت
             </Link>
           </div>
