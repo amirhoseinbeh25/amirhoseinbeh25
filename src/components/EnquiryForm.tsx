@@ -46,22 +46,22 @@ export default function EnquiryForm({
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">نام و نام خانوادگی *</label>
-          <input required name="name" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+          <input required name="name" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">شماره تماس *</label>
-          <input required name="phone" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+          <input required name="phone" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">نام شرکت</label>
-          <input name="company" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+          <input name="company" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">دسته محصول</label>
-          <select name="category" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary">
+          <select name="category" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15">
             {categories.map((c) => (
               <option key={c.slug} value={c.title}>{c.title}</option>
             ))}
@@ -71,10 +71,10 @@ export default function EnquiryForm({
 
       <div>
         <label className="block text-sm font-semibold text-ink mb-1.5">توضیحات درخواست *</label>
-        <textarea required name="message" rows={5} className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+        <textarea required name="message" rows={5} className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
       </div>
 
-      <button type="submit" className="w-full sm:w-auto rounded-full bg-primary px-8 py-3 font-bold text-ink hover:bg-primary-dark hover:text-paper transition-colors">
+      <button type="submit" className="btn-primary w-full sm:w-auto">
         ارسال درخواست
       </button>
       <p className="text-xs text-ink-soft">

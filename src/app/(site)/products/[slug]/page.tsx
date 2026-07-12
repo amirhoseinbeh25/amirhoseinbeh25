@@ -24,12 +24,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-6 grid lg:grid-cols-2 gap-10 items-start">
         <div
-          className="rounded-3xl h-64 sm:h-80 flex items-center justify-center"
+          className="relative flex h-64 items-center justify-center overflow-hidden rounded-3xl sm:h-80"
           style={{
-            background: `linear-gradient(135deg, var(--color-${product.categoryColor}) 0%, var(--color-paper-soft) 100%)`,
+            background: `linear-gradient(135deg, var(--color-${product.categoryColor}) 0%, var(--color-ink) 130%)`,
           }}
         >
-          <span className="text-paper/90 font-extrabold text-2xl px-8 text-center drop-shadow-sm">
+          <span className="absolute -right-10 -top-14 h-44 w-44 rounded-full bg-white opacity-30 blur-3xl" />
+          <span className="absolute -bottom-14 -left-10 h-40 w-40 rounded-full bg-white opacity-15 blur-2xl" />
+          <span className="relative px-8 text-center text-2xl font-extrabold text-paper drop-shadow-sm">
             {product.title}
           </span>
         </div>
@@ -55,10 +57,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           </dl>
 
-          <Link
-            href="/enquiry"
-            className="mt-8 inline-block rounded-full bg-primary px-7 py-3 font-bold text-ink hover:bg-primary-dark hover:text-paper transition-colors"
-          >
+          <Link href="/enquiry" className="btn-primary mt-8">
             استعلام قیمت این محصول
           </Link>
         </div>

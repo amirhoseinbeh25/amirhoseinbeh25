@@ -10,8 +10,10 @@ export default function Footer() {
   const phones = [site.phone1, site.phone2].filter(Boolean);
 
   return (
-    <footer className="bg-ink text-paper mt-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-14">
+    <footer className="relative mt-24 overflow-hidden bg-ink text-paper">
+      <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-amber via-coral to-teal" />
+      <span className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-14">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Logo nameLatin={site.nameLatin} tagline={site.tagline} inverted />

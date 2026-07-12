@@ -26,10 +26,10 @@ export default async function ProductsPage({
       <div className="mt-8 flex flex-wrap gap-2">
         <Link
           href="/products"
-          className={`rounded-full px-4 py-2 text-sm font-semibold border transition-colors ${
+          className={`rounded-full px-4 py-2 text-sm font-semibold border transition-all ${
             !activeCategory
-              ? "bg-ink text-paper border-ink"
-              : "border-paper-soft text-ink-soft hover:border-ink"
+              ? "bg-ink text-paper border-ink shadow-md"
+              : "border-paper-soft text-ink-soft hover:border-ink hover:-translate-y-0.5"
           }`}
         >
           همه محصولات
@@ -38,10 +38,10 @@ export default async function ProductsPage({
           <Link
             key={c.slug}
             href={`/products?category=${c.slug}`}
-            className={`rounded-full px-4 py-2 text-sm font-semibold border transition-colors ${
+            className={`rounded-full px-4 py-2 text-sm font-semibold border transition-all ${
               activeCategory === c.slug
-                ? "bg-ink text-paper border-ink"
-                : "border-paper-soft text-ink-soft hover:border-ink"
+                ? "bg-ink text-paper border-ink shadow-md"
+                : "border-paper-soft text-ink-soft hover:border-ink hover:-translate-y-0.5"
             }`}
           >
             {c.title}

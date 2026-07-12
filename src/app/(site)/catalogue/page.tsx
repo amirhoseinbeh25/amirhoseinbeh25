@@ -17,7 +17,8 @@ export default function CataloguePage() {
         {categories.map((c) => (
           <div
             key={c.slug}
-            className="flex items-center justify-between rounded-2xl border border-paper-soft bg-paper p-6"
+            className="card-glow flex items-center justify-between rounded-2xl border border-paper-soft bg-paper p-6"
+            style={{ ["--glow" as string]: `var(--color-${c.color})` }}
           >
             <div className="flex items-center gap-4">
               <span

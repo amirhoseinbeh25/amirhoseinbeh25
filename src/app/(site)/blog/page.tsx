@@ -15,7 +15,7 @@ export default function BlogPage() {
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}
-            className="rounded-2xl border border-paper-soft bg-paper p-6 hover:-translate-y-1 hover:shadow-lg transition-all"
+            className="card-glow rounded-2xl border border-paper-soft bg-paper p-6"
           >
             <p className="text-xs text-ink-soft">{post.date}</p>
             <h2 className="mt-2 font-bold text-lg text-ink">{post.title}</h2>

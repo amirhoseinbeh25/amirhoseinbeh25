@@ -26,14 +26,15 @@ export default function ContactPage() {
 
         <div className="space-y-4">
           {infoRows.map((row) => (
-            <div key={row.label} className="rounded-2xl border border-paper-soft bg-paper p-5">
+            <div key={row.label} className="card-glow rounded-2xl border border-paper-soft bg-paper p-5">
               <p className="text-xs font-bold text-ink-soft">{row.label}</p>
               <p className="mt-1 font-semibold text-ink">{row.value || "به‌زودی تکمیل می‌شود"}</p>
             </div>
           ))}
 
-          <div className="rounded-2xl border border-paper-soft bg-paper-soft/40 h-56 flex items-center justify-center text-sm text-ink-soft">
-            نقشه موقعیت — به‌زودی
+          <div className="relative flex h-56 items-center justify-center overflow-hidden rounded-2xl border border-paper-soft bg-paper-soft/40 text-sm text-ink-soft">
+            <span className="absolute inset-0 bg-dot-grid text-ink opacity-[0.06]" />
+            <span className="relative">نقشه موقعیت — به‌زودی</span>
           </div>
         </div>
       </div>

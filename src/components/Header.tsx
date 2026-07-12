@@ -18,7 +18,7 @@ export default function Header({ nameLatin, tagline }: { nameLatin: string; tagl
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur border-b border-paper-soft">
+    <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur border-b border-paper-soft shadow-sm">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           <Logo nameLatin={nameLatin} tagline={tagline} />
@@ -38,7 +38,7 @@ export default function Header({ nameLatin, tagline }: { nameLatin: string; tagl
           <div className="hidden lg:block">
             <Link
               href="/enquiry"
-              className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-ink hover:bg-primary-dark hover:text-paper transition-colors"
+              className="shadow-glow-primary rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-primary-dark hover:text-paper"
             >
               درخواست استعلام
             </Link>

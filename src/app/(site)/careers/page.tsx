@@ -19,7 +19,7 @@ export default function CareersPage() {
 
       <div className="mt-10">
         {positions.length === 0 ? (
-          <div className="rounded-2xl border border-paper-soft bg-paper p-8 text-center">
+          <div className="card-glow rounded-2xl border border-paper-soft bg-paper p-8 text-center">
             <p className="text-ink-soft">در حال حاضر موقعیت شغلی فعالی ثبت نشده است.</p>
             <p className="mt-2 text-sm text-ink-soft">
               رزومه خود را به{" "}
@@ -29,7 +29,7 @@ export default function CareersPage() {
         ) : (
           <ul className="space-y-4">
             {positions.map((p) => (
-              <li key={p.title} className="rounded-2xl border border-paper-soft bg-paper p-6 flex items-center justify-between">
+              <li key={p.title} className="card-glow rounded-2xl border border-paper-soft bg-paper p-6 flex items-center justify-between">
                 <div>
                   <h3 className="font-bold text-ink">{p.title}</h3>
                   <p className="text-sm text-ink-soft mt-1">{p.type} · {p.location}</p>

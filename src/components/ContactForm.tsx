@@ -37,22 +37,22 @@ export default function ContactForm({ email }: { email: string }) {
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">نام و نام خانوادگی *</label>
-          <input required name="name" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+          <input required name="name" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">شماره تماس</label>
-          <input name="phone" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+          <input name="phone" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-semibold text-ink mb-1.5">ایمیل *</label>
-        <input required type="email" name="email" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+        <input required type="email" name="email" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
       </div>
       <div>
         <label className="block text-sm font-semibold text-ink mb-1.5">پیام شما *</label>
-        <textarea required name="message" rows={5} className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+        <textarea required name="message" rows={5} className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none transition-shadow focus:border-primary focus:ring-4 focus:ring-primary/15" />
       </div>
-      <button type="submit" className="w-full sm:w-auto rounded-full bg-primary px-8 py-3 font-bold text-ink hover:bg-primary-dark hover:text-paper transition-colors">
+      <button type="submit" className="btn-primary w-full sm:w-auto">
         ارسال پیام
       </button>
       <p className="text-xs text-ink-soft">

@@ -14,8 +14,10 @@ export default function AboutPage() {
   return (
     <div>
       <section className="relative overflow-hidden border-b border-paper-soft">
-        <PaintDrop color="var(--color-teal)" className="absolute -left-6 top-6 w-20 h-24 opacity-20" />
-        <PaintDrop color="var(--color-amber)" className="absolute -right-4 bottom-0 w-24 h-28 opacity-20" />
+        <span className="pointer-events-none absolute -top-16 -right-16 h-72 w-72 rounded-full bg-teal/15 blur-3xl" />
+        <span className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
+        <PaintDrop glossy color="var(--color-teal)" className="absolute -left-6 top-6 w-20 h-24 opacity-70" />
+        <PaintDrop glossy color="var(--color-amber)" className="absolute -right-4 bottom-0 w-24 h-28 opacity-70" />
         <div className="relative mx-auto max-w-4xl px-4 sm:px-6 py-16 sm:py-20 text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-paper-soft px-4 py-1.5 text-xs font-bold text-ink-soft">
             <span className="swatch-dot bg-primary" />
@@ -36,7 +38,11 @@ export default function AboutPage() {
         <SectionHeading eyebrow="ارزش‌های ما" title="چرا کم‌کان؟" align="center" />
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {values.map((v) => (
-            <div key={v.title} className="rounded-2xl border border-paper-soft bg-paper p-6">
+            <div
+              key={v.title}
+              className="card-glow rounded-2xl border border-paper-soft bg-paper p-6"
+              style={{ ["--glow" as string]: `var(--color-${v.color})` }}
+            >
               <span
                 className="swatch-dot block mb-4"
                 style={{ backgroundColor: `var(--color-${v.color})`, width: "1.75rem", height: "1.75rem" }}
