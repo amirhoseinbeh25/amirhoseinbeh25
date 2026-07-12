@@ -10,14 +10,46 @@ declare global {
   var __kemkanDb: Database.Database | undefined;
 }
 
+// Multiple build/dev worker processes can import this module for the very
+// first time at the same instant, all racing to create+seed a brand-new
+// database file. A cross-process directory lock (mkdir is atomic on POSIX
+// filesystems) makes sure only one of them does the init work while the
+// others wait for it to finish, avoiding SQLITE_BUSY on first run.
+const initLockPath = path.join(dataDir, ".init.lock");
+const gotLock = acquireInitLock(initLockPath);
+
 export const db = globalThis.__kemkanDb ?? new Database(dbPath);
 if (process.env.NODE_ENV !== "production") globalThis.__kemkanDb = db;
 
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
-db.pragma("busy_timeout = 5000");
+db.pragma("busy_timeout = 10000");
 
-db.exec(`
+if (gotLock) {
+  try {
+    initSchemaAndSeed();
+  } finally {
+    fs.rmSync(initLockPath, { recursive: true, force: true });
+  }
+} else {
+  // Another process is initializing; wait for it to release the lock.
+  const start = Date.now();
+  while (fs.existsSync(initLockPath) && Date.now() - start < 10000) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+  }
+}
+
+function acquireInitLock(lockPath: string): boolean {
+  try {
+    fs.mkdirSync(lockPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function initSchemaAndSeed() {
+  db.exec(`
 CREATE TABLE IF NOT EXISTS categories (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   slug TEXT UNIQUE NOT NULL,
@@ -70,7 +102,8 @@ CREATE TABLE IF NOT EXISTS site_settings (
 );
 `);
 
-seedIfEmpty();
+  seedIfEmpty();
+}
 
 function seedIfEmpty() {
   const { count } = db.prepare("SELECT count(*) as count FROM categories").get() as { count: number };
