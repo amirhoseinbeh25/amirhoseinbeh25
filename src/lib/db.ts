@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -7,7 +7,7 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 const dbPath = path.join(dataDir, "kemkan.db");
 
 declare global {
-  var __kemkanDb: Database.Database | undefined;
+  var __kemkanDb: DatabaseSync | undefined;
 }
 
 // Multiple build/dev worker processes can import this module for the very
@@ -18,12 +18,16 @@ declare global {
 const initLockPath = path.join(dataDir, ".init.lock");
 const gotLock = acquireInitLock(initLockPath);
 
-export const db = globalThis.__kemkanDb ?? new Database(dbPath);
+export const db = globalThis.__kemkanDb ?? new DatabaseSync(dbPath);
 if (process.env.NODE_ENV !== "production") globalThis.__kemkanDb = db;
 
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
-db.pragma("busy_timeout = 10000");
+// busy_timeout must be set before journal_mode: switching a brand-new file
+// to WAL is itself a lock-requiring operation, and without the timeout in
+// place first, a concurrent process doing the same thing fails immediately
+// instead of retrying.
+db.exec("PRAGMA busy_timeout = 10000");
+db.exec("PRAGMA journal_mode = WAL");
+db.exec("PRAGMA foreign_keys = ON");
 
 if (gotLock) {
   try {
