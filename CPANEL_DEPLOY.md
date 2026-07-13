@@ -38,21 +38,15 @@ ADMIN_PASSWORD = یک رمز قوی و دلخواه
 SESSION_SECRET = یک رشته تصادفی طولانی (مثلاً از https://randomkeygen.com بگیر)
 ```
 
-## ۴. نصب پکیج‌ها و build
+## ۴. نصب پکیج‌ها
 
-تو همون صفحه Node.js App یه دکمه **Run NPM Install** هست — بزنش و صبر کن تمام بشه.
+فایل‌های build‌شده (پوشه `.next`) از قبل توی zip هستن، پس نیازی به اجرای `npm run build`
+از طریق ترمینال نیست. فقط تو همون صفحه Node.js App دکمه **Run NPM Install** رو بزن و
+صبر کن تمام بشه — همین کافیه.
 
-بعدش باید `npm run build` رو هم اجرا کنی. اگه دکمه‌ی مشخصی براش نبود، از طریق
-**Terminal** (که قبلاً استفاده کردیم) این دستورات رو بزن:
-
-```bash
-# این دستور از خود صفحه Node.js App کپی می‌شه (چیزی شبیه این):
-source /home/menubebi/nodevenv/kemkan_app/20/bin/activate && cd /home/menubebi/kemkan_app
-npm run build
-```
-
-(مسیر دقیق `nodevenv/...` رو از دکمه «Enter to the virtual environment» تو همون صفحه
-Node.js App کپی کن، چون بسته به یوزرنیم و اسم پوشه فرق می‌کنه.)
+(اگه به هر دلیلی سایت بعد از این کار بالا نیومد، به‌عنوان راه جایگزین می‌تونی از طریق
+Terminal دستور `npm run build` رو هم دستی اجرا کنی — دستور فعال‌سازی محیط رو از دکمه
+«Enter to the virtual environment» تو همون صفحه Node.js App کپی کن.)
 
 ## ۵. روشن کردن اپ
 
