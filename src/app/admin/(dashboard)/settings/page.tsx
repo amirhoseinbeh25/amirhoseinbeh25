@@ -73,6 +73,10 @@ export default async function AdminSettingsPage({
         <div>
           <label className="block text-sm font-semibold text-ink mb-1.5">لینک نقشه (Embed)</label>
           <input name="mapEmbedUrl" defaultValue={site.mapEmbedUrl} dir="ltr" className="w-full rounded-xl border border-paper-soft bg-background px-4 py-2.5 outline-none focus:border-primary" />
+          <p className="mt-1.5 text-xs text-ink-soft">
+            از گوگل‌مپ: موقعیت را پیدا کن → Share → Embed a map → فقط آدرس داخل{" "}
+            <code dir="ltr">src=&quot;...&quot;</code> را کپی و اینجا paste کن (نه لینک اشتراک‌گذاری معمولی).
+          </p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5">

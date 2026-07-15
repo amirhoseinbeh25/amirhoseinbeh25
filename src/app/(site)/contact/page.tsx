@@ -32,10 +32,22 @@ export default function ContactPage() {
             </div>
           ))}
 
-          <div className="relative flex h-56 items-center justify-center overflow-hidden rounded-2xl border border-paper-soft bg-paper-soft/40 text-sm text-ink-soft">
-            <span className="absolute inset-0 bg-dot-grid text-ink opacity-[0.06]" />
-            <span className="relative">نقشه موقعیت — به‌زودی</span>
-          </div>
+          {site.mapEmbedUrl ? (
+            <div className="overflow-hidden rounded-2xl border border-paper-soft">
+              <iframe
+                src={site.mapEmbedUrl}
+                title="نقشه موقعیت"
+                className="h-56 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          ) : (
+            <div className="relative flex h-56 items-center justify-center overflow-hidden rounded-2xl border border-paper-soft bg-paper-soft/40 text-sm text-ink-soft">
+              <span className="absolute inset-0 bg-dot-grid text-ink opacity-[0.06]" />
+              <span className="relative">نقشه موقعیت — به‌زودی</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
