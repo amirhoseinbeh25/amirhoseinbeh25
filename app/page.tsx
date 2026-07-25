@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   activities,
-  contact,
   profile,
   publications,
   researchInterests,
@@ -64,7 +63,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-6">
+          <div className="self-start rounded-2xl border border-border bg-surface p-6">
             <h2 className="text-lg font-bold">زمینه‌های پژوهشی</h2>
             <ul className="mt-4 space-y-3 text-sm text-muted">
               {researchInterests.map((item) => (
@@ -78,48 +77,52 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 pb-14">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-2xl font-bold">آخرین پژوهش‌ها</h2>
-          <Link href="/publications" className="text-sm text-accent hover:underline">
-            همه پژوهش‌ها
-          </Link>
-        </div>
-        <ul className="mt-6 space-y-3">
-          {publications.slice(0, 3).map((item) => (
-            <li
-              key={item.title}
-              className="rounded-2xl border border-border bg-surface p-5"
-            >
-              <h3 className="font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm text-muted">
-                {item.venue} — {item.year}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {publications.length > 0 && (
+        <section className="mx-auto max-w-5xl px-6 pb-14">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-2xl font-bold">آخرین پژوهش‌ها</h2>
+            <Link href="/publications" className="text-sm text-accent hover:underline">
+              همه پژوهش‌ها
+            </Link>
+          </div>
+          <ul className="mt-6 space-y-3">
+            {publications.slice(0, 3).map((item) => (
+              <li
+                key={`${item.title}-${item.year}`}
+                className="rounded-2xl border border-border bg-surface p-5"
+              >
+                <h3 className="font-semibold">{item.title}</h3>
+                <p className="mt-2 text-sm text-muted">
+                  {item.venue} — {item.year}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-      <section className="mx-auto max-w-5xl px-6 pb-14">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-2xl font-bold">فعالیت‌های دانشجویی و فرهنگی</h2>
-          <Link href="/activities" className="text-sm text-accent hover:underline">
-            همه فعالیت‌ها
-          </Link>
-        </div>
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-          {activities.slice(0, 4).map((item) => (
-            <li
-              key={item.title}
-              className="rounded-2xl border border-border bg-surface p-5"
-            >
-              <p className="text-xs text-accent">{item.year}</p>
-              <h3 className="mt-1 font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm leading-7 text-muted">{item.description}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {activities.length > 0 && (
+        <section className="mx-auto max-w-5xl px-6 pb-14">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-2xl font-bold">فعالیت‌های دانشجویی و فرهنگی</h2>
+            <Link href="/activities" className="text-sm text-accent hover:underline">
+              همه فعالیت‌ها
+            </Link>
+          </div>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+            {activities.slice(0, 4).map((item) => (
+              <li
+                key={`${item.title}-${item.year}`}
+                className="rounded-2xl border border-border bg-surface p-5"
+              >
+                <p className="text-xs text-accent">{item.year}</p>
+                <h3 className="mt-1 font-semibold">{item.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-muted">{item.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mx-auto max-w-5xl px-6 pb-6">
         <div className="rounded-2xl border border-border bg-accent-soft p-8 text-center">
@@ -128,12 +131,12 @@ export default function HomePage() {
             برای هماهنگی جلسه، همکاری پژوهشی یا پیگیری امور دانشجویی می‌توانید از طریق
             ایمیل یا در ساعات ملاقات حضوری مراجعه کنید.
           </p>
-          <a
-            href={`mailto:${contact.email}`}
+          <Link
+            href="/contact"
             className="mt-6 inline-block rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90"
           >
-            ارسال ایمیل
-          </a>
+            راه‌های ارتباطی
+          </Link>
         </div>
       </section>
     </>

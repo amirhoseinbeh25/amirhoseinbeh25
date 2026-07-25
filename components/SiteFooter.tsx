@@ -10,13 +10,15 @@ export function SiteFooter() {
           <p className="mt-1 text-sm text-muted">
             {profile.role} — {profile.organization}
           </p>
-          <a
-            href={`mailto:${contact.email}`}
-            className="mt-3 inline-block text-sm text-accent hover:underline"
-            dir="ltr"
-          >
-            {contact.email}
-          </a>
+          {contact.email && (
+            <a
+              href={`mailto:${contact.email}`}
+              className="mt-3 inline-block text-sm text-accent hover:underline"
+              dir="ltr"
+            >
+              {contact.email}
+            </a>
+          )}
         </div>
 
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">

@@ -70,7 +70,7 @@ export default function ResumePage() {
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
             {courses.map((item) => (
               <li
-                key={item.name}
+                key={`${item.name}-${item.level}`}
                 className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-5 py-4"
               >
                 <span className="font-medium">{item.name}</span>

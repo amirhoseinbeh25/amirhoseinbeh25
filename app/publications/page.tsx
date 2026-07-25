@@ -18,10 +18,15 @@ export default function PublicationsPage() {
       <div className="mx-auto max-w-5xl space-y-14 px-6 py-14">
         <section>
           <h2 className="text-2xl font-bold">مقالات و کتاب‌ها</h2>
+          {publications.length === 0 && (
+            <p className="mt-6 rounded-2xl border border-dashed border-border p-8 text-center text-muted">
+              هنوز موردی ثبت نشده است.
+            </p>
+          )}
           <ul className="mt-6 space-y-4">
             {publications.map((item) => (
               <li
-                key={item.title}
+                key={`${item.title}-${item.year}`}
                 className="rounded-2xl border border-border bg-surface p-6"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">

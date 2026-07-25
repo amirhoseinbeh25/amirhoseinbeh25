@@ -16,10 +16,15 @@ export default function ActivitiesPage() {
       />
 
       <div className="mx-auto max-w-5xl px-6 py-14">
+        {activities.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-border p-8 text-center text-muted">
+            هنوز موردی ثبت نشده است.
+          </p>
+        )}
         <ol className="space-y-4">
           {activities.map((item) => (
             <li
-              key={item.title}
+              key={`${item.title}-${item.year}`}
               className="rounded-2xl border border-border bg-surface p-6"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">

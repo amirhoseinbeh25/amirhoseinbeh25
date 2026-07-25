@@ -17,15 +17,17 @@ export default function ContactPage() {
 
       <div className="mx-auto max-w-5xl px-6 py-14">
         <dl className="grid gap-4 sm:grid-cols-2">
-          <ContactItem label="ایمیل">
-            <a
-              href={`mailto:${contact.email}`}
-              dir="ltr"
-              className="text-accent hover:underline"
-            >
-              {contact.email}
-            </a>
-          </ContactItem>
+          {contact.email && (
+            <ContactItem label="ایمیل">
+              <a
+                href={`mailto:${contact.email}`}
+                dir="ltr"
+                className="text-accent hover:underline"
+              >
+                {contact.email}
+              </a>
+            </ContactItem>
+          )}
 
           {contact.phone && (
             <ContactItem label="تلفن">
@@ -35,8 +37,13 @@ export default function ContactPage() {
             </ContactItem>
           )}
 
-          <ContactItem label="دفتر">{contact.office}</ContactItem>
-          <ContactItem label="ساعات ملاقات">{contact.officeHours}</ContactItem>
+          {contact.office && (
+            <ContactItem label="دفتر">{contact.office}</ContactItem>
+          )}
+
+          {contact.officeHours && (
+            <ContactItem label="ساعات ملاقات">{contact.officeHours}</ContactItem>
+          )}
         </dl>
 
         {contact.links.length > 0 && (
