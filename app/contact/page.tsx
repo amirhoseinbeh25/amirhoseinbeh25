@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
 import { contact } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -45,6 +46,11 @@ export default function ContactPage() {
             <ContactItem label="ساعات ملاقات">{contact.officeHours}</ContactItem>
           )}
         </dl>
+
+        <section className="mt-10">
+          <h2 className="text-lg font-bold">پروفایل‌های علمی</h2>
+          <ScholarlyProfiles className="mt-4" />
+        </section>
 
         {contact.links.length > 0 && (
           <section className="mt-10">

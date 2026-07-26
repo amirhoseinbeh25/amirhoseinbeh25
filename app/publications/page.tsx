@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
 import { publications, researchInterests } from "@/lib/site";
@@ -19,10 +20,20 @@ export default function PublicationsPage() {
 
       <div className="mx-auto max-w-5xl space-y-14 px-6 py-14">
         <section>
+          <h2 className="text-2xl font-bold">پروفایل‌های علمی</h2>
+          <p className="mt-3 leading-8 text-muted">
+            فهرست کامل و به‌روز مقالات و شمار ارجاعات در این پروفایل‌ها در دسترس
+            است.
+          </p>
+          <ScholarlyProfiles className="mt-5" />
+        </section>
+
+        <section>
           <h2 className="text-2xl font-bold">مقالات و کتاب‌ها</h2>
           {publications.length === 0 && (
             <p className="mt-6 rounded-2xl border border-dashed border-border p-8 text-center text-muted">
-              هنوز موردی ثبت نشده است.
+              هنوز موردی این‌جا ثبت نشده است — فهرست کامل را در گوگل اسکولر
+              ببینید.
             </p>
           )}
           <ul className="mt-6 space-y-4">

@@ -2,7 +2,9 @@
 
 export const profile = {
   name: "دکتر آرش رحمانی",
-  title: "عضو هیئت علمی گروه مهندسی مکانیک",
+  // مرتبه علمی و گرایش از صفحه ایشان در سایت دانشگاه گرفته شده — تأیید شود.
+  title: "دانشیار گروه مهندسی مکانیک",
+  field: "طراحی کاربردی",
   role: "معاون دانشجویی و فرهنگی",
   organization: "دانشگاه صنعتی ارومیه",
   tagline:
@@ -14,14 +16,42 @@ export const profile = {
   ],
 };
 
-// جای‌گذار: هیچ‌کدام از این مقادیر واقعی نیست. پیش از انتشار سایت تکمیل شود.
 export const contact = {
-  email: "",
+  // از صفحه ایشان در سایت دانشگاه — تأیید شود.
+  email: "arash.rahmani@uut.ac.ir",
+  // جای‌گذار: هنوز پر نشده.
   phone: "",
   office: "دانشگاه صنعتی ارومیه، معاونت دانشجویی و فرهنگی",
   officeHours: "",
   links: [] as { label: string; href: string }[],
 };
+
+/**
+ * پروفایل‌های علمی.
+ *
+ * نشانی‌ها از جست‌وجوی وب به دست آمده و با نام، دانشگاه، گروه آموزشی و سمت
+ * معاونت هم‌خوانی کامل دارند. چون شبکه این محیط اجازه باز کردن خود صفحات را
+ * نمی‌دهد، محتوایشان مستقیم بررسی نشده — پیش از انتشار یک‌بار باز و تأیید شود.
+ *
+ * `kind` برای انتخاب آیکون در کامپوننت استفاده می‌شود.
+ */
+export const scholarlyProfiles = [
+  {
+    kind: "scholar" as const,
+    label: "گوگل اسکولر",
+    href: "https://scholar.google.com/citations?user=rIv9FaEAAAAJ&hl=en",
+  },
+  {
+    kind: "researchgate" as const,
+    label: "ResearchGate",
+    href: "https://www.researchgate.net/profile/Arash-Rahmani-4",
+  },
+  {
+    kind: "university" as const,
+    label: "صفحه استاد در سایت دانشگاه",
+    href: "https://uut.ac.ir/find.php?content_id=2744",
+  },
+];
 
 // جای‌گذار: این اعداد واقعی نیستند و باید با آمار درست جایگزین یا حذف شوند.
 export const stats = [
@@ -100,11 +130,12 @@ export const activities: {
   description: string;
 }[] = [];
 
-// جای‌گذار: با زمینه‌های پژوهشی واقعی جایگزین شود.
+// برگرفته از زمینه‌های اعلام‌شده در پروفایل گوگل اسکولر ایشان.
 export const researchInterests = [
-  "زمینه پژوهشی اول",
-  "زمینه پژوهشی دوم",
-  "زمینه پژوهشی سوم",
+  "سامانه‌های دینامیکی",
+  "سازه‌های کوچک‌مقیاس",
+  "ارتعاشات",
+  "کنترل",
 ];
 
 export const navigation = [

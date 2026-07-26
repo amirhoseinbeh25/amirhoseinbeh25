@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
 import { UrmiaScene } from "@/components/scene/UrmiaScene";
@@ -68,13 +69,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <p
-              className="mt-12 text-xs leading-6"
-              style={{ color: "var(--hero-muted)" }}
-            >
-              دریاچه ارومیه، پل میانگذر، فلامینگو و بلور نمک — در کنار چرخ‌دنده،
-              نشان مهندسی مکانیک.
-            </p>
+            <ScholarlyProfiles className="mt-10" tone="hero" />
           </div>
         </div>
 

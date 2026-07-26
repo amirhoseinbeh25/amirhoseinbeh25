@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
 import { contact, navigation, profile } from "@/lib/site";
 
 export function SiteFooter() {
@@ -21,17 +22,27 @@ export function SiteFooter() {
           )}
         </div>
 
-        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
-          {navigation.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-foreground">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex flex-col gap-5 sm:items-end">
+          <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
+            {navigation.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <ScholarlyProfiles />
+        </div>
       </div>
 
+      {/* سال عمداً نوشته نشده: صفحات استاتیک‌اند و سال در زمان build ثابت
+          می‌شد و کهنه می‌ماند؛ ضمن اینکه میلادی بود و بقیه سایت شمسی است. */}
       <p className="border-t border-border px-6 py-4 text-center text-xs text-muted">
-        © {new Date().getFullYear()} — تمامی حقوق محفوظ است.
+        © تمامی حقوق محفوظ است.
       </p>
     </footer>
   );
