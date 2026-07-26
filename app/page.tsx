@@ -32,10 +32,14 @@ export default function HomePage() {
               {profile.title}
             </p>
             <h1
-              className="mt-5 text-5xl font-black leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl"
+              className="mt-5 text-[2.6rem] font-black leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl"
               style={{ color: "var(--hero-fg)" }}
             >
-              {profile.name}
+              {profile.nameLines.map((line) => (
+                <span key={line} className="block text-balance">
+                  {line}
+                </span>
+              ))}
             </h1>
             <p
               className="mt-5 text-xl font-medium sm:text-2xl"
