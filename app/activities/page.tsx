@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { Reveal } from "@/components/scene/Reveal";
+import { TiltCard } from "@/components/scene/TiltCard";
 import { activities } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -22,18 +24,22 @@ export default function ActivitiesPage() {
           </p>
         )}
         <ol className="space-y-4">
-          {activities.map((item) => (
-            <li
-              key={`${item.title}-${item.year}`}
-              className="rounded-2xl border border-border bg-surface p-6"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-lg font-semibold">{item.title}</h2>
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent">
-                  {item.year}
-                </span>
-              </div>
-              <p className="mt-3 leading-8 text-muted">{item.description}</p>
+          {activities.map((item, i) => (
+            <li key={`${item.title}-${item.year}`}>
+              <Reveal delay={i * 80}>
+                <TiltCard
+                  className="rounded-2xl border border-border bg-surface p-6"
+                  max={4}
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h2 className="text-lg font-semibold">{item.title}</h2>
+                    <span className="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent">
+                      {item.year}
+                    </span>
+                  </div>
+                  <p className="mt-3 leading-8 text-muted">{item.description}</p>
+                </TiltCard>
+              </Reveal>
             </li>
           ))}
         </ol>

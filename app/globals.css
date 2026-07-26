@@ -42,3 +42,182 @@ body {
   background: var(--accent);
   color: var(--background);
 }
+
+/* ---------------------------------------------------------------
+   صحنه سه‌بعدی ارومیه
+   پالت صحنه از تم روشن/تیره مستقل است: صحنه همیشه شبانه است.
+   روی :root تعریف شده تا هدر هم — که بیرون صحنه است — به آن دسترسی
+   داشته باشد و بتواند روی هیرو شفاف شود.
+   --------------------------------------------------------------- */
+:root {
+  /* کمی بیش از ارتفاع واقعی هدر، تا هیچ نواری از پس‌زمینه روشن بالای
+     صحنه دیده نشود؛ سرریز آن پشت هدر پنهان می‌ماند. */
+  --header-h: 84px;
+
+  --hero-bg-1: #06140f;
+  --hero-bg-2: #0b2b24;
+  --hero-bg-3: #071a2a;
+  --hero-fg: #eaf5f1;
+  --hero-muted: rgba(234, 245, 241, 0.72);
+  --hero-line: rgba(111, 211, 194, 0.32);
+  --hero-line-soft: rgba(111, 211, 194, 0.14);
+  --hero-accent: #6fd3c2;
+  --hero-rose: #f2a3b8;
+  --hero-salt: rgba(226, 240, 255, 0.5);
+}
+
+/* لایه‌ها در عمق‌های مختلف قرار می‌گیرند و با حرکت ماوس پارالاکس واقعی می‌سازند */
+.scene-stage {
+  perspective: 1100px;
+  perspective-origin: 50% 45%;
+}
+
+.scene-world {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.scene-layer {
+  transform-style: preserve-3d;
+}
+
+@keyframes scene-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scene-spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes scene-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+}
+
+@keyframes scene-float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-26px) rotate(6deg);
+  }
+}
+
+@keyframes scene-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes scene-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scene-ripple {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes scene-nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
+}
+
+.anim-spin-slow {
+  animation: scene-spin 90s linear infinite;
+}
+.anim-spin-slower {
+  animation: scene-spin-reverse 140s linear infinite;
+}
+.anim-float {
+  animation: scene-float 9s ease-in-out infinite;
+}
+.anim-float-slow {
+  animation: scene-float-slow 13s ease-in-out infinite;
+}
+.anim-twinkle {
+  animation: scene-twinkle 4s ease-in-out infinite;
+}
+.anim-ripple {
+  animation: scene-ripple 7s ease-out infinite;
+}
+.anim-nudge {
+  animation: scene-nudge 2.2s ease-in-out infinite;
+}
+
+/* ورود عناصر با چرخش سه‌بعدی هنگام اسکرول */
+.reveal {
+  opacity: 0;
+  transform: perspective(900px) rotateX(14deg) translateY(38px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-in {
+  opacity: 1;
+  transform: perspective(900px) rotateX(0deg) translateY(0);
+}
+
+/* کارت‌هایی که با حرکت ماوس کمی به سمت نشانگر متمایل می‌شوند */
+.tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.tilt-inner {
+  transform: translateZ(28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-spin-slow,
+  .anim-spin-slower,
+  .anim-float,
+  .anim-float-slow,
+  .anim-twinkle,
+  .anim-ripple,
+  .anim-nudge {
+    animation: none !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .tilt {
+    transform: none !important;
+    transition: none;
+  }
+}

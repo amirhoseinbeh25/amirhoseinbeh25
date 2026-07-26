@@ -2,25 +2,77 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
 import { navigation, profile } from "@/lib/site";
+
+function subscribeToScroll(onChange: () => void) {
+  window.addEventListener("scroll", onChange, { passive: true });
+  return () => window.removeEventListener("scroll", onChange);
+}
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  // موقعیت اسکرول یک منبع بیرون از React است، پس با useSyncExternalStore
+  // خوانده می‌شود؛ اسنپ‌شات سمت سرور همیشه «بالای صفحه» است.
+  const scrolled = useSyncExternalStore(
+    subscribeToScroll,
+    () => window.scrollY > 24,
+    () => false,
+  );
+
+  // هر صفحه با یک نوار تیره صحنه شروع می‌شود، پس هدر تا قبل از اسکرول
+  // شفاف می‌ماند و صحنه را نمی‌بُرد.
+  const overHero = !scrolled && !open;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur">
+    <header
+      className={clsx(
+        "sticky top-0 z-20 transition-colors duration-300",
+        overHero
+          ? "border-b border-transparent bg-transparent"
+          : "border-b border-border bg-background/85 backdrop-blur",
+      )}
+    >
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
         <Link href="/" className="leading-tight" onClick={() => setOpen(false)}>
-          <span className="block text-base font-bold">{profile.name}</span>
-          <span className="block text-xs text-muted">{profile.role}</span>
+          <span
+            className={clsx(
+              "block text-base font-bold transition-colors",
+              overHero && "text-[color:var(--hero-fg,#eaf5f1)]",
+            )}
+          >
+            {profile.name}
+          </span>
+          <span
+            className={clsx(
+              "block text-xs transition-colors",
+              overHero ? "text-[color:var(--hero-muted,#a9c4bd)]" : "text-muted",
+            )}
+          >
+            {profile.role}
+          </span>
         </Link>
 
         <nav className="hidden gap-1 md:flex">
           {navigation.map((item) => (
-            <NavLink key={item.href} {...item} pathname={pathname} />
+            <NavLink
+              key={item.href}
+              {...item}
+              pathname={pathname}
+              overHero={overHero}
+            />
           ))}
         </nav>
 
@@ -29,7 +81,12 @@ export function SiteHeader() {
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-label="منوی ناوبری"
-          className="rounded-lg border border-border px-3 py-2 text-sm md:hidden"
+          className={clsx(
+            "rounded-lg border px-3 py-2 text-sm transition-colors md:hidden",
+            overHero
+              ? "border-[color:var(--hero-line,#2e4f49)] text-[color:var(--hero-fg,#eaf5f1)]"
+              : "border-border",
+          )}
         >
           {open ? "بستن" : "منو"}
         </button>
@@ -56,11 +113,13 @@ function NavLink({
   label,
   pathname,
   onClick,
+  overHero = false,
 }: {
   href: string;
   label: string;
   pathname: string;
   onClick?: () => void;
+  overHero?: boolean;
 }) {
   const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -71,9 +130,13 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       className={clsx(
         "rounded-lg px-3 py-2 text-sm transition-colors",
-        active
-          ? "bg-accent-soft font-semibold text-accent"
-          : "text-muted hover:text-foreground",
+        overHero
+          ? active
+            ? "font-semibold text-[color:var(--hero-accent,#6fd3c2)]"
+            : "text-[color:var(--hero-muted,#a9c4bd)] hover:text-[color:var(--hero-fg,#eaf5f1)]"
+          : active
+            ? "bg-accent-soft font-semibold text-accent"
+            : "text-muted hover:text-foreground",
       )}
     >
       {label}

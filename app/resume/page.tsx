@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { Reveal } from "@/components/scene/Reveal";
+import { TiltCard } from "@/components/scene/TiltCard";
 import { courses, education, positions } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -19,18 +21,22 @@ export default function ResumePage() {
         <section>
           <h2 className="text-2xl font-bold">تحصیلات</h2>
           <ul className="mt-6 space-y-4">
-            {education.map((item) => (
-              <li
-                key={`${item.degree}-${item.institution}`}
-                className="rounded-2xl border border-border bg-surface p-6"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-semibold">
-                    {item.degree} {item.field}
-                  </h3>
-                  <span className="text-sm text-muted">{item.years}</span>
-                </div>
-                <p className="mt-2 text-sm text-muted">{item.institution}</p>
+            {education.map((item, i) => (
+              <li key={`${item.degree}-${item.institution}`}>
+                <Reveal delay={i * 80}>
+                  <TiltCard
+                    className="rounded-2xl border border-border bg-surface p-6"
+                    max={4}
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="font-semibold">
+                        {item.degree} {item.field}
+                      </h3>
+                      <span className="text-sm text-muted">{item.years}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted">{item.institution}</p>
+                  </TiltCard>
+                </Reveal>
               </li>
             ))}
           </ul>
@@ -39,11 +45,13 @@ export default function ResumePage() {
         <section>
           <h2 className="text-2xl font-bold">سوابق اجرایی و علمی</h2>
           <ul className="mt-6 space-y-4">
-            {positions.map((item) => (
-              <li
-                key={`${item.title}-${item.years}`}
-                className="rounded-2xl border border-border bg-surface p-6"
-              >
+            {positions.map((item, i) => (
+              <li key={`${item.title}-${item.years}`}>
+                <Reveal delay={i * 80}>
+                <TiltCard
+                  className="rounded-2xl border border-border bg-surface p-6"
+                  max={4}
+                >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="font-semibold">{item.title}</h3>
                   <span className="text-sm text-muted">{item.years}</span>
@@ -60,6 +68,8 @@ export default function ResumePage() {
                     </li>
                   ))}
                 </ul>
+                </TiltCard>
+                </Reveal>
               </li>
             ))}
           </ul>
@@ -68,15 +78,23 @@ export default function ResumePage() {
         <section>
           <h2 className="text-2xl font-bold">دروس تدریس‌شده</h2>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {courses.map((item) => (
-              <li
-                key={`${item.name}-${item.level}`}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-5 py-4"
-              >
-                <span className="font-medium">{item.name}</span>
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent">
-                  {item.level}
-                </span>
+            {courses.map((item, i) => (
+              <li key={`${item.name}-${item.level}`}>
+                <Reveal delay={i * 70}>
+                  <TiltCard
+                    className="rounded-xl border border-border bg-surface px-5 py-4"
+                    max={5}
+                  >
+                    {/* چیدمان افقی باید داخل TiltCard باشد، چون خود کارت
+                        فقط یک فرزند (لایه شناور) دارد. */}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium">{item.name}</span>
+                      <span className="rounded-full bg-accent-soft px-3 py-1 text-xs text-accent">
+                        {item.level}
+                      </span>
+                    </div>
+                  </TiltCard>
+                </Reveal>
               </li>
             ))}
           </ul>

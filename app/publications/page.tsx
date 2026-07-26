@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { Reveal } from "@/components/scene/Reveal";
+import { TiltCard } from "@/components/scene/TiltCard";
 import { publications, researchInterests } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -24,27 +26,31 @@ export default function PublicationsPage() {
             </p>
           )}
           <ul className="mt-6 space-y-4">
-            {publications.map((item) => (
-              <li
-                key={`${item.title}-${item.year}`}
-                className="rounded-2xl border border-border bg-surface p-6"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-semibold">{item.title}</h3>
-                  <span className="text-sm text-muted">{item.year}</span>
-                </div>
-                <p className="mt-2 text-sm text-muted">{item.authors}</p>
-                <p className="mt-1 text-sm text-muted">{item.venue}</p>
-                {item.href && (
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-block text-sm text-accent hover:underline"
+            {publications.map((item, i) => (
+              <li key={`${item.title}-${item.year}`}>
+                <Reveal delay={i * 80}>
+                  <TiltCard
+                    className="rounded-2xl border border-border bg-surface p-6"
+                    max={4}
                   >
-                    مشاهده متن کامل
-                  </a>
-                )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="font-semibold">{item.title}</h3>
+                      <span className="text-sm text-muted">{item.year}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted">{item.authors}</p>
+                    <p className="mt-1 text-sm text-muted">{item.venue}</p>
+                    {item.href && (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-block text-sm text-accent hover:underline"
+                      >
+                        مشاهده متن کامل
+                      </a>
+                    )}
+                  </TiltCard>
+                </Reveal>
               </li>
             ))}
           </ul>
