@@ -1,8 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
+import { HeroScene } from "@/components/scene/HeroScene";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
-import { UrmiaScene } from "@/components/scene/UrmiaScene";
 import {
   activities,
   profile,
@@ -17,39 +18,46 @@ export default function HomePage() {
       {/* پس‌زمینه تیره روی خود سکشن: وقتی صحنه می‌چرخد، گوشه‌ها نباید
           پس‌زمینه روشن صفحه را لو بدهند. */}
       <section
-        className="scene relative isolate -mt-[var(--header-h)] min-h-[calc(88vh+var(--header-h))] overflow-hidden border-b border-border"
+        className="scene relative isolate -mt-[var(--header-h)] min-h-[calc(100vh+var(--header-h))] overflow-hidden"
         style={{ background: "var(--hero-bg-1)" }}
       >
-        <UrmiaScene />
+        <HeroScene />
 
-        <div className="relative mx-auto flex min-h-[calc(88vh+var(--header-h))] max-w-5xl items-center px-6 pb-24 pt-[calc(var(--header-h)+3rem)]">
-          <div className="max-w-xl">
+        <div className="relative mx-auto flex min-h-[calc(100vh+var(--header-h))] max-w-6xl items-center gap-12 px-6 pb-28 pt-[calc(var(--header-h)+3rem)]">
+          <div className="max-w-2xl">
             <p
-              className="text-sm font-semibold tracking-wide"
+              className="text-xs font-bold uppercase tracking-[0.22em]"
               style={{ color: "var(--hero-accent)" }}
             >
               {profile.title}
             </p>
             <h1
-              className="mt-3 text-4xl font-bold leading-tight sm:text-6xl"
+              className="mt-5 text-5xl font-black leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl"
               style={{ color: "var(--hero-fg)" }}
             >
               {profile.name}
             </h1>
-            <p className="mt-3 text-lg" style={{ color: "var(--hero-muted)" }}>
-              {profile.role} — {profile.organization}
+            <p
+              className="mt-5 text-xl font-medium sm:text-2xl"
+              style={{ color: "var(--hero-accent)" }}
+            >
+              {profile.role}
+              <span style={{ color: "var(--hero-muted)" }}>
+                {" "}
+                — {profile.organization}
+              </span>
             </p>
             <p
-              className="mt-6 text-lg leading-9"
+              className="mt-7 max-w-xl text-lg leading-9"
               style={{ color: "var(--hero-muted)" }}
             >
               {profile.tagline}
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap gap-3">
               <Link
                 href="/resume"
-                className="rounded-xl px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+                className="rounded-xl px-6 py-3.5 text-base font-bold transition-transform hover:-translate-y-0.5"
                 style={{
                   background: "var(--hero-accent)",
                   color: "var(--hero-bg-1)",
@@ -59,7 +67,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/contact"
-                className="rounded-xl border px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+                className="rounded-xl border px-6 py-3.5 text-base font-bold transition-transform hover:-translate-y-0.5"
                 style={{
                   borderColor: "var(--hero-line)",
                   color: "var(--hero-fg)",
@@ -71,13 +79,32 @@ export default function HomePage() {
 
             <ScholarlyProfiles className="mt-10" tone="hero" />
           </div>
+
+          {/* پرتره فقط روی صفحه بزرگ؛ روی موبایل جای متن را می‌گیرد */}
+          <div className="relative hidden shrink-0 lg:block">
+            <div
+              aria-hidden
+              className="absolute -inset-4 rounded-[2rem] blur-2xl"
+              style={{ background: "rgba(111,211,194,0.16)" }}
+            />
+            <Image
+              src={profile.photo}
+              alt={`پرتره ${profile.name}`}
+              width={460}
+              height={672}
+              priority
+              sizes="(min-width: 1024px) 300px, 0px"
+              className="relative w-[300px] rounded-[1.6rem] border object-cover"
+              style={{ borderColor: "var(--hero-line)" }}
+            />
+          </div>
         </div>
 
         <div
           aria-hidden
-          className="anim-nudge absolute inset-x-0 bottom-6 flex justify-center"
+          className="anim-nudge absolute inset-x-0 bottom-8 flex justify-center"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
             <path
               d="M6 9l6 6 6-6"
               stroke="var(--hero-accent)"

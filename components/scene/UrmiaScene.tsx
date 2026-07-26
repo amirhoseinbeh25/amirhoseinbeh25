@@ -343,7 +343,7 @@ function useSceneParallax(
   }, [stage, world, strength]);
 }
 
-export function UrmiaScene() {
+export function UrmiaScene({ scrim = true }: { scrim?: boolean }) {
   const stage = useRef<HTMLDivElement>(null);
   const world = useRef<HTMLDivElement>(null);
 
@@ -459,21 +459,23 @@ export function UrmiaScene() {
         </div>
       </div>
 
-      {/* محو شدن صحنه به سمت متن تا خوانایی حفظ شود */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to left, var(--hero-bg-1) 4%, rgba(6,20,15,0.86) 34%, rgba(6,20,15,0.35) 62%, transparent 100%)",
-        }}
-      />
-
-      {/* روی صفحه باریک، متن تمام عرض را می‌گیرد و صحنه پشت آن می‌افتد؛
-          این پرده صحنه را عقب می‌برد تا متن خوانا بماند. */}
-      <div
-        className="absolute inset-0 md:hidden"
-        style={{ background: "rgba(6,20,15,0.72)" }}
-      />
+      {/* وقتی این صحنه زیر صحنه WebGL می‌نشیند، پرده را لایه بالاتر می‌گذارد
+          تا دو بار روی هم نیفتد. */}
+      {scrim && (
+        <>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to left, var(--hero-bg-1) 4%, rgba(6,20,15,0.86) 34%, rgba(6,20,15,0.35) 62%, transparent 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-0 md:hidden"
+            style={{ background: "rgba(6,20,15,0.72)" }}
+          />
+        </>
+      )}
     </div>
   );
 }

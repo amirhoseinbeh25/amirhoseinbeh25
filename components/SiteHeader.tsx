@@ -8,7 +8,24 @@ import { navigation, profile } from "@/lib/site";
 
 function subscribeToScroll(onChange: () => void) {
   window.addEventListener("scroll", onChange, { passive: true });
-  return () => window.removeEventListener("scroll", onChange);
+  window.addEventListener("resize", onChange, { passive: true });
+  return () => {
+    window.removeEventListener("scroll", onChange);
+    window.removeEventListener("resize", onChange);
+  };
+}
+
+/**
+ * هدر تا وقتی نوار تیره صحنه زیرش هست شفاف می‌ماند و تنها بعد از رد شدن از
+ * آن پس‌زمینه می‌گیرد. اگر به‌جایش آستانه ثابت چند پیکسلی می‌گذاشتیم، یک
+ * نوار روشنِ نیمه‌شفاف وسط صحنه تیره می‌نشست و کدر دیده می‌شد.
+ */
+function pastScene() {
+  const scene = document.querySelector(".scene");
+  if (!scene) return window.scrollY > 24;
+  const header = document.querySelector("header");
+  const headerH = header ? header.getBoundingClientRect().height : 72;
+  return scene.getBoundingClientRect().bottom <= headerH;
 }
 
 export function SiteHeader() {
@@ -17,11 +34,7 @@ export function SiteHeader() {
 
   // موقعیت اسکرول یک منبع بیرون از React است، پس با useSyncExternalStore
   // خوانده می‌شود؛ اسنپ‌شات سمت سرور همیشه «بالای صفحه» است.
-  const scrolled = useSyncExternalStore(
-    subscribeToScroll,
-    () => window.scrollY > 24,
-    () => false,
-  );
+  const scrolled = useSyncExternalStore(subscribeToScroll, pastScene, () => false);
 
   // هر صفحه با یک نوار تیره صحنه شروع می‌شود، پس هدر تا قبل از اسکرول
   // شفاف می‌ماند و صحنه را نمی‌بُرد.
