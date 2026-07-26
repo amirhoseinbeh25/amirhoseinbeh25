@@ -23,7 +23,27 @@ export default function HomePage() {
       >
         <HeroScene />
 
-        <div className="relative mx-auto flex min-h-[calc(100vh+var(--header-h))] max-w-6xl items-center gap-12 px-6 pb-28 pt-[calc(var(--header-h)+3rem)]">
+        <div className="relative mx-auto flex min-h-[calc(100vh+var(--header-h))] max-w-6xl flex-col items-start gap-8 px-6 pb-28 pt-[calc(var(--header-h)+3rem)] lg:flex-row lg:items-center lg:gap-12">
+          {/* روی صفحه باریک پرتره کوچک و بالای متن می‌نشیند، روی صفحه بزرگ
+              بزرگ و کنار متن. یک تصویر است، نه دو نسخه. */}
+          <div className="relative order-first shrink-0 lg:order-none">
+            <div
+              aria-hidden
+              className="absolute -inset-3 rounded-[2rem] blur-2xl lg:-inset-4"
+              style={{ background: "rgba(111,211,194,0.16)" }}
+            />
+            <Image
+              src={profile.photo}
+              alt={`پرتره ${profile.name}`}
+              width={460}
+              height={672}
+              priority
+              sizes="(min-width: 1024px) 300px, 132px"
+              className="relative w-[108px] rounded-2xl border object-cover sm:w-[132px] lg:w-[300px] lg:rounded-[1.6rem]"
+              style={{ borderColor: "var(--hero-line)" }}
+            />
+          </div>
+
           <div className="max-w-2xl">
             <p
               className="text-xs font-bold uppercase tracking-[0.22em]"
@@ -82,25 +102,6 @@ export default function HomePage() {
             </div>
 
             <ScholarlyProfiles className="mt-10" tone="hero" />
-          </div>
-
-          {/* پرتره فقط روی صفحه بزرگ؛ روی موبایل جای متن را می‌گیرد */}
-          <div className="relative hidden shrink-0 lg:block">
-            <div
-              aria-hidden
-              className="absolute -inset-4 rounded-[2rem] blur-2xl"
-              style={{ background: "rgba(111,211,194,0.16)" }}
-            />
-            <Image
-              src={profile.photo}
-              alt={`پرتره ${profile.name}`}
-              width={460}
-              height={672}
-              priority
-              sizes="(min-width: 1024px) 300px, 0px"
-              className="relative w-[300px] rounded-[1.6rem] border object-cover"
-              style={{ borderColor: "var(--hero-line)" }}
-            />
           </div>
         </div>
 
