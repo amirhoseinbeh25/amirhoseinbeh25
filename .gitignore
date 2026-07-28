@@ -45,3 +45,6 @@ next-env.d.ts
 # پایگاه داده و فایل‌های بارگذاری‌شده
 /data
 /public/uploads
+
+# کلاینت Prisma تولید می‌شود، نه نوشته
+/lib/generated
