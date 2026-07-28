@@ -35,13 +35,41 @@ const MIME = {
   ".mp4": "video/mp4",
 };
 
-/** مسیر سایت → نام فایل آفلاین */
+/**
+ * مسیر سایت → نام فایل آفلاین.
+ *
+ * ساختار تودرتو صاف می‌شود تا همه صفحات کنار هم در یک پوشه بنشینند و باز
+ * کردنشان با دوبار کلیک ساده بماند.
+ */
 const PAGES = [
   { route: "/", source: "index.html", file: "index.html" },
+  { route: "/biography", source: "biography.html", file: "biography.html" },
+  {
+    route: "/biography/at-a-glance",
+    source: "biography/at-a-glance.html",
+    file: "biography-at-a-glance.html",
+  },
+  {
+    route: "/biography/my-account",
+    source: "biography/my-account.html",
+    file: "biography-my-account.html",
+  },
+  {
+    route: "/biography/others",
+    source: "biography/others.html",
+    file: "biography-others.html",
+  },
   { route: "/resume", source: "resume.html", file: "resume.html" },
   { route: "/publications", source: "publications.html", file: "publications.html" },
   { route: "/activities", source: "activities.html", file: "activities.html" },
+  { route: "/notes", source: "notes.html", file: "notes.html" },
+  { route: "/news", source: "news.html", file: "news.html" },
+  { route: "/interviews", source: "interviews.html", file: "interviews.html" },
+  { route: "/media", source: "media.html", file: "media.html" },
+  { route: "/messages", source: "messages.html", file: "messages.html" },
   { route: "/contact", source: "contact.html", file: "contact.html" },
+  { route: "/feedback", source: "feedback.html", file: "feedback.html" },
+  { route: "/search", source: "search.html", file: "search.html" },
 ];
 
 const asset = (url) => join(OUT, url.split("?")[0].replace(/^\//, ""));
@@ -168,6 +196,42 @@ const behaviourScript = `<script>
   // در سایت، play() را کامپوننت React صدا می‌زند؛ اینجا باید مستقیم باشد
   var video = document.querySelector("video");
   if (video) video.play().catch(function () {});
+
+  // منو و جستجو در سایت کامپوننت React‌اند و اینجا اجرا نمی‌شوند. بدون
+  // جایگزین، زیر ۱۰۲۴ پیکسل هیچ راه ناوبری نمی‌ماند، پس منو از روی همان
+  // پیوندهای فوتر ساخته می‌شود.
+  var trigger = document.querySelector('button[aria-label="منوی کامل سایت"]');
+  var footerNav = document.querySelector("footer nav");
+  if (trigger && footerNav) {
+    var overlay = document.createElement("div");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", "منوی سایت");
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:40;overflow-y:auto;padding:1.5rem;display:none;background:var(--background)";
+
+    var close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "بستن";
+    close.style.cssText =
+      "border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;font:inherit;font-size:.875rem;background:transparent;color:inherit;cursor:pointer";
+
+    var links = footerNav.cloneNode(true);
+    links.style.cssText = "margin-top:2rem";
+
+    overlay.appendChild(close);
+    overlay.appendChild(links);
+    document.body.appendChild(overlay);
+
+    var show = function (on) {
+      overlay.style.display = on ? "block" : "none";
+      document.body.style.overflow = on ? "hidden" : "";
+    };
+    trigger.addEventListener("click", function () { show(true); });
+    close.addEventListener("click", function () { show(false); });
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") show(false);
+    });
+  }
 
   var world = document.querySelector(".scene-world");
   var stage = document.querySelector(".scene-stage");

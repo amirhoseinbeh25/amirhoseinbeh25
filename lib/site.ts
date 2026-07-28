@@ -144,10 +144,107 @@ export const researchInterests = [
   "سازه‌های کوچک‌مقیاس",
 ];
 
+/** پیوندهای اصلی نوار بالای صفحه. بقیه صفحات از منوی کامل باز می‌شوند. */
 export const navigation = [
   { href: "/", label: "خانه" },
+  { href: "/biography", label: "زندگی‌نامه" },
   { href: "/resume", label: "رزومه" },
   { href: "/publications", label: "پژوهش‌ها" },
-  { href: "/activities", label: "فعالیت‌ها" },
+  { href: "/news", label: "اخبار" },
   { href: "/contact", label: "تماس" },
 ];
+
+/** منوی کامل: همه صفحات، گروه‌بندی‌شده. */
+export const menuSections = [
+  {
+    title: "معرفی",
+    items: [
+      { href: "/", label: "صفحه اول" },
+      { href: "/biography", label: "زندگی‌نامه" },
+      { href: "/biography/at-a-glance", label: "زندگی من در یک نگاه" },
+      { href: "/biography/my-account", label: "روایت من" },
+      { href: "/biography/others", label: "روایت دیگران" },
+    ],
+  },
+  {
+    title: "کارنامه",
+    items: [
+      { href: "/resume", label: "رزومه" },
+      { href: "/publications", label: "پژوهش‌ها" },
+      { href: "/activities", label: "فعالیت‌ها" },
+      { href: "/notes", label: "یادداشت‌ها" },
+    ],
+  },
+  {
+    title: "رسانه",
+    items: [
+      { href: "/news", label: "اخبار" },
+      { href: "/interviews", label: "گفت‌وگو" },
+      { href: "/media", label: "چندرسانه‌ای" },
+      { href: "/messages", label: "پیام‌ها" },
+    ],
+  },
+  {
+    title: "ارتباط",
+    items: [
+      { href: "/contact", label: "تماس با ما" },
+      { href: "/feedback", label: "حرف شما" },
+      { href: "/search", label: "جستجو" },
+    ],
+  },
+];
+
+/* ---------------------------------------------------------------------
+   محتوای صفحات معرفی و رسانه.
+
+   همه فهرست‌ها عمداً خالی‌اند. نوشتن زندگی‌نامه، خبر، گفت‌وگو یا یادداشت
+   به‌جای یک شخص واقعی یعنی ساختن ادعا به نام او؛ هر صفحه ساختار و حالت
+   خالی خودش را دارد و به‌محض رسیدن محتوا پر می‌شود.
+   --------------------------------------------------------------------- */
+
+/** یک رویداد در خط زمانی «زندگی من در یک نگاه». */
+export type TimelineEntry = {
+  year: string;
+  title: string;
+  description?: string;
+};
+
+export const lifeTimeline: TimelineEntry[] = [];
+
+/** بند به بند «روایت من» — به قلم خود ایشان. */
+export const myAccount: string[] = [];
+
+/** «روایت دیگران» — آنچه دیگران درباره ایشان نوشته یا گفته‌اند. */
+export type Testimonial = {
+  quote: string;
+  author: string;
+  role?: string;
+  source?: string;
+};
+
+export const testimonials: Testimonial[] = [];
+
+/** آیتم مشترک فهرست‌های خبری، یادداشت، گفت‌وگو و پیام. */
+export type Article = {
+  title: string;
+  date: string;
+  summary?: string;
+  href?: string;
+  source?: string;
+};
+
+export const news: Article[] = [];
+export const notes: Article[] = [];
+export const interviews: Article[] = [];
+export const messages: Article[] = [];
+
+/** گالری تصویر و ویدئو. */
+export type MediaItem = {
+  kind: "image" | "video";
+  title: string;
+  src: string;
+  poster?: string;
+  date?: string;
+};
+
+export const mediaItems: MediaItem[] = [];

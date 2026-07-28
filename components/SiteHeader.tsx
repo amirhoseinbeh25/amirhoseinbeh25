@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
+import { SiteMenu } from "@/components/SiteMenu";
 import { navigation, profile } from "@/lib/site";
 
 function subscribeToScroll(onChange: () => void) {
@@ -50,74 +51,72 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header
-      className={clsx(
-        "sticky top-0 z-20 transition-colors duration-300",
-        overHero
-          ? "border-b border-transparent bg-transparent"
-          : "border-b border-border bg-background/85 backdrop-blur",
-      )}
-    >
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" className="leading-tight" onClick={() => setOpen(false)}>
-          <span
-            className={clsx(
-              "block text-base font-bold transition-colors",
-              overHero && "text-[color:var(--hero-fg,#eaf5f1)]",
-            )}
-          >
-            {profile.name}
-          </span>
-          <span
-            className={clsx(
-              "block text-xs transition-colors",
-              overHero ? "text-[color:var(--hero-muted,#a9c4bd)]" : "text-muted",
-            )}
-          >
-            {profile.role}
-          </span>
-        </Link>
+    <>
+      <header
+        className={clsx(
+          "sticky top-0 z-20 transition-colors duration-300",
+          overHero
+            ? "border-b border-transparent bg-transparent"
+            : "border-b border-border bg-background/85 backdrop-blur",
+        )}
+      >
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
+          <Link href="/" className="leading-tight" onClick={() => setOpen(false)}>
+            <span
+              className={clsx(
+                "block text-base font-bold transition-colors",
+                overHero && "text-[color:var(--hero-fg,#eaf5f1)]",
+              )}
+            >
+              {profile.name}
+            </span>
+            <span
+              className={clsx(
+                "block text-xs transition-colors",
+                overHero ? "text-[color:var(--hero-muted,#a9c4bd)]" : "text-muted",
+              )}
+            >
+              {profile.role}
+            </span>
+          </Link>
 
-        <nav className="hidden gap-1 md:flex">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.href}
-              {...item}
-              pathname={pathname}
-              overHero={overHero}
-            />
-          ))}
-        </nav>
+          <div className="flex items-center gap-2">
+            <nav className="hidden gap-1 lg:flex">
+              {navigation.map((item) => (
+                <NavLink
+                  key={item.href}
+                  {...item}
+                  pathname={pathname}
+                  overHero={overHero}
+                />
+              ))}
+            </nav>
 
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-label="منوی ناوبری"
-          className={clsx(
-            "rounded-lg border px-3 py-2 text-sm transition-colors md:hidden",
-            overHero
-              ? "border-[color:var(--hero-line,#2e4f49)] text-[color:var(--hero-fg,#eaf5f1)]"
-              : "border-border",
-          )}
-        >
-          {open ? "بستن" : "منو"}
-        </button>
-      </div>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-expanded={open}
+              aria-haspopup="dialog"
+              aria-label="منوی کامل سایت"
+              className={clsx(
+                "rounded-lg border px-3 py-2 text-sm transition-colors",
+                overHero
+                  ? "border-[color:var(--hero-line,#2e4f49)] text-[color:var(--hero-fg,#eaf5f1)]"
+                  : "border-border hover:border-accent hover:text-accent",
+              )}
+            >
+              منو
+            </button>
+          </div>
+        </div>
 
-      {open && (
-        <nav className="flex flex-col gap-1 border-t border-border px-6 py-3 md:hidden">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.href}
-              {...item}
-              pathname={pathname}
-              onClick={() => setOpen(false)}
-            />
-          ))}
-        </nav>
-      )}
-    </header>
+      </header>
+
+      {/* منو بیرون از هدر رندر می‌شود: هدر backdrop-filter دارد و آن برای
+          فرزندان position:fixed یک containing block می‌سازد، که پوشش
+          تمام‌صفحه را به ارتفاع خود هدر محدود می‌کرد. */}
+      {open && <SiteMenu onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
