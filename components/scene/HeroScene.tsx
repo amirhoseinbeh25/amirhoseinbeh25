@@ -1,47 +1,46 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { UrmiaScene } from "@/components/scene/UrmiaScene";
+import { HeroVideo } from "@/components/scene/HeroVideo";
 import { UrmiaGL } from "@/components/scene/UrmiaGL";
 
 /**
- * صحنه CSS بلافاصله دیده می‌شود و صحنه WebGL وقتی آماده شد روی آن محو
- * می‌شود. اگر WebGL در دسترس نباشد یا three.js بارگذاری نشود، همان صحنه
- * CSS می‌ماند و کاربر چیزی از دست نمی‌دهد.
+ * پس‌زمینه هیرو در سه لایه:
+ *
+ *  ۱. ویدئوی واقعی پل میانگذر روی دریاچه ارومیه.
+ *  ۲. لایه فنی WebGL — چرخ‌دنده و بلورهای نمک — روی آن. دریاچه و پلِ
+ *     مدل‌شده این‌جا خاموش‌اند، چون نسخه واقعی‌شان پشت سر همین لایه است.
+ *  ۳. پرده تیره، تا متن روی آسمان روشن غروب هم خوانا بماند.
+ *
+ * اگر WebGL نباشد لایه دوم می‌افتد و ویدئو می‌ماند؛ اگر ویدئو هم پخش نشود
+ * فریم پوستر می‌ماند.
  */
 export function HeroScene() {
-  const [glReady, setGlReady] = useState(false);
-  const handleReady = useCallback(() => setGlReady(true), []);
-
   return (
     <>
-      <div
-        className="absolute inset-0 transition-opacity duration-1000"
-        style={{ opacity: glReady ? 0 : 1 }}
-      >
-        <UrmiaScene scrim={false} />
+      <HeroVideo />
+
+      <div className="absolute inset-0 opacity-45">
+        <UrmiaGL layers="overlay" />
       </div>
 
-      <div
-        className="absolute inset-0 transition-opacity duration-1000"
-        style={{ opacity: glReady ? 1 : 0 }}
-      >
-        <UrmiaGL onReady={handleReady} />
-      </div>
-
-      {/* پرده خوانایی، بالای هر دو صحنه */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(to left, var(--hero-bg-1) 2%, rgba(6,20,15,0.82) 30%, rgba(6,20,15,0.3) 60%, transparent 100%)",
+            "linear-gradient(to left, var(--hero-bg-1) 0%, rgba(6,20,15,0.88) 28%, rgba(6,20,15,0.45) 58%, rgba(6,20,15,0.12) 100%)",
         }}
+      />
+      {/* بستن رنگ گرم غروب به پالت سبز سایت */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "rgba(6,32,26,0.12)" }}
       />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 md:hidden"
-        style={{ background: "rgba(6,20,15,0.7)" }}
+        style={{ background: "rgba(6,20,15,0.55)" }}
       />
     </>
   );

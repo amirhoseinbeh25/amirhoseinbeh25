@@ -12,7 +12,14 @@ import { useEffect, useRef, useState } from "react";
  * آن می‌نشیند که three.js بارگذاری شود و مرورگر WebGL داشته باشد. three.js با
  * import پویا می‌آید تا از باندل اولیه بیرون بماند.
  */
-export function UrmiaGL({ onReady }: { onReady?: () => void }) {
+export function UrmiaGL({
+  onReady,
+  layers = "full",
+}: {
+  onReady?: () => void;
+  /** «overlay» وقتی ویدئوی واقعی پشت صحنه است و اجسام تکراری باید خاموش شوند */
+  layers?: "full" | "overlay";
+}) {
   const mount = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -32,7 +39,7 @@ export function UrmiaGL({ onReady }: { onReady?: () => void }) {
         ]);
         if (disposed) return;
 
-        scene = createUrmiaScene(THREE, el, { onReady });
+        scene = createUrmiaScene(THREE, el, { onReady, layers });
         if (!scene) setFailed(true);
       } catch {
         if (!disposed) setFailed(true);
@@ -43,7 +50,7 @@ export function UrmiaGL({ onReady }: { onReady?: () => void }) {
       disposed = true;
       scene?.dispose();
     };
-  }, [onReady]);
+  }, [onReady, layers]);
 
   if (failed) return null;
 

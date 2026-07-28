@@ -14,7 +14,14 @@
  *   node scripts/build-preview.mjs <پوشه مقصد>
  *   node scripts/build-preview.mjs <فایل> --artifact   (فقط صفحه اصلی، بدون تگ‌های سند)
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  copyFileSync,
+  readdirSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
 
 const OUT = "out";
@@ -24,6 +31,8 @@ const MIME = {
   ".jpg": "image/jpeg",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".webm": "video/webm",
+  ".mp4": "video/mp4",
 };
 
 /** مسیر سایت → نام فایل آفلاین */
@@ -82,6 +91,19 @@ function inlineBody(source, { standalone }) {
   }
 
   if (standalone) {
+    // ویدئو در نسخه پوشه‌ای فایل کنار صفحه می‌ماند: درون‌خطی‌کردنش صفحه را
+    // چند مگابایت سنگین می‌کرد بی‌آنکه چیزی به دست بیاید.
+    body = body.replace(/(src|poster)="\/video\//g, '$1="video/');
+  } else {
+    // نسخه تک‌فایلی: فقط WebM می‌ماند تا حجم دو برابر نشود
+    body = body.replace(/<source\b[^>]*type="video\/mp4"[^>]*>/g, "");
+    for (const url of new Set(body.match(/\/video\/[\w.-]+/g) ?? [])) {
+      const uri = dataUri(url);
+      if (uri) body = body.split(url).join(uri);
+    }
+  }
+
+  if (standalone) {
     // پیوندهای داخلی به فایل همسایه اشاره می‌کنند تا سایت آفلاین قابل گشتن باشد
     body = body.replace(/href="(\/[^"]*)"/g, (m, route) => {
       const page = PAGES.find((p) => p.route === route);
@@ -119,12 +141,15 @@ const glScript = `<script>
   host.style.cssText = "position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1s";
   stage.insertBefore(host, stage.firstChild);
   var cssScene = stage.querySelector(".scene-stage") && stage.querySelector(".scene-stage").parentElement;
+  // مثل سایت: ویدئوی واقعی پشت صحنه است، پس اجسام تکراری خاموش می‌مانند
   var scene = createUrmiaScene(THREE, host, {
+    layers: "overlay",
     onReady: function () {
       host.style.opacity = "1";
       if (cssScene) cssScene.style.opacity = "0";
     }
   });
+  host.style.opacity = "0.45";
   if (!scene) host.remove();
 })();
 </script>`;
@@ -139,6 +164,10 @@ const behaviourScript = `<script>
     document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("reveal-in"); });
     return;
   }
+
+  // در سایت، play() را کامپوننت React صدا می‌زند؛ اینجا باید مستقیم باشد
+  var video = document.querySelector("video");
+  if (video) video.play().catch(function () {});
 
   var world = document.querySelector(".scene-world");
   var stage = document.querySelector(".scene-stage");
@@ -229,6 +258,12 @@ if (process.argv.includes("--artifact")) {
   console.log(`${target}  ${(html.length / 1024 / 1024).toFixed(2)} MB`);
 } else {
   mkdirSync(target, { recursive: true });
+  if (existsSync(join(OUT, "video"))) {
+    mkdirSync(join(target, "video"), { recursive: true });
+    for (const file of readdirSync(join(OUT, "video"))) {
+      copyFileSync(join(OUT, "video", file), join(target, "video", file));
+    }
+  }
   for (const page of PAGES) {
     if (!existsSync(join(OUT, page.source))) {
       console.warn(`skipped ${page.source} (not in ${OUT})`);
