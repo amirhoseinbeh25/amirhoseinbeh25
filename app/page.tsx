@@ -39,15 +39,15 @@ export default function HomePage() {
               height={672}
               priority
               sizes="(min-width: 1024px) 300px, 132px"
-              className="relative w-[108px] rounded-2xl border object-cover sm:w-[132px] lg:w-[300px] lg:rounded-[1.6rem]"
+              className="hero-portrait relative w-[108px] rounded-2xl border object-cover sm:w-[132px] lg:w-[300px] lg:rounded-[1.6rem]"
               style={{ borderColor: "var(--hero-line)" }}
             />
           </div>
 
           <div className="max-w-2xl">
             <p
-              className="text-xs font-bold uppercase tracking-[0.22em]"
-              style={{ color: "var(--hero-accent)" }}
+              className="hero-rise text-xs font-bold uppercase tracking-[0.22em]"
+              style={{ color: "var(--hero-accent)", animationDelay: "60ms" }}
             >
               {profile.title}
             </p>
@@ -55,15 +55,17 @@ export default function HomePage() {
               className="mt-5 text-[2.6rem] font-black leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl"
               style={{ color: "var(--hero-fg)" }}
             >
-              {profile.nameLines.map((line) => (
-                <span key={line} className="block text-balance">
-                  {line}
+              {profile.nameLines.map((line, i) => (
+                <span key={line} className="hero-line">
+                  <span style={{ animationDelay: `${140 + i * 110}ms` }}>
+                    {line}
+                  </span>
                 </span>
               ))}
             </h1>
             <p
-              className="mt-5 text-xl font-medium sm:text-2xl"
-              style={{ color: "var(--hero-accent)" }}
+              className="hero-rise mt-5 text-xl font-medium sm:text-2xl"
+              style={{ color: "var(--hero-accent)", animationDelay: "460ms" }}
             >
               {profile.role}
               <span style={{ color: "var(--hero-muted)" }}>
@@ -72,13 +74,13 @@ export default function HomePage() {
               </span>
             </p>
             <p
-              className="mt-7 max-w-xl text-lg leading-9"
-              style={{ color: "var(--hero-muted)" }}
+              className="hero-rise mt-7 max-w-xl text-lg leading-9"
+              style={{ color: "var(--hero-muted)", animationDelay: "560ms" }}
             >
               {profile.tagline}
             </p>
 
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="hero-rise mt-10 flex flex-wrap gap-3" style={{ animationDelay: "660ms" }}>
               <Link
                 href="/resume"
                 className="rounded-xl px-6 py-3.5 text-base font-bold transition-transform hover:-translate-y-0.5"
@@ -101,7 +103,9 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <ScholarlyProfiles className="mt-10" tone="hero" />
+            <div className="hero-rise" style={{ animationDelay: "760ms" }}>
+              <ScholarlyProfiles className="mt-10" tone="hero" />
+            </div>
           </div>
         </div>
 
