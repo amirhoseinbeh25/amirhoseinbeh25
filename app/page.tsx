@@ -4,15 +4,20 @@ import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
 import { HeroScene } from "@/components/scene/HeroScene";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
-import {
-  activities,
-  profile,
-  publications,
-  researchInterests,
-  stats,
-} from "@/lib/site";
+import { getAllContent, type HeroSettings } from "@/lib/content";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const content = await getAllContent();
+  const { profile, stats, researchInterests, publications, activities, hero } =
+    content as {
+      profile: import("@/lib/site").Profile;
+      stats: { value: string; label: string }[];
+      researchInterests: string[];
+      publications: { title: string; venue: string; year: string }[];
+      activities: { title: string; year: string; description: string }[];
+      hero: HeroSettings;
+    };
+
   return (
     <>
       {/* پس‌زمینه تیره روی خود سکشن: وقتی صحنه می‌چرخد، گوشه‌ها نباید
@@ -21,7 +26,7 @@ export default function HomePage() {
         className="scene relative isolate -mt-[var(--header-h)] min-h-[calc(100vh+var(--header-h))] overflow-hidden"
         style={{ background: "var(--hero-bg-1)" }}
       >
-        <HeroScene />
+        <HeroScene hero={hero} />
 
         <div className="relative mx-auto flex min-h-[calc(100vh+var(--header-h))] max-w-6xl flex-col items-start gap-8 px-6 pb-28 pt-[calc(var(--header-h)+3rem)] lg:flex-row lg:items-center lg:gap-12">
           {/* روی صفحه باریک پرتره کوچک و بالای متن می‌نشیند، روی صفحه بزرگ

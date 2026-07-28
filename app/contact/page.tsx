@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { PageHeader } from "@/components/PageHeader";
 import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
-import { contact } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "تماس",
   description: "راه‌های ارتباطی، محل دفتر و ساعات ملاقات",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const content = await getAllContent();
+  const { contact } = content as {
+    contact: import("@/lib/site").Contact;
+  };
+
   return (
     <>
       <PageHeader

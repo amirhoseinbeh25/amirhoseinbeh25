@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { PageHeader } from "@/components/PageHeader";
 import { ScholarlyProfiles } from "@/components/ScholarlyProfiles";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
-import { publications, researchInterests } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "پژوهش‌ها",
   description: "مقالات، کتاب‌ها و زمینه‌های پژوهشی",
 };
 
-export default function PublicationsPage() {
+export default async function PublicationsPage() {
+  const content = await getAllContent();
+  const { publications, researchInterests } = content as {
+    publications: { title: string; venue: string; year: string; authors: string; href: string }[];
+    researchInterests: string[];
+  };
+
   return (
     <>
       <PageHeader

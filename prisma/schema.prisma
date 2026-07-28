@@ -1,0 +1,89 @@
+// پایگاه داده سایت: محتوا، کاربر مدیر، نشست‌ها، فایل‌ها و آمار بازدید.
+// SQLite انتخاب شده چون سایت روی یک سرور اجرا می‌شود و به سرور پایگاه داده
+// جداگانه نیازی نیست؛ پشتیبان‌گیری هم کپی یک فایل است.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+  sessions     Session[]
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  // فقط درهم‌سازی توکن ذخیره می‌شود؛ خود توکن تنها در کوکی مرورگر است، تا
+  // دسترسی خواندنی به پایگاه داده به معنی جعل نشست نباشد.
+  tokenHash String    @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  userAgent String?
+  ip        String?
+
+  @@index([userId])
+}
+
+/// محتوای سایت. هر بخش یک ردیف با کلید یکتا و مقدار JSON است، تا افزودن
+/// بخش تازه نیازی به مهاجرت پایگاه داده نداشته باشد.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  path      String   @unique
+  mimeType  String
+  bytes     Int
+  width     Int?
+  height    Int?
+  title     String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// یک بازدید از صفحه. نشانی IP برای نمایش در پنل نگه داشته می‌شود؛
+/// `ipTruncated` نسخه کوتاه‌شده است تا اگر نگهداری IP کامل لازم نبود،
+/// همان کافی باشد.
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  referrer    String?
+  createdAt   DateTime @default(now())
+
+  ip          String?
+  ipTruncated String?
+  country     String?
+  countryCode String?
+  city        String?
+
+  browser     String?
+  os          String?
+  deviceType  String?
+  deviceModel String?
+  userAgent   String?
+
+  /// شناسه ناشناس بازدیدکننده، برای شمردن بازدیدکننده یکتا بدون کوکی.
+  visitorHash String?
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([countryCode])
+  @@index([visitorHash])
+}

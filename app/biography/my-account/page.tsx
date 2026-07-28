@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/scene/Reveal";
-import { myAccount } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "روایت من",
   description: "به قلم دکتر آرش رحمانی رضائیه",
 };
 
-export default function MyAccountPage() {
+export default async function MyAccountPage() {
+  const content = await getAllContent();
+  const { myAccount } = content as {
+    myAccount: string[];
+  };
+
   return (
     <>
       <PageHeader

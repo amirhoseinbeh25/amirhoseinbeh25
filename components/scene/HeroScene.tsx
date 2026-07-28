@@ -2,6 +2,7 @@
 
 import { HeroVideo } from "@/components/scene/HeroVideo";
 import { UrmiaGL } from "@/components/scene/UrmiaGL";
+import type { HeroSettings } from "@/lib/content";
 
 /**
  * پس‌زمینه هیرو در سه لایه:
@@ -14,14 +15,16 @@ import { UrmiaGL } from "@/components/scene/UrmiaGL";
  * اگر WebGL نباشد لایه دوم می‌افتد و ویدئو می‌ماند؛ اگر ویدئو هم پخش نشود
  * فریم پوستر می‌ماند.
  */
-export function HeroScene() {
+export function HeroScene({ hero }: { hero: HeroSettings }) {
   return (
     <>
-      <HeroVideo />
+      <HeroVideo webm={hero.videoWebm} mp4={hero.videoMp4} poster={hero.poster} />
 
-      <div className="absolute inset-0 opacity-45">
-        <UrmiaGL layers="overlay" />
-      </div>
+      {hero.showScene && (
+        <div className="absolute inset-0" style={{ opacity: hero.sceneOpacity }}>
+          <UrmiaGL layers="overlay" />
+        </div>
+      )}
 
       <div
         aria-hidden

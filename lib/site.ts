@@ -248,3 +248,7 @@ export type MediaItem = {
 };
 
 export const mediaItems: MediaItem[] = [];
+
+export type Contact = typeof contact;
+export type ScholarlyProfile = (typeof scholarlyProfiles)[number];
+export type Profile = typeof profile;

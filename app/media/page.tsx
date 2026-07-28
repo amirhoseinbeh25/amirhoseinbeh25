@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import Image from "next/image";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/scene/Reveal";
-import { mediaItems } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "چندرسانه‌ای",
   description: "تصاویر و ویدئوهای مربوط به فعالیت‌های علمی و دانشجویی",
 };
 
-export default function MediaPage() {
+export default async function MediaPage() {
+  const content = await getAllContent();
+  const { mediaItems } = content as {
+    mediaItems: import("@/lib/site").MediaItem[];
+  };
+
   return (
     <>
       <PageHeader

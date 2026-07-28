@@ -1,6 +1,7 @@
-import { scholarlyProfiles } from "@/lib/site";
+import { getAllContent } from "@/lib/content";
+import type { ScholarlyProfile } from "@/lib/site";
 
-type Kind = (typeof scholarlyProfiles)[number]["kind"];
+type Kind = ScholarlyProfile["kind"];
 
 function ProfileIcon({ kind }: { kind: Kind }) {
   const common = {
@@ -45,7 +46,7 @@ function ProfileIcon({ kind }: { kind: Kind }) {
   );
 }
 
-export function ScholarlyProfiles({
+export async function ScholarlyProfiles({
   className = "",
   tone = "light",
 }: {
@@ -53,6 +54,8 @@ export function ScholarlyProfiles({
   /** روی صحنه تیره از پالت هیرو استفاده می‌شود، نه رنگ‌های تم. */
   tone?: "light" | "hero";
 }) {
+  const content = await getAllContent();
+  const scholarlyProfiles = content.scholarlyProfiles as ScholarlyProfile[];
   if (scholarlyProfiles.length === 0) return null;
 
   return (

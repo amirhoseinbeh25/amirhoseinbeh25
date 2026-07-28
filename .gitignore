@@ -41,3 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+
+# پایگاه داده و فایل‌های بارگذاری‌شده
+/data
+/public/uploads

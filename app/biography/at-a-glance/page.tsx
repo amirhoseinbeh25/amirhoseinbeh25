@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/scene/Reveal";
-import { lifeTimeline } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "زندگی من در یک نگاه",
   description: "خط زمانی تحصیل، تدریس، پژوهش و مسئولیت‌های اجرایی",
 };
 
-export default function AtAGlancePage() {
+export default async function AtAGlancePage() {
+  const content = await getAllContent();
+  const { lifeTimeline } = content as {
+    lifeTimeline: import("@/lib/site").TimelineEntry[];
+  };
+
   return (
     <>
       <PageHeader

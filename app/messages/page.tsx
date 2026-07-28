@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { ArticleList } from "@/components/ArticleList";
 import { PageHeader } from "@/components/PageHeader";
-import { messages } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "پیام‌ها",
   description: "پیام‌های رسمی به مناسبت‌های دانشگاهی و مناسبت‌های ملی.",
 };
 
-export default function Page() {
+export default async function Page() {
+  const content = await getAllContent();
+  const { messages } = content as {
+    messages: import("@/lib/site").Article[];
+  };
+
   return (
     <>
       <PageHeader title="پیام‌ها" description="پیام‌های رسمی به مناسبت‌های دانشگاهی و مناسبت‌های ملی." />

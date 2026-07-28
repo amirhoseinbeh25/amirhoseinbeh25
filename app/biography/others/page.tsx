@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
-import { testimonials } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "روایت دیگران",
   description: "آنچه همکاران، دانشجویان و دیگران گفته و نوشته‌اند",
 };
 
-export default function OthersPage() {
+export default async function OthersPage() {
+  const content = await getAllContent();
+  const { testimonials } = content as {
+    testimonials: import("@/lib/site").Testimonial[];
+  };
+
   return (
     <>
       <PageHeader

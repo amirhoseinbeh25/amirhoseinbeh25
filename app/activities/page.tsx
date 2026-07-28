@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
-import { activities } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "فعالیت‌ها",
   description: "برنامه‌ها و طرح‌های حوزه دانشجویی و فرهنگی",
 };
 
-export default function ActivitiesPage() {
+export default async function ActivitiesPage() {
+  const content = await getAllContent();
+  const { activities } = content as {
+    activities: { title: string; year: string; description: string }[];
+  };
+
   return (
     <>
       <PageHeader

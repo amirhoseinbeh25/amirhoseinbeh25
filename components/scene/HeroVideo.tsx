@@ -10,7 +10,15 @@ import { useEffect, useRef } from "react";
  * مرورگرها پخش خودکار را تنها برای ویدئوی بی‌صدا اجازه می‌دهند، و ویدئو
  * صدا هم ندارد.
  */
-export function HeroVideo() {
+export function HeroVideo({
+  webm,
+  mp4,
+  poster,
+}: {
+  webm: string;
+  mp4: string;
+  poster: string;
+}) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -30,12 +38,12 @@ export function HeroVideo() {
       loop
       playsInline
       preload="metadata"
-      poster="/video/urmia-bridge-poster.jpg"
+      poster={poster}
       className="pointer-events-none absolute inset-0 size-full object-cover"
       style={{ objectPosition: "center 30%", filter: "saturate(0.9)" }}
     >
-      <source src="/video/urmia-bridge.webm" type="video/webm" />
-      <source src="/video/urmia-bridge.mp4" type="video/mp4" />
+      {webm && <source src={webm} type="video/webm" />}
+      {mp4 && <source src={mp4} type="video/mp4" />}
     </video>
   );
 }

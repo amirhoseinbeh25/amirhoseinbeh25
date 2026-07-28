@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
+import { getAllContent } from "@/lib/content";
 import { PageHeader } from "@/components/PageHeader";
 import { Reveal } from "@/components/scene/Reveal";
 import { TiltCard } from "@/components/scene/TiltCard";
-import { courses, education, positions } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "رزومه",
   description: "تحصیلات، سوابق اجرایی و دروس تدریس‌شده",
 };
 
-export default function ResumePage() {
+export default async function ResumePage() {
+  const content = await getAllContent();
+  const { education, positions, courses } = content as {
+    education: { degree: string; field: string; institution: string; years: string }[];
+    positions: { title: string; organization: string; years: string; details: string[] }[];
+    courses: { name: string; level: string }[];
+  };
+
   return (
     <>
       <PageHeader
