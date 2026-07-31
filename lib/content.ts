@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { db } from "@/lib/db";
+import { settings } from "@/lib/db";
 import * as defaults from "@/lib/site";
 
 /**
@@ -81,7 +81,7 @@ export const getAllContent = cache(async (): Promise<Record<string, unknown>> =>
   let rows: { key: string; value: string }[] = [];
 
   try {
-    rows = await db.setting.findMany();
+    rows = settings.all();
   } catch {
     // پایگاه داده در دسترس نیست (مثلاً هنگام ساخت خروجی استاتیک) —
     // پیش‌فرض‌ها کافی‌اند.
@@ -106,12 +106,7 @@ export async function getContent<T>(key: ContentKey): Promise<T> {
 }
 
 export async function setContent(key: ContentKey, value: unknown) {
-  const serialized = JSON.stringify(value);
-  await db.setting.upsert({
-    where: { key },
-    create: { key, value: serialized },
-    update: { value: serialized },
-  });
+  settings.set(key, JSON.stringify(value));
 }
 
 export type Profile = typeof defaults.profile;

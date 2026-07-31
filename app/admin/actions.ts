@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { db } from "@/lib/db";
+import { adminUsers } from "@/lib/db";
 import {
   createSession,
   destroySession,
@@ -28,7 +28,7 @@ export async function createFirstAdmin(
   _prev: SetupState,
   formData: FormData,
 ): Promise<SetupState> {
-  if ((await db.adminUser.count()) > 0) {
+  if (adminUsers.count() > 0) {
     return { error: "حساب مدیر از قبل ساخته شده است." };
   }
 
@@ -47,8 +47,10 @@ export async function createFirstAdmin(
     return { error: "رمز عبور و تکرارش یکی نیستند." };
   }
 
-  const user = await db.adminUser.create({
-    data: { name, email, passwordHash: await hashPassword(password) },
+  const user = adminUsers.create({
+    name,
+    email,
+    passwordHash: await hashPassword(password),
   });
 
   const headerList = await headers();
@@ -71,7 +73,7 @@ export async function login(
     return { error: "ایمیل و رمز عبور را وارد کنید." };
   }
 
-  const user = await db.adminUser.findUnique({ where: { email } });
+  const user = adminUsers.findByEmail(email);
 
   // پیام یکسان برای کاربر ناموجود و رمز غلط، تا نشود فهمید کدام ایمیل ثبت است
   const ok = user ? await verifyPassword(password, user.passwordHash) : false;
@@ -84,10 +86,7 @@ export async function login(
     ip: clientIpFrom(headerList),
     userAgent: headerList.get("user-agent"),
   });
-  await db.adminUser.update({
-    where: { id: user.id },
-    data: { lastLoginAt: new Date() },
-  });
+  adminUsers.markLogin(user.id);
 
   redirect("/admin");
 }

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { pageViews } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -8,48 +8,6 @@ const DAY = 24 * 60 * 60 * 1000;
 
 function since(days: number) {
   return new Date(Date.now() - days * DAY);
-}
-
-type GroupColumn =
-  | "country"
-  | "countryCode"
-  | "city"
-  | "deviceType"
-  | "browser"
-  | "os"
-  | "path"
-  | "deviceModel";
-
-/** ستون‌هایی که می‌توانند خالی باشند و باید از شمارش کنار بروند. */
-const NULLABLE: GroupColumn[] = [
-  "country",
-  "countryCode",
-  "city",
-  "deviceType",
-  "browser",
-  "os",
-  "deviceModel",
-];
-
-/** شمارش گروهی روی یک ستون، مرتب‌شده از پربازدیدترین. */
-async function topBy(column: GroupColumn, from: Date, take = 8) {
-  // فیلتر «خالی نباشد» فقط روی ستون nullable معتبر است؛ روی path که همیشه
-  // مقدار دارد، Prisma آن را رد می‌کند.
-  const where = NULLABLE.includes(column)
-    ? { createdAt: { gte: from }, NOT: { [column]: null } }
-    : { createdAt: { gte: from } };
-
-  const rows = await db.pageView.groupBy({
-    by: [column],
-    where,
-    _count: { _all: true },
-    orderBy: { _count: { [column]: "desc" } },
-    take,
-  });
-  return rows.map((row) => ({
-    label: String(row[column] ?? "—"),
-    count: row._count._all,
-  }));
 }
 
 function Panel({
@@ -100,54 +58,20 @@ export default async function AdminDashboard() {
 
   const from30 = since(30);
 
-  const [
-    views30,
-    views7,
-    views1,
-    uniques30,
-    countries,
-    cities,
-    devices,
-    models,
-    browsers,
-    systems,
-    pages,
-    recent,
-  ] = await Promise.all([
-    db.pageView.count({ where: { createdAt: { gte: from30 } } }),
-    db.pageView.count({ where: { createdAt: { gte: since(7) } } }),
-    db.pageView.count({ where: { createdAt: { gte: since(1) } } }),
-    db.pageView
-      .findMany({
-        where: { createdAt: { gte: from30 }, NOT: { visitorHash: null } },
-        distinct: ["visitorHash"],
-        select: { id: true },
-      })
-      .then((rows) => rows.length),
-    topBy("country", from30),
-    topBy("city", from30),
-    topBy("deviceType", from30, 5),
-    topBy("deviceModel", from30),
-    topBy("browser", from30),
-    topBy("os", from30),
-    topBy("path", from30, 10),
-    db.pageView.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 25,
-      select: {
-        id: true,
-        createdAt: true,
-        path: true,
-        ip: true,
-        country: true,
-        city: true,
-        deviceType: true,
-        deviceModel: true,
-        browser: true,
-        os: true,
-      },
-    }),
-  ]);
+  // پرس‌وجوها همگام‌اند، پس نیازی به Promise.all نیست
+  const views30 = pageViews.countSince(from30);
+  const views7 = pageViews.countSince(since(7));
+  const views1 = pageViews.countSince(since(1));
+  const uniques30 = pageViews.uniqueVisitorsSince(from30);
+
+  const countries = pageViews.topBy("country", from30);
+  const cities = pageViews.topBy("city", from30);
+  const devices = pageViews.topBy("deviceType", from30, 5);
+  const models = pageViews.topBy("deviceModel", from30);
+  const browsers = pageViews.topBy("browser", from30);
+  const systems = pageViews.topBy("os", from30);
+  const pages = pageViews.topBy("path", from30, 10);
+  const recent = pageViews.recent(25);
 
   const totals = [
     { label: "بازدید امروز", value: views1 },
@@ -225,7 +149,7 @@ export default async function AdminDashboard() {
                 {recent.map((row) => (
                   <tr key={row.id} className="border-b border-border/60">
                     <td className="whitespace-nowrap p-2 text-muted">
-                      {formatter.format(row.createdAt)}
+                      {formatter.format(new Date(row.createdAt))}
                     </td>
                     <td className="p-2">{row.path}</td>
                     <td className="p-2">

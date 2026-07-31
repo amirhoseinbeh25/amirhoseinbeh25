@@ -80,21 +80,34 @@ if (existsSync(sqlite)) {
 }
 
 /**
- * sharp — که Next برای بهینه‌سازی تصویر استفاده می‌کند — کتابخانه libvips را
- * هم برای glibc و هم برای musl (آلپاین) همراه دارد و هرکدام حدود ۱۷ مگابایت
- * است. هاست‌های cPanel روی glibc اجرا می‌شوند، پس نسخه musl کنار می‌رود.
- * اگر جایی روی آلپاین مستقر شد، این خط را بردارید.
+ * خروجی standalone فایل‌های پروژه را هم کنارش می‌گذارد و بین آن‌ها پوشه
+ * `data` هم هست — یعنی پایگاه داده توسعه، همراه حساب مدیر و رمزش. اگر این
+ * در بسته بماند، هر کسی که بسته را دارد می‌تواند وارد پنل سایت شود. این
+ * پاک‌سازی اختیاری نیست.
  */
-{
-  const { readdirSync } = await import("node:fs");
-  const modules = join(OUT, "node_modules", "@img");
-  if (existsSync(modules)) {
-    for (const name of readdirSync(modules)) {
-      if (name.includes("musl")) {
-        rmSync(join(modules, name), { recursive: true, force: true });
-      }
-    }
-  }
+for (const name of [
+  "data",
+  "out",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "README.md",
+  "tsconfig.tsbuildinfo",
+  "package-lock.json",
+  "scripts",
+  "eslint.config.mjs",
+  ".env",
+]) {
+  rmSync(join(OUT, name), { recursive: true, force: true });
+}
+
+/**
+ * sharp فقط برای بهینه‌سازی تصویر لازم است و ما آن را در next.config خاموش
+ * کرده‌ایم، چون یک ماژول کامپایل‌شده است و روی سرورهایی با glibc قدیمی
+ * بارگذاری نمی‌شود. با حذفش، بسته هیچ باینری بومی ندارد و هرجا Node اجرا
+ * شود کار می‌کند — و ۳۳ مگابایت هم سبک‌تر می‌شود.
+ */
+for (const name of ["sharp", "@img", "detect-libc"]) {
+  rmSync(join(OUT, "node_modules", name), { recursive: true, force: true });
 }
 
 // راهنمای نصب کنار خود فایل‌ها بماند

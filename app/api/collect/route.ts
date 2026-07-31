@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { pageViews } from "@/lib/db";
 import {
   clientIpFrom,
   isPrivateIp,
@@ -49,8 +49,7 @@ export async function POST(request: Request) {
     const geo = await lookupGeo(ip, headers);
     const secret = process.env.SESSION_SECRET ?? "fallback";
 
-    await db.pageView.create({
-      data: {
+    pageViews.record({
         path,
         referrer,
         ip: ip ?? null,
@@ -63,9 +62,8 @@ export async function POST(request: Request) {
         deviceType: ua.deviceType,
         deviceModel: ua.deviceModel,
         userAgent: userAgent.slice(0, 512),
-        visitorHash:
-          ip && !isPrivateIp(ip) ? visitorHash(ip, userAgent, secret) : null,
-      },
+      visitorHash:
+        ip && !isPrivateIp(ip) ? visitorHash(ip, userAgent, secret) : null,
     });
 
     return NextResponse.json({ ok: true });

@@ -29,16 +29,17 @@ const nextConfig: NextConfig = isStaticExport
   ? { output: "export", images: { unoptimized: true } }
   : {
       output: "standalone",
-      // این‌ها را ردیابی خودکار پیدا نمی‌کند چون در زمان اجرا و با مسیر
-      // ساخته‌شده خوانده می‌شوند، نه با import.
+      /**
+       * بهینه‌سازی تصویر به sharp نیاز دارد که یک ماژول کامپایل‌شده است و
+       * روی سرورهایی با glibc قدیمی بارگذاری نمی‌شود — همان مشکلی که
+       * پایگاه داده داشت. تصاویر این سایت کوچک‌اند و از دست‌دادن بهینه‌سازی
+       * در برابر «هیچ باینری بومی در بسته نباشد» ارزشش را دارد.
+       */
+      images: { unoptimized: true },
+      // راه‌انداز از سرور بیرونِ Next صدا زده می‌شود، پس ردیابی خودکار
+      // آن را نمی‌بیند.
       outputFileTracingIncludes: {
-        "/**": [
-          "./prisma/migrations/**",
-          "./lib/bootstrap.cjs",
-          // bootstrap با require پویا صدایش می‌زند، پس ردیابی خودکار
-          // فقط بخشی از آن را برمی‌دارد.
-          "./node_modules/better-sqlite3/**",
-        ],
+        "/**": ["./lib/bootstrap.cjs"],
       },
       ...(allowedOrigins?.length
         ? { experimental: { serverActions: { allowedOrigins } } }

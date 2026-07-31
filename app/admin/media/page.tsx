@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { media, type MediaAsset } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { MediaUploader } from "@/components/admin/MediaUploader";
 import { CopyPath } from "@/components/admin/CopyPath";
@@ -10,10 +10,7 @@ export default async function MediaPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/admin/login");
 
-  const assets = await db.mediaAsset.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const assets: MediaAsset[] = media.recent(100);
 
   return (
     <div className="space-y-6">

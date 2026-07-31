@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { adminUsers } from "@/lib/db";
 import { SetupForm } from "@/components/admin/SetupForm";
 
 export const dynamic = "force-dynamic";
@@ -12,8 +12,7 @@ export const dynamic = "force-dynamic";
  * مدیر تازه بسازد.
  */
 export default async function SetupPage() {
-  const count = await db.adminUser.count();
-  if (count > 0) redirect("/admin/login");
+  if (adminUsers.count() > 0) redirect("/admin/login");
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md items-center px-6">

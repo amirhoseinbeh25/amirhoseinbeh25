@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { media } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -60,14 +60,12 @@ export async function POST(request: Request) {
   );
 
   const publicPath = `/uploads/${filename}`;
-  const asset = await db.mediaAsset.create({
-    data: {
-      filename,
-      path: publicPath,
-      mimeType: file.type,
-      bytes: file.size,
-      title: file.name.slice(0, 200),
-    },
+  const asset = media.create({
+    filename,
+    path: publicPath,
+    mimeType: file.type,
+    bytes: file.size,
+    title: file.name.slice(0, 200),
   });
 
   return NextResponse.json({ path: asset.path, id: asset.id });
