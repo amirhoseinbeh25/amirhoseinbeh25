@@ -9,8 +9,20 @@ import type { NextConfig } from "next";
  */
 const isStaticExport = process.env.NEXT_EXPORT === "1";
 
+/**
+ * وقتی سایت پشت یک پراکسی یا CDN باشد، ممکن است دامنه‌ای که مرورگر می‌بیند
+ * با آنچه به سرور می‌رسد یکی نباشد؛ در آن حالت Next فرم‌های پنل مدیریت را
+ * با پیام «Invalid Server Actions request» رد می‌کند. اگر چنین شد، دامنه را
+ * در ALLOWED_ORIGINS بگذارید (چند دامنه با کاما).
+ */
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const nextConfig: NextConfig = isStaticExport
   ? { output: "export", images: { unoptimized: true } }
-  : {};
+  : allowedOrigins?.length
+    ? { experimental: { serverActions: { allowedOrigins } } }
+    : {};
 
 export default nextConfig;

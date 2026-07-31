@@ -12,8 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // CommonJS entrypoint required by Passenger/cPanel.
+    // CommonJS entrypoints required by Passenger/cPanel.
     "server.js",
+    "lib/bootstrap.cjs",
     // Prisma client is generated code, not ours to lint.
     "lib/generated/**",
   ]),

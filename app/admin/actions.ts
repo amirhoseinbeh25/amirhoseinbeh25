@@ -8,12 +8,57 @@ import {
   createSession,
   destroySession,
   getCurrentUser,
+  hashPassword,
   verifyPassword,
 } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/analytics";
 import { setContent, type ContentKey } from "@/lib/content";
 
 export type LoginState = { error?: string };
+export type SetupState = { error?: string };
+
+/**
+ * ساخت اولین حساب مدیر.
+ *
+ * فقط تا وقتی هیچ حسابی وجود ندارد کار می‌کند؛ بررسی این شرط دوباره در خود
+ * اکشن انجام می‌شود، نه فقط در صفحه، تا کسی نتواند با ارسال مستقیم فرم
+ * حساب تازه بسازد.
+ */
+export async function createFirstAdmin(
+  _prev: SetupState,
+  formData: FormData,
+): Promise<SetupState> {
+  if ((await db.adminUser.count()) > 0) {
+    return { error: "حساب مدیر از قبل ساخته شده است." };
+  }
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (!name || !email || !password) {
+    return { error: "همه فیلدها را پر کنید." };
+  }
+  if (password.length < 10) {
+    return { error: "رمز عبور باید دست‌کم ۱۰ نویسه باشد." };
+  }
+  if (password !== confirm) {
+    return { error: "رمز عبور و تکرارش یکی نیستند." };
+  }
+
+  const user = await db.adminUser.create({
+    data: { name, email, passwordHash: await hashPassword(password) },
+  });
+
+  const headerList = await headers();
+  await createSession(user.id, {
+    ip: clientIpFrom(headerList),
+    userAgent: headerList.get("user-agent"),
+  });
+
+  redirect("/admin");
+}
 
 export async function login(
   _prev: LoginState,
