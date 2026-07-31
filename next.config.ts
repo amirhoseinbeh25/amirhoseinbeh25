@@ -19,10 +19,30 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+/**
+ * خروجی standalone فقط فایل‌هایی را که سرور واقعاً لازم دارد کنار هم
+ * می‌گذارد. بدون آن، نصب روی هاست نزدیک یک گیگابایت و ۲۳ هزار فایل
+ * می‌شود — چون کامپایلر Next و ابزارهای Prisma هم می‌آیند — و سهمیه هاست
+ * اشتراکی را پر می‌کند. با این حالت، روی سرور نه نصب لازم است نه build.
+ */
 const nextConfig: NextConfig = isStaticExport
   ? { output: "export", images: { unoptimized: true } }
-  : allowedOrigins?.length
-    ? { experimental: { serverActions: { allowedOrigins } } }
-    : {};
+  : {
+      output: "standalone",
+      // این‌ها را ردیابی خودکار پیدا نمی‌کند چون در زمان اجرا و با مسیر
+      // ساخته‌شده خوانده می‌شوند، نه با import.
+      outputFileTracingIncludes: {
+        "/**": [
+          "./prisma/migrations/**",
+          "./lib/bootstrap.cjs",
+          // bootstrap با require پویا صدایش می‌زند، پس ردیابی خودکار
+          // فقط بخشی از آن را برمی‌دارد.
+          "./node_modules/better-sqlite3/**",
+        ],
+      },
+      ...(allowedOrigins?.length
+        ? { experimental: { serverActions: { allowedOrigins } } }
+        : {}),
+    };
 
 export default nextConfig;

@@ -8,7 +8,8 @@
     "start": "node server.js",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "deploy": "node scripts/build-deploy.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.1",
