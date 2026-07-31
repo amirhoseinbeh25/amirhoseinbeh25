@@ -79,6 +79,24 @@ if (existsSync(sqlite)) {
   }
 }
 
+/**
+ * sharp — که Next برای بهینه‌سازی تصویر استفاده می‌کند — کتابخانه libvips را
+ * هم برای glibc و هم برای musl (آلپاین) همراه دارد و هرکدام حدود ۱۷ مگابایت
+ * است. هاست‌های cPanel روی glibc اجرا می‌شوند، پس نسخه musl کنار می‌رود.
+ * اگر جایی روی آلپاین مستقر شد، این خط را بردارید.
+ */
+{
+  const { readdirSync } = await import("node:fs");
+  const modules = join(OUT, "node_modules", "@img");
+  if (existsSync(modules)) {
+    for (const name of readdirSync(modules)) {
+      if (name.includes("musl")) {
+        rmSync(join(modules, name), { recursive: true, force: true });
+      }
+    }
+  }
+}
+
 // راهنمای نصب کنار خود فایل‌ها بماند
 for (const file of ["INSTALL.txt"]) {
   if (existsSync(file)) cpSync(file, join(OUT, file));
