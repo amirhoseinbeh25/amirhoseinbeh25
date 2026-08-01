@@ -9,7 +9,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth-hash";
 export { hashPassword, verifyPassword };
 export type { AdminUser };
 
-const SESSION_COOKIE = "admin_session";
+export const SESSION_COOKIE = "admin_session";
 const SESSION_DAYS = 7;
 
 /** فقط درهم توکن در پایگاه داده می‌ماند، نه خود توکن. */

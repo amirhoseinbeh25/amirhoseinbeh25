@@ -15,6 +15,8 @@ export function Analytics() {
 
   useEffect(() => {
     if (!pathname || lastSent.current === pathname) return;
+    // کار کردن با پنل مدیریت بازدید نیست و آمار را الکی بالا می‌برد
+    if (pathname.startsWith("/admin")) return;
     lastSent.current = pathname;
 
     const payload = JSON.stringify({

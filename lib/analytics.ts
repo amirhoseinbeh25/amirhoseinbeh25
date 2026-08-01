@@ -135,12 +135,43 @@ export type GeoResult = {
 };
 
 /**
+ * سرویس پیش‌فرض تبدیل IP به کشور و شهر.
+ *
+ * وقتی سایت پشت CDN نباشد، هیچ سرآیندی موقعیت را نمی‌گوید و ستون کشور و شهر
+ * همیشه خالی می‌ماند. این سرویس رایگان است و کلید نمی‌خواهد، پس آمار بدون
+ * تنظیمات اضافه کار می‌کند.
+ *
+ * در عوض، نشانی IP بازدیدکننده به یک سرویس بیرونی فرستاده می‌شود. اگر
+ * نمی‌خواهید، در فایل `.env` بنویسید `GEO_API_URL=off` — آن‌وقت کشور و شهر
+ * ثبت نمی‌شود و بقیه آمار سر جایش می‌ماند.
+ */
+const DEFAULT_GEO_API = "https://ipwho.is/{ip}";
+
+/**
+ * نتیجه هر IP چند ساعت نگه داشته می‌شود.
+ *
+ * یک بازدیدکننده معمولاً چند صفحه را پشت‌سرهم باز می‌کند و بدون این، برای
+ * هر صفحه یک درخواست بیرونی می‌رفت و به سقف رایگان سرویس می‌خوردیم.
+ */
+const geoCache = new Map<string, { value: GeoResult; expires: number }>();
+const GEO_TTL = 6 * 60 * 60 * 1000;
+const GEO_CACHE_MAX = 500;
+
+function rememberGeo(ip: string, value: GeoResult) {
+  // ساده‌ترین سیاست خروج: پر که شد، قدیمی‌ترین ورودی حذف می‌شود
+  if (geoCache.size >= GEO_CACHE_MAX) {
+    const oldest = geoCache.keys().next().value;
+    if (oldest) geoCache.delete(oldest);
+  }
+  geoCache.set(ip, { value, expires: Date.now() + GEO_TTL });
+}
+
+/**
  * موقعیت جغرافیایی از روی IP.
  *
  * اول سرآیندهای CDN خوانده می‌شود چون رایگان و آنی‌اند و اگر سایت پشت
- * کلادفلر باشد همان‌جا موجودند. اگر نبودند و `GEO_API_URL` تنظیم شده باشد،
- * از آن سرویس پرسیده می‌شود. هیچ‌کدام نبود، خالی برمی‌گردد و آمار کشور و
- * شهر نشان نمی‌دهد — نه اینکه حدس بزند.
+ * کلادفلر باشد همان‌جا موجودند. اگر نبودند، از سرویس بیرونی پرسیده می‌شود.
+ * آن هم جواب نداد، خالی برمی‌گردد — نه اینکه حدس بزند.
  */
 export async function lookupGeo(
   ip: string | null,
@@ -160,13 +191,19 @@ export async function lookupGeo(
     return {
       ...fromHeaders,
       country: fromHeaders.country ?? countryName(fromHeaders.countryCode),
+      city: cityName(fromHeaders.city),
     };
   }
 
-  const endpoint = process.env.GEO_API_URL;
-  if (!ip || !endpoint || isPrivateIp(ip)) {
-    return { country: null, countryCode: null, city: null };
-  }
+  const configured = process.env.GEO_API_URL?.trim();
+  const endpoint =
+    configured === "off" || configured === "" ? null : configured ?? DEFAULT_GEO_API;
+
+  const empty: GeoResult = { country: null, countryCode: null, city: null };
+  if (!ip || !endpoint || isPrivateIp(ip)) return empty;
+
+  const cached = geoCache.get(ip);
+  if (cached && cached.expires > Date.now()) return cached.value;
 
   try {
     const response = await fetch(endpoint.replace("{ip}", ip), {
@@ -176,15 +213,24 @@ export async function lookupGeo(
     const data = (await response.json()) as Record<string, unknown>;
 
     const code = pickString(data, ["countryCode", "country_code", "country"]);
-    return {
+    const result: GeoResult = {
       countryCode: code,
+      // نام فارسی مقدم است؛ اگر کشور در فهرست نبود، نام انگلیسی خود سرویس
       country:
-        pickString(data, ["country_name", "countryName"]) ?? countryName(code),
-      city: pickString(data, ["city", "cityName"]),
+        persianCountry(code) ??
+        pickString(data, ["country_name", "countryName", "country"]) ??
+        countryName(code),
+      city: cityName(pickString(data, ["city", "cityName"])),
     };
+
+    rememberGeo(ip, result);
+    return result;
   } catch {
-    // سرویس در دسترس نیست — ثبت بازدید نباید به‌خاطر آن شکست بخورد
-    return { country: null, countryCode: null, city: null };
+    // سرویس در دسترس نیست — ثبت بازدید نباید به‌خاطر آن شکست بخورد.
+    // نتیجه خالی هم کش می‌شود تا اگر هاست دسترسی بیرونی ندارد، برای هر
+    // بازدید ۲.۵ ثانیه منتظر نمانیم.
+    rememberGeo(ip, empty);
+    return empty;
   }
 }
 
@@ -249,4 +295,72 @@ const COUNTRY_NAMES: Record<string, string> = {
 export function countryName(code: string | null): string | null {
   if (!code) return null;
   return COUNTRY_NAMES[code.toUpperCase()] ?? code.toUpperCase();
+}
+
+/** فقط وقتی نام فارسی داریم جواب می‌دهد، تا بشود به نام سرویس عقب‌نشینی کرد. */
+function persianCountry(code: string | null): string | null {
+  if (!code) return null;
+  return COUNTRY_NAMES[code.toUpperCase()] ?? null;
+}
+
+/**
+ * سرویس‌های موقعیت‌یابی نام شهر را انگلیسی می‌دهند. شهرهای پربازدید این سایت
+ * ایرانی‌اند، پس همان‌ها ترجمه می‌شوند و بقیه دست‌نخورده می‌مانند.
+ */
+const CITY_NAMES: Record<string, string> = {
+  urmia: "ارومیه",
+  orumiyeh: "ارومیه",
+  tehran: "تهران",
+  mashhad: "مشهد",
+  isfahan: "اصفهان",
+  esfahan: "اصفهان",
+  tabriz: "تبریز",
+  shiraz: "شیراز",
+  karaj: "کرج",
+  ahvaz: "اهواز",
+  qom: "قم",
+  kermanshah: "کرمانشاه",
+  kerman: "کرمان",
+  rasht: "رشت",
+  zahedan: "زاهدان",
+  hamadan: "همدان",
+  yazd: "یزد",
+  ardabil: "اردبیل",
+  bandarabbas: "بندرعباس",
+  arak: "اراک",
+  zanjan: "زنجان",
+  sanandaj: "سنندج",
+  qazvin: "قزوین",
+  khoy: "خوی",
+  maragheh: "مراغه",
+  miandoab: "میاندوآب",
+  mahabad: "مهاباد",
+  bukan: "بوکان",
+  salmas: "سلماس",
+  naqadeh: "نقده",
+  piranshahr: "پیرانشهر",
+  bostanabad: "بستان‌آباد",
+  gorgan: "گرگان",
+  sari: "ساری",
+  babol: "بابل",
+  amol: "آمل",
+  bojnurd: "بجنورد",
+  birjand: "بیرجند",
+  ilam: "ایلام",
+  yasuj: "یاسوج",
+  shahrekord: "شهرکرد",
+  khorramabad: "خرم‌آباد",
+  dezful: "دزفول",
+  abadan: "آبادان",
+  bushehr: "بوشهر",
+  semnan: "سمنان",
+  qeshm: "قشم",
+  varamin: "ورامین",
+  islamshahr: "اسلام‌شهر",
+};
+
+export function cityName(name: string | null): string | null {
+  if (!name) return null;
+  const key = name.toLowerCase().replace(/[\s'’-]/g, "");
+  return CITY_NAMES[key] ?? name;
 }

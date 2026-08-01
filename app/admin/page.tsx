@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { pageViews } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { ClearStatsButton } from "@/components/admin/ClearStatsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -105,12 +106,12 @@ export default async function AdminDashboard() {
         <Panel
           title="کشور"
           rows={countries}
-          empty="هنوز داده‌ای ثبت نشده، یا سرویس موقعیت جغرافیایی تنظیم نشده است."
+          empty="هنوز بازدیدی از بیرون ثبت نشده است."
         />
         <Panel
           title="شهر"
           rows={cities}
-          empty="شهر تنها وقتی ثبت می‌شود که سایت پشت CDN باشد یا GEO_API_URL تنظیم شده باشد."
+          empty="اگر بعد از چند بازدید هم خالی ماند، یعنی سرور به سرویس موقعیت‌یابی دسترسی ندارد."
         />
         <Panel title="نوع دستگاه" rows={devices} empty="هنوز داده‌ای نیست." />
         <Panel
@@ -171,12 +172,17 @@ export default async function AdminDashboard() {
         )}
       </section>
 
-      <p className="text-xs leading-6 text-muted">
-        بازدیدها از سمت مرورگر ثبت می‌شوند، پس اگر بازدیدکننده مسدودکننده
-        تبلیغات داشته باشد شمرده نمی‌شود و عدد واقعی کمی بیشتر از این است.
-        نشانی IP و اطلاعات دستگاه داده شخصی به حساب می‌آید؛ بهتر است در صفحه‌ای
-        از سایت به جمع‌آوری آن اشاره شود.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
+        <p className="max-w-xl text-xs leading-6 text-muted">
+          بازدید خودتان شمرده نمی‌شود: تا وقتی در پنل وارد شده‌اید، باز کردن
+          سایت آمار را بالا نمی‌برد و صفحات پنل هم اصلاً ثبت نمی‌شوند. بازدیدها
+          از سمت مرورگر ثبت می‌شوند، پس اگر بازدیدکننده‌ای مسدودکننده تبلیغات
+          داشته باشد شمرده نمی‌شود و عدد واقعی کمی بیشتر از این است. نشانی IP و
+          اطلاعات دستگاه داده شخصی به حساب می‌آید؛ بهتر است در صفحه‌ای از سایت
+          به جمع‌آوری آن اشاره شود.
+        </p>
+        <ClearStatsButton />
+      </div>
     </div>
   );
 }

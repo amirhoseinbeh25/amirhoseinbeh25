@@ -373,6 +373,11 @@ export const pageViews = {
     return rows.map((row) => ({ label: String(row.label), count: row.count }));
   },
 
+  /** پاک کردن همه بازدیدهای ثبت‌شده — برای دور ریختن داده‌های آزمایشی. */
+  clear() {
+    db.prepare("DELETE FROM PageView").run();
+  },
+
   recent(limit = 25): RecentView[] {
     return db
       .prepare(

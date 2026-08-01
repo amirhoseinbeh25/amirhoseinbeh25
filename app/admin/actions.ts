@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { adminUsers } from "@/lib/db";
+import { adminUsers, pageViews } from "@/lib/db";
 import {
   createSession,
   destroySession,
@@ -94,6 +94,20 @@ export async function login(
 export async function logout() {
   await destroySession();
   redirect("/admin/login");
+}
+
+/**
+ * پاک کردن آمار بازدید.
+ *
+ * برای وقتی که ردّ رفت‌وآمد خودتان هنگام راه‌اندازی در آمار مانده و
+ * می‌خواهید شمارش از صفر شروع شود. برگشت‌پذیر نیست.
+ */
+export async function clearStats() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("اجازه دسترسی ندارید.");
+
+  pageViews.clear();
+  revalidatePath("/admin");
 }
 
 /** ذخیره یک بخش از محتوای سایت. */

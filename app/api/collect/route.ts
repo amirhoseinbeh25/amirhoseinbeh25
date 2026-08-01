@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pageViews } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import {
   clientIpFrom,
   isPrivateIp,
@@ -35,6 +36,21 @@ export async function POST(request: Request) {
       typeof body.referrer === "string" && body.referrer
         ? body.referrer.slice(0, 512)
         : null;
+
+    // پنل مدیریت بازدید سایت نیست. جلوی مرورگر هم گرفته شده؛ این‌جا دوباره
+    // بررسی می‌شود تا ارسال دستی هم آمار را دستکاری نکند.
+    if (path === "/admin" || path.startsWith("/admin/")) {
+      return NextResponse.json({ ok: true });
+    }
+
+    /**
+     * بازدید خودِ صاحب سایت شمرده نمی‌شود.
+     *
+     * بدون این، هر بار که برای بررسی سایت را باز می‌کنید عدد بالا می‌رود و
+     * آمار به‌جای بازدیدکننده واقعی، رفت‌وآمد خودتان را نشان می‌دهد. نشست
+     * واقعاً اعتبارسنجی می‌شود، پس کوکی منقضی جلوی شمارش را نمی‌گیرد.
+     */
+    if (await getCurrentUser()) return NextResponse.json({ ok: true });
 
     const headers = request.headers;
     const userAgent = headers.get("user-agent") ?? "";
