@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فروشگاه کتاب | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container page-content">
+  <div class="breadcrumb"><a href="index.html">خانه</a> / فروشگاه</div>
+
+  <div class="shop-layout">
+    <aside>
+      <div class="filter-box">
+        <h4>دسته‌بندی</h4>
+        <label><input type="radio" name="cat" value="" checked> همه کتاب‌ها</label>
+        <div id="catFilters"></div>
+      </div>
+      <div class="filter-box">
+        <h4>محدوده قیمت</h4>
+        <div class="price-range">
+          <label>حداقل: <span id="minPriceLabel">۰</span> تومان<input type="range" id="minPrice" min="0" max="600000" step="10000" value="0" style="width:100%"></label>
+          <label>حداکثر: <span id="maxPriceLabel">۶۰۰,۰۰۰</span> تومان<input type="range" id="maxPrice" min="0" max="600000" step="10000" value="600000" style="width:100%"></label>
+        </div>
+      </div>
+      <div class="filter-box">
+        <h4>فقط کالاهای تخفیف‌دار</h4>
+        <label><input type="checkbox" id="onlyDiscount"> نمایش فقط تخفیف‌دارها</label>
+      </div>
+      <button class="btn btn-outline btn-block" id="resetFilters">حذف فیلترها</button>
+    </aside>
+
+    <div>
+      <div class="shop-toolbar">
+        <span class="result-count" id="resultCount"></span>
+        <select id="sortSelect">
+          <option value="default">مرتب‌سازی پیش‌فرض</option>
+          <option value="cheap">ارزان‌ترین</option>
+          <option value="expensive">گران‌ترین</option>
+          <option value="rating">بیشترین امتیاز</option>
+          <option value="newest">جدیدترین</option>
+        </select>
+      </div>
+      <div class="product-grid" id="shopGrid"></div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+  renderLayout("shop");
+
+  document.getElementById("catFilters").innerHTML = CATEGORIES.map(c =>
+    `<label><input type="radio" name="cat" value="${c.id}"> ${c.icon} ${c.title}</label>`
+  ).join("");
+
+  const params = new URLSearchParams(window.location.search);
+  const initialCat = params.get("cat") || "";
+  const initialQuery = (params.get("q") || "").trim().toLowerCase();
+
+  if (initialCat) {
+    const radio = document.querySelector(`input[name="cat"][value="${initialCat}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  function applyFilters() {
+    const cat = document.querySelector('input[name="cat"]:checked').value;
+    const min = Number(document.getElementById("minPrice").value);
+    const max = Number(document.getElementById("maxPrice").value);
+    const onlyDiscount = document.getElementById("onlyDiscount").checked;
+    const sort = document.getElementById("sortSelect").value;
+
+    let list = BOOKS.filter(b => {
+      if (cat && b.category !== cat) return false;
+      if (b.price < min || b.price > max) return false;
+      if (onlyDiscount && !b.oldPrice) return false;
+      if (initialQuery) {
+        const hay = (b.title + " " + b.author + " " + b.publisher).toLowerCase();
+        if (!hay.includes(initialQuery)) return false;
+      }
+      return true;
+    });
+
+    if (sort === "cheap") list.sort((a, b) => a.price - b.price);
+    if (sort === "expensive") list.sort((a, b) => b.price - a.price);
+    if (sort === "rating") list.sort((a, b) => b.rating - a.rating);
+    if (sort === "newest") list.sort((a, b) => b.year - a.year);
+
+    document.getElementById("resultCount").textContent = `${list.length} کتاب پیدا شد`;
+    renderProductGrid("shopGrid", list);
+  }
+
+  ["minPrice", "maxPrice"].forEach(id => {
+    document.getElementById(id).addEventListener("input", (e) => {
+      document.getElementById(id === "minPrice" ? "minPriceLabel" : "maxPriceLabel").textContent =
+        Number(e.target.value).toLocaleString("fa-IR");
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll('input[name="cat"]').forEach(r => r.addEventListener("change", applyFilters));
+  document.getElementById("onlyDiscount").addEventListener("change", applyFilters);
+  document.getElementById("sortSelect").addEventListener("change", applyFilters);
+  document.getElementById("resetFilters").addEventListener("click", () => {
+    window.location.href = "shop.html";
+  });
+
+  if (initialQuery) {
+    document.querySelector('.shop-toolbar').insertAdjacentHTML("beforebegin",
+      `<p>نتایج جست‌وجو برای: «<b>${params.get("q")}</b>»</p>`);
+  }
+
+  applyFilters();
+</script>
+</body>
+</html>

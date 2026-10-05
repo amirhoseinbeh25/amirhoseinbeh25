@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جزئیات کتاب | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container page-content" id="productRoot">
+  <!-- با جاوااسکریپت پر می‌شود -->
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+  renderLayout("shop");
+
+  const id = new URLSearchParams(window.location.search).get("id");
+  const book = getBookById(id);
+  const root = document.getElementById("productRoot");
+
+  if (!book) {
+    root.innerHTML = `<div class="empty-state"><div class="ico">❌</div><p>این کتاب پیدا نشد.</p><a href="shop.html" class="btn btn-primary">بازگشت به فروشگاه</a></div>`;
+  } else {
+    document.title = book.title + " | دانش بوک";
+    const discount = book.oldPrice ? Math.round(100 - (book.price / book.oldPrice) * 100) : 0;
+
+    root.innerHTML = `
+      <div class="breadcrumb">
+        <a href="index.html">خانه</a> / <a href="shop.html">فروشگاه</a> /
+        <a href="shop.html?cat=${book.category}">${getCategoryTitle(book.category)}</a> / ${book.title}
+      </div>
+
+      <div class="product-detail">
+        <div class="pd-gallery">
+          <img src="${bookCoverDataUrl(book)}" alt="${book.title}">
+        </div>
+        <div class="pd-info">
+          <h1 class="pd-title">${book.title}</h1>
+          <div class="pd-meta">نویسنده: ${book.author}${book.translator ? " | مترجم: " + book.translator : ""}</div>
+          <div class="pd-rating">${starString(book.rating)} — ${book.reviews} نظر</div>
+          <div class="pd-price-row">
+            <span class="price-now">${formatPrice(book.price)}</span>
+            ${book.oldPrice ? `<span class="price-old">${formatPrice(book.oldPrice)}</span><span class="product-badge discount">٪${discount} تخفیف</span>` : ""}
+          </div>
+          <div class="pd-stock">✓ ${book.stock} عدد در انبار موجود است</div>
+
+          <div class="qty-row">
+            <div class="qty-control">
+              <button id="qtyMinus">−</button>
+              <span id="qtyValue">1</span>
+              <button id="qtyPlus">+</button>
+            </div>
+            <button class="btn btn-primary" id="addToCartBtn">🛒 افزودن به سبد خرید</button>
+          </div>
+
+          <div class="pd-actions">
+            <button class="btn btn-outline" onclick="showToast('به علاقه‌مندی‌ها اضافه شد')">♡ افزودن به علاقه‌مندی</button>
+            <button class="btn btn-outline" onclick="showToast('لینک کپی شد')">↗ اشتراک‌گذاری</button>
+          </div>
+
+          <div class="pd-info-list">
+            <div><span>ناشر</span><span>${book.publisher}</span></div>
+            <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
+            <div><span>سال انتشار</span><span>${book.year}</span></div>
+            <div><span>دسته‌بندی</span><span>${getCategoryTitle(book.category)}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs-nav">
+        <button class="active" data-tab="desc">توضیحات</button>
+        <button data-tab="spec">مشخصات</button>
+        <button data-tab="reviews">نظرات (${book.reviews})</button>
+      </div>
+      <div class="tab-panel active" id="tab-desc">${book.desc}</div>
+      <div class="tab-panel" id="tab-spec">
+        <div class="pd-info-list">
+          <div><span>نویسنده</span><span>${book.author}</span></div>
+          <div><span>مترجم</span><span>${book.translator || "—"}</span></div>
+          <div><span>ناشر</span><span>${book.publisher}</span></div>
+          <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
+          <div><span>سال انتشار</span><span>${book.year}</span></div>
+          <div><span>نوع جلد</span><span>شومیز</span></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-reviews">
+        <p>⭐ امتیاز کلی: ${book.rating} از ۵ (${book.reviews} نظر ثبت‌شده)</p>
+        <p>برای ثبت نظر، ابتدا باید این کتاب را خریداری کرده باشید.</p>
+      </div>
+
+      <section class="block">
+        <div class="section-title">
+          <div><h2>کتاب‌های مرتبط</h2></div>
+        </div>
+        <div class="product-grid" id="relatedGrid"></div>
+      </section>
+    `;
+
+    let qty = 1;
+    document.getElementById("qtyPlus").addEventListener("click", () => {
+      qty = Math.min(book.stock, qty + 1);
+      document.getElementById("qtyValue").textContent = qty;
+    });
+    document.getElementById("qtyMinus").addEventListener("click", () => {
+      qty = Math.max(1, qty - 1);
+      document.getElementById("qtyValue").textContent = qty;
+    });
+    document.getElementById("addToCartBtn").addEventListener("click", () => addToCart(book.id, qty));
+
+    document.querySelectorAll(".tabs-nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tabs-nav button").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    const related = BOOKS.filter(b => b.category === book.category && b.id !== book.id).slice(0, 4);
+    renderProductGrid("relatedGrid", related.length ? related : BOOKS.filter(b => b.id !== book.id).slice(0, 4));
+  }
+</script>
+</body>
+</html>

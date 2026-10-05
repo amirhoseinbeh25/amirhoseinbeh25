@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سبد خرید | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container page-content">
+  <div class="breadcrumb"><a href="index.html">خانه</a> / سبد خرید</div>
+  <h1 style="margin-bottom:20px;">🛒 سبد خرید</h1>
+  <div id="cartRoot"></div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+  renderLayout();
+
+  function shippingCost(subtotal) {
+    return subtotal === 0 || subtotal >= 500000 ? 0 : 35000;
+  }
+
+  function renderCart() {
+    const cart = getCart();
+    const root = document.getElementById("cartRoot");
+
+    if (!cart.length) {
+      root.innerHTML = `
+        <div class="empty-state">
+          <div class="ico">🛒</div>
+          <p>سبد خرید شما خالی است.</p>
+          <a href="shop.html" class="btn btn-primary">مشاهده کتاب‌ها</a>
+        </div>`;
+      return;
+    }
+
+    const rows = cart.map(item => {
+      const book = getBookById(item.id);
+      if (!book) return "";
+      const lineTotal = book.price * item.qty;
+      return `
+        <tr>
+          <td>
+            <div class="cart-item-info">
+              <img src="${bookCoverDataUrl(book)}" alt="${book.title}">
+              <div>
+                <a href="product.html?id=${book.id}"><b>${book.title}</b></a><br>
+                <small style="color:var(--color-text-light)">${book.author}</small>
+              </div>
+            </div>
+          </td>
+          <td>${formatPrice(book.price)}</td>
+          <td>
+            <div class="qty-control" style="margin:0 auto;">
+              <button onclick="setCartQty(${book.id}, ${item.qty - 1}); renderCart();">−</button>
+              <span>${item.qty}</span>
+              <button onclick="setCartQty(${book.id}, ${item.qty + 1}); renderCart();">+</button>
+            </div>
+          </td>
+          <td><b>${formatPrice(lineTotal)}</b></td>
+          <td><button class="cart-remove" onclick="removeFromCart(${book.id}); renderCart();" title="حذف">🗑</button></td>
+        </tr>`;
+    }).join("");
+
+    const subtotal = cart.reduce((sum, item) => {
+      const book = getBookById(item.id);
+      return sum + (book ? book.price * item.qty : 0);
+    }, 0);
+    const shipping = shippingCost(subtotal);
+    const total = subtotal + shipping;
+
+    root.innerHTML = `
+      <div class="cart-layout">
+        <div>
+          <table class="cart-table">
+            <thead>
+              <tr><th>کتاب</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th><th></th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <a href="shop.html" class="btn btn-outline" style="margin-top:16px;">← ادامه خرید</a>
+        </div>
+        <div class="cart-summary">
+          <h3>خلاصه سفارش</h3>
+          <div class="row"><span>جمع کل کالاها</span><span>${formatPrice(subtotal)}</span></div>
+          <div class="row"><span>هزینه ارسال</span><span>${shipping === 0 ? "رایگان" : formatPrice(shipping)}</span></div>
+          <div class="row total"><span>مبلغ قابل پرداخت</span><span>${formatPrice(total)}</span></div>
+          <div class="coupon-row">
+            <input type="text" placeholder="کد تخفیف">
+            <button class="btn btn-outline btn-sm" onclick="showToast('کد تخفیف نامعتبر است')">اعمال</button>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="checkout()">ثبت نهایی سفارش</button>
+        </div>
+      </div>`;
+  }
+
+  function checkout() {
+    if (!getCart().length) return;
+    saveCart([]);
+    document.getElementById("cartRoot").innerHTML = `
+      <div class="empty-state">
+        <div class="ico">✅</div>
+        <p>سفارش شما با موفقیت ثبت شد! به‌زودی با شما تماس گرفته می‌شود.</p>
+        <a href="shop.html" class="btn btn-primary">ادامه خرید</a>
+      </div>`;
+  }
+
+  renderCart();
+</script>
+</body>
+</html>

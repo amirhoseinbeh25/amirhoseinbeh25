@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تماس با ما | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container page-content">
+  <div class="breadcrumb"><a href="index.html">خانه</a> / تماس با ما</div>
+  <h1>تماس با دانش بوک</h1>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div style="font-size:30px;">📍</div>
+      <h3>آدرس</h3>
+      <p>تهران، خیابان انقلاب، نبش کتاب‌فروشان</p>
+    </div>
+    <div class="info-card">
+      <div style="font-size:30px;">☎</div>
+      <h3>تلفن پشتیبانی</h3>
+      <p>۰۲۱-۱۲۳۴۵۶۷۸</p>
+    </div>
+    <div class="info-card">
+      <div style="font-size:30px;">✉</div>
+      <h3>ایمیل</h3>
+      <p>info@daneshbook.ir</p>
+    </div>
+  </div>
+
+  <h2>فرم ارتباط با ما</h2>
+  <form class="contact-form" id="contactForm">
+    <input type="text" required placeholder="نام و نام خانوادگی">
+    <input type="email" required placeholder="ایمیل">
+    <input type="text" placeholder="موضوع">
+    <textarea required placeholder="پیام شما..."></textarea>
+    <button type="submit" class="btn btn-primary">ارسال پیام</button>
+  </form>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+  renderLayout("contact");
+  document.getElementById("contactForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    showToast("پیام شما با موفقیت ارسال شد ✓");
+    e.target.reset();
+  });
+</script>
+</body>
+</html>
