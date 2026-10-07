@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سفارش‌ها | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <select id="statusFilter">
+            <option value="">همه وضعیت‌ها</option>
+            <option value="pending">در انتظار بررسی</option>
+            <option value="processing">در حال پردازش</option>
+            <option value="shipped">ارسال‌شده</option>
+            <option value="delivered">تحویل‌شده</option>
+            <option value="cancelled">لغو‌شده</option>
+          </select>
+          <span id="orderCount" style="color:var(--color-text-light); font-size:13px;"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>شماره سفارش</th><th>مشتری</th><th>تماس</th><th>تعداد اقلام</th><th>مبلغ کل</th><th>وضعیت</th><th>تاریخ</th><th></th></tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box">
+    <h2>جزئیات سفارش #<span id="om_id"></span></h2>
+    <p style="font-size:13.5px; color:var(--color-text-light);">
+      مشتری: <b id="om_name"></b> — تماس: <b id="om_phone"></b><br>
+      آدرس: <span id="om_address"></span>
+    </p>
+    <table class="data-table">
+      <thead><tr><th>کتاب</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead>
+      <tbody id="om_items"></tbody>
+    </table>
+    <div class="form-grid" style="grid-template-columns:1fr; margin-top:16px;">
+      <div>
+        <label>تغییر وضعیت سفارش</label>
+        <select id="om_status">
+          <option value="pending">در انتظار بررسی</option>
+          <option value="processing">در حال پردازش</option>
+          <option value="shipped">ارسال‌شده</option>
+          <option value="delivered">تحویل‌شده</option>
+          <option value="cancelled">لغو‌شده</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="closeOrderModalBtn">بستن</button>
+      <button type="button" class="btn btn-primary" id="updateStatusBtn">به‌روزرسانی وضعیت</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("orders", "سفارش‌ها");
+
+  const STATUS_LABELS = {
+    pending: "در انتظار بررسی", processing: "در حال پردازش",
+    shipped: "ارسال‌شده", delivered: "تحویل‌شده", cancelled: "لغو‌شده"
+  };
+
+  let orders = [];
+  const modal = document.getElementById("orderModal");
+  let activeOrderId = null;
+
+  function renderTable() {
+    const statusFilter = document.getElementById("statusFilter").value;
+    const filtered = statusFilter ? orders.filter(o => o.status === statusFilter) : orders;
+    document.getElementById("orderCount").textContent = `${filtered.length} سفارش`;
+
+    document.getElementById("ordersBody").innerHTML = filtered.length
+      ? filtered.map(o => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${o.customer_name}</td>
+          <td>${o.phone}</td>
+          <td>${o.itemCount}</td>
+          <td>${formatPrice(o.total)}</td>
+          <td><span class="badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
+          <td>${o.created_at}</td>
+          <td><button class="btn btn-outline btn-sm" data-act="view" data-id="${o.id}">جزئیات</button></td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="8">سفارشی پیدا نشد.</td></tr>`;
+
+    document.querySelectorAll('[data-act="view"]').forEach(b =>
+      b.addEventListener("click", () => openOrder(Number(b.dataset.id))));
+  }
+
+  async function loadAll() {
+    orders = await adminApi("/orders");
+    renderTable();
+  }
+
+  async function openOrder(id) {
+    try {
+      const order = await adminApi("/orders/" + id);
+      activeOrderId = id;
+      document.getElementById("om_id").textContent = order.id;
+      document.getElementById("om_name").textContent = order.customer_name;
+      document.getElementById("om_phone").textContent = order.phone;
+      document.getElementById("om_address").textContent = order.address || "—";
+      document.getElementById("om_status").value = order.status;
+      document.getElementById("om_items").innerHTML = order.items.map(it => `
+        <tr>
+          <td>${it.title}</td>
+          <td>${formatPrice(it.price)}</td>
+          <td>${it.qty}</td>
+          <td>${formatPrice(it.price * it.qty)}</td>
+        </tr>`).join("");
+      modal.classList.add("open");
+    } catch (e) {
+      showAdminToast(e.message, true);
+    }
+  }
+
+  document.getElementById("statusFilter").addEventListener("change", renderTable);
+  document.getElementById("closeOrderModalBtn").addEventListener("click", () => modal.classList.remove("open"));
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
+
+  document.getElementById("updateStatusBtn").addEventListener("click", async () => {
+    const status = document.getElementById("om_status").value;
+    try {
+      await adminApi(`/orders/${activeOrderId}/status`, { method: "PUT", body: { status } });
+      showAdminToast("وضعیت سفارش به‌روزرسانی شد ✓");
+      modal.classList.remove("open");
+      await loadAll();
+    } catch (e) {
+      showAdminToast(e.message, true);
+    }
+  });
+
+  await loadAll();
+})();
+</script>
+</body>
+</html>

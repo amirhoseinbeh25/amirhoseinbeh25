@@ -55,9 +55,18 @@
 <div id="site-footer"></div>
 
 <script src="js/data.js"></script>
+<script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/layout.js"></script>
 <script>
+(async () => {
+  try {
+    CATEGORIES = await fetchCategories();
+  } catch (e) {
+    document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
+    return;
+  }
+
   renderLayout("shop");
 
   document.getElementById("catFilters").innerHTML = CATEGORIES.map(c =>
@@ -66,38 +75,39 @@
 
   const params = new URLSearchParams(window.location.search);
   const initialCat = params.get("cat") || "";
-  const initialQuery = (params.get("q") || "").trim().toLowerCase();
+  const initialQuery = (params.get("q") || "").trim();
 
   if (initialCat) {
     const radio = document.querySelector(`input[name="cat"][value="${initialCat}"]`);
     if (radio) radio.checked = true;
   }
 
-  function applyFilters() {
+  if (initialQuery) {
+    document.querySelector('.shop-toolbar').insertAdjacentHTML("beforebegin",
+      `<p>نتایج جست‌وجو برای: «<b>${initialQuery}</b>»</p>`);
+  }
+
+  async function applyFilters() {
     const cat = document.querySelector('input[name="cat"]:checked').value;
     const min = Number(document.getElementById("minPrice").value);
     const max = Number(document.getElementById("maxPrice").value);
     const onlyDiscount = document.getElementById("onlyDiscount").checked;
     const sort = document.getElementById("sortSelect").value;
 
-    let list = BOOKS.filter(b => {
-      if (cat && b.category !== cat) return false;
-      if (b.price < min || b.price > max) return false;
-      if (onlyDiscount && !b.oldPrice) return false;
-      if (initialQuery) {
-        const hay = (b.title + " " + b.author + " " + b.publisher).toLowerCase();
-        if (!hay.includes(initialQuery)) return false;
-      }
-      return true;
-    });
+    document.getElementById("resultCount").textContent = "در حال بارگذاری...";
+    try {
+      BOOKS = await fetchProducts({
+        cat, minPrice: min, maxPrice: max,
+        onlyDiscount: onlyDiscount ? "true" : "", sort, q: initialQuery
+      });
+    } catch (e) {
+      renderProductGrid("shopGrid", []);
+      document.getElementById("resultCount").textContent = e.message;
+      return;
+    }
 
-    if (sort === "cheap") list.sort((a, b) => a.price - b.price);
-    if (sort === "expensive") list.sort((a, b) => b.price - a.price);
-    if (sort === "rating") list.sort((a, b) => b.rating - a.rating);
-    if (sort === "newest") list.sort((a, b) => b.year - a.year);
-
-    document.getElementById("resultCount").textContent = `${list.length} کتاب پیدا شد`;
-    renderProductGrid("shopGrid", list);
+    document.getElementById("resultCount").textContent = `${BOOKS.length} کتاب پیدا شد`;
+    renderProductGrid("shopGrid", BOOKS);
   }
 
   ["minPrice", "maxPrice"].forEach(id => {
@@ -115,12 +125,8 @@
     window.location.href = "shop.html";
   });
 
-  if (initialQuery) {
-    document.querySelector('.shop-toolbar').insertAdjacentHTML("beforebegin",
-      `<p>نتایج جست‌وجو برای: «<b>${params.get("q")}</b>»</p>`);
-  }
-
   applyFilters();
+})();
 </script>
 </body>
 </html>

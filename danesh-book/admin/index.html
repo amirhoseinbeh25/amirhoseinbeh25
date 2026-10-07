@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div class="panel">
+        <h2>⚠️ کتاب‌های رو به اتمام (موجودی ۵ یا کمتر)</h2>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>عنوان</th><th>موجودی</th></tr></thead>
+            <tbody id="lowStockBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🧾 آخرین سفارش‌ها</h2>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>شماره</th><th>مشتری</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+            <tbody id="recentOrdersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("dashboard", "داشبورد");
+
+  const STATUS_LABELS = {
+    pending: "در انتظار بررسی", processing: "در حال پردازش",
+    shipped: "ارسال‌شده", delivered: "تحویل‌شده", cancelled: "لغو‌شده"
+  };
+
+  try {
+    const stats = await adminApi("/dashboard/stats");
+
+    document.getElementById("statGrid").innerHTML = `
+      <div class="stat-card"><div class="ico">📚</div><div><b>${stats.totalProducts}</b><span>تعداد کتاب‌ها</span></div></div>
+      <div class="stat-card"><div class="ico">🏷️</div><div><b>${stats.totalCategories}</b><span>دسته‌بندی‌ها</span></div></div>
+      <div class="stat-card"><div class="ico">🧾</div><div><b>${stats.totalOrders}</b><span>تعداد سفارش‌ها (${stats.pendingOrders} در انتظار)</span></div></div>
+      <div class="stat-card"><div class="ico">💰</div><div><b>${formatPrice(stats.totalRevenue)}</b><span>مجموع فروش</span></div></div>`;
+
+    document.getElementById("lowStockBody").innerHTML = stats.lowStock.length
+      ? stats.lowStock.map(p => `
+          <tr>
+            <td><a href="products.html">${p.title}</a></td>
+            <td><span class="badge ${p.stock === 0 ? "stock-low" : "stock-low"}">${p.stock} عدد</span></td>
+          </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="2">موجودی همه کتاب‌ها مناسب است 👍</td></tr>`;
+
+    document.getElementById("recentOrdersBody").innerHTML = stats.recentOrders.length
+      ? stats.recentOrders.map(o => `
+          <tr>
+            <td>#${o.id}</td>
+            <td>${o.customer_name}</td>
+            <td>${formatPrice(o.total)}</td>
+            <td><span class="badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
+            <td>${o.created_at}</td>
+          </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">هنوز سفارشی ثبت نشده است.</td></tr>`;
+
+  } catch (e) {
+    showAdminToast(e.message, true);
+  }
+})();
+</script>
+</body>
+</html>

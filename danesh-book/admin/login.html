@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ورود به پنل ادمین | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="logo">📚 دانش<span class="dot">بوک</span></div>
+    <p class="sub">ورود به پنل مدیریت فروشگاه</p>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form id="loginForm">
+      <label>ایمیل</label>
+      <input type="email" id="email" required placeholder="admin@daneshbook.ir">
+      <label>رمز عبور</label>
+      <input type="password" id="password" required placeholder="••••••••">
+      <button type="submit" class="btn btn-primary" style="margin-top:6px;">ورود</button>
+    </form>
+
+    <div class="hint">
+      برای تست: <b>admin@daneshbook.ir</b> / رمز عبور <b>admin123</b>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+  if (getAdminToken()) window.location.href = "index.html";
+
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorBox = document.getElementById("errorMsg");
+    errorBox.style.display = "none";
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "در حال ورود...";
+
+    try {
+      const data = await apiRequest("/auth/login", {
+        method: "POST",
+        body: {
+          email: document.getElementById("email").value.trim(),
+          password: document.getElementById("password").value
+        }
+      });
+      setAdminSession(data.token, data.admin);
+      window.location.href = "index.html";
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.style.display = "block";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "ورود";
+    }
+  });
+</script>
+</body>
+</html>

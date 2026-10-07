@@ -19,14 +19,25 @@
 <div id="site-footer"></div>
 
 <script src="js/data.js"></script>
+<script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/layout.js"></script>
 <script>
+(async () => {
+  try {
+    CATEGORIES = await fetchCategories();
+  } catch (e) {
+    document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
+    return;
+  }
   renderLayout("shop");
 
   const id = new URLSearchParams(window.location.search).get("id");
-  const book = getBookById(id);
   const root = document.getElementById("productRoot");
+  let book = null;
+  try {
+    book = await fetchProduct(id);
+  } catch (e) { /* کتاب پیدا نشد */ }
 
   if (!book) {
     root.innerHTML = `<div class="empty-state"><div class="ico">❌</div><p>این کتاب پیدا نشد.</p><a href="shop.html" class="btn btn-primary">بازگشت به فروشگاه</a></div>`;
@@ -126,9 +137,18 @@
       });
     });
 
-    const related = BOOKS.filter(b => b.category === book.category && b.id !== book.id).slice(0, 4);
-    renderProductGrid("relatedGrid", related.length ? related : BOOKS.filter(b => b.id !== book.id).slice(0, 4));
+    let related = [];
+    try {
+      related = await fetchProducts({ cat: book.category });
+      related = related.filter(b => b.id !== book.id).slice(0, 4);
+      if (!related.length) {
+        const all = await fetchProducts();
+        related = all.filter(b => b.id !== book.id).slice(0, 4);
+      }
+    } catch (e) { /* قابل چشم‌پوشی */ }
+    renderProductGrid("relatedGrid", related);
   }
+})();
 </script>
 </body>
 </html>

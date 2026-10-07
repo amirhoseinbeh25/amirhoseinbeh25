@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مدیریت کتاب‌ها | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <input type="text" id="searchBox" placeholder="جست‌وجو در عنوان یا نویسنده...">
+          <div style="display:flex; gap:10px;">
+            <select id="catFilterBox"><option value="">همه دسته‌بندی‌ها</option></select>
+            <button class="btn btn-primary" id="addProductBtn">➕ افزودن کتاب جدید</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>کتاب</th><th>دسته‌بندی</th><th>قیمت</th><th>موجودی</th><th>عملیات</th></tr>
+            </thead>
+            <tbody id="productsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="productModal">
+  <div class="modal-box">
+    <h2 id="modalTitle">افزودن کتاب جدید</h2>
+    <form id="productForm">
+      <input type="hidden" id="productId">
+      <div class="form-grid">
+        <div class="full">
+          <label>عنوان کتاب *</label>
+          <input type="text" id="f_title" required>
+        </div>
+        <div>
+          <label>نویسنده *</label>
+          <input type="text" id="f_author" required>
+        </div>
+        <div>
+          <label>مترجم</label>
+          <input type="text" id="f_translator">
+        </div>
+        <div>
+          <label>دسته‌بندی *</label>
+          <select id="f_category" required></select>
+        </div>
+        <div>
+          <label>ناشر</label>
+          <input type="text" id="f_publisher">
+        </div>
+        <div>
+          <label>قیمت (تومان) *</label>
+          <input type="number" id="f_price" required min="0">
+        </div>
+        <div>
+          <label>قیمت قبل از تخفیف</label>
+          <input type="number" id="f_oldPrice" min="0">
+        </div>
+        <div>
+          <label>موجودی انبار *</label>
+          <input type="number" id="f_stock" required min="0">
+        </div>
+        <div>
+          <label>برچسب (مثلاً پرفروش، جدید)</label>
+          <input type="text" id="f_badge">
+        </div>
+        <div>
+          <label>تعداد صفحات</label>
+          <input type="number" id="f_pages" min="0">
+        </div>
+        <div>
+          <label>سال انتشار</label>
+          <input type="number" id="f_year" min="1300" max="1500">
+        </div>
+        <div>
+          <label>امتیاز (از ۵)</label>
+          <input type="number" id="f_rating" min="0" max="5" step="0.1">
+        </div>
+        <div>
+          <label>رنگ جلد</label>
+          <input type="color" id="f_color" value="#1f5d50">
+        </div>
+        <div class="full">
+          <label>توضیحات</label>
+          <textarea id="f_desc"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelModalBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary" id="saveProductBtn">ذخیره کتاب</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("products", "مدیریت کتاب‌ها");
+
+  let categories = [];
+  let products = [];
+
+  const modal = document.getElementById("productModal");
+  const form = document.getElementById("productForm");
+
+  function statusBadge(stock) {
+    return stock <= 5
+      ? `<span class="badge stock-low">${stock} عدد</span>`
+      : `<span class="badge stock-ok">${stock} عدد</span>`;
+  }
+
+  function renderTable() {
+    const q = document.getElementById("searchBox").value.trim().toLowerCase();
+    const catFilter = document.getElementById("catFilterBox").value;
+
+    const filtered = products.filter(p => {
+      if (catFilter && p.category !== catFilter) return false;
+      if (q && !(p.title + p.author).toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    document.getElementById("productsBody").innerHTML = filtered.length
+      ? filtered.map(p => `
+        <tr>
+          <td>
+            <div class="row-flex">
+              <img class="row-cover" src="${bookCoverDataUrl(p)}" alt="">
+              <span>${p.title}</span>
+            </div>
+          </td>
+          <td>${getCategoryTitle(p.category)}</td>
+          <td>${formatPrice(p.price)}</td>
+          <td>${statusBadge(p.stock)}</td>
+          <td>
+            <button class="icon-btn" data-act="edit" data-id="${p.id}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-act="delete" data-id="${p.id}" title="حذف">🗑️</button>
+          </td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">کتابی پیدا نشد.</td></tr>`;
+
+    document.querySelectorAll('[data-act="edit"]').forEach(b =>
+      b.addEventListener("click", () => openModal(Number(b.dataset.id))));
+    document.querySelectorAll('[data-act="delete"]').forEach(b =>
+      b.addEventListener("click", () => deleteProduct(Number(b.dataset.id))));
+  }
+
+  async function loadAll() {
+    [categories, products] = await Promise.all([fetchCategories(), fetchProducts()]);
+    CATEGORIES = categories; // برای getCategoryTitle در data.js
+
+    document.getElementById("f_category").innerHTML = categories.map(c =>
+      `<option value="${c.id}">${c.icon} ${c.title}</option>`).join("");
+    document.getElementById("catFilterBox").innerHTML = `<option value="">همه دسته‌بندی‌ها</option>` +
+      categories.map(c => `<option value="${c.id}">${c.icon} ${c.title}</option>`).join("");
+
+    renderTable();
+  }
+
+  function openModal(id) {
+    const p = id ? products.find(x => x.id === id) : null;
+    document.getElementById("modalTitle").textContent = p ? "ویرایش کتاب" : "افزودن کتاب جدید";
+    document.getElementById("productId").value = p ? p.id : "";
+    document.getElementById("f_title").value = p ? p.title : "";
+    document.getElementById("f_author").value = p ? p.author : "";
+    document.getElementById("f_translator").value = p ? (p.translator || "") : "";
+    document.getElementById("f_category").value = p ? p.category : categories[0]?.id || "";
+    document.getElementById("f_publisher").value = p ? (p.publisher || "") : "";
+    document.getElementById("f_price").value = p ? p.price : "";
+    document.getElementById("f_oldPrice").value = p && p.oldPrice ? p.oldPrice : "";
+    document.getElementById("f_stock").value = p ? p.stock : 0;
+    document.getElementById("f_badge").value = p ? (p.badge || "") : "";
+    document.getElementById("f_pages").value = p ? (p.pages || "") : "";
+    document.getElementById("f_year").value = p ? (p.year || "") : "";
+    document.getElementById("f_rating").value = p ? (p.rating || 4.5) : 4.5;
+    document.getElementById("f_color").value = p ? (p.color || "#1f5d50") : "#1f5d50";
+    document.getElementById("f_desc").value = p ? (p.desc || "") : "";
+    modal.classList.add("open");
+  }
+
+  function closeModal() { modal.classList.remove("open"); }
+
+  async function deleteProduct(id) {
+    const p = products.find(x => x.id === id);
+    if (!confirm(`آیا از حذف کتاب «${p.title}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/products/" + id, { method: "DELETE" });
+      showAdminToast("کتاب با موفقیت حذف شد ✓");
+      await loadAll();
+    } catch (e) {
+      showAdminToast(e.message, true);
+    }
+  }
+
+  document.getElementById("addProductBtn").addEventListener("click", () => openModal(null));
+  document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  document.getElementById("searchBox").addEventListener("input", renderTable);
+  document.getElementById("catFilterBox").addEventListener("change", renderTable);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("productId").value;
+    const payload = {
+      title: document.getElementById("f_title").value.trim(),
+      author: document.getElementById("f_author").value.trim(),
+      translator: document.getElementById("f_translator").value.trim() || null,
+      category: document.getElementById("f_category").value,
+      publisher: document.getElementById("f_publisher").value.trim(),
+      price: Number(document.getElementById("f_price").value),
+      oldPrice: document.getElementById("f_oldPrice").value ? Number(document.getElementById("f_oldPrice").value) : null,
+      stock: Number(document.getElementById("f_stock").value),
+      badge: document.getElementById("f_badge").value.trim() || null,
+      pages: document.getElementById("f_pages").value ? Number(document.getElementById("f_pages").value) : null,
+      year: document.getElementById("f_year").value ? Number(document.getElementById("f_year").value) : null,
+      rating: Number(document.getElementById("f_rating").value || 4.5),
+      color: document.getElementById("f_color").value,
+      desc: document.getElementById("f_desc").value.trim()
+    };
+
+    const saveBtn = document.getElementById("saveProductBtn");
+    saveBtn.disabled = true;
+    try {
+      if (id) {
+        await adminApi("/products/" + id, { method: "PUT", body: payload });
+        showAdminToast("کتاب با موفقیت به‌روزرسانی شد ✓");
+      } else {
+        await adminApi("/products", { method: "POST", body: payload });
+        showAdminToast("کتاب جدید با موفقیت اضافه شد ✓");
+      }
+      closeModal();
+      await loadAll();
+    } catch (e) {
+      showAdminToast(e.message, true);
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  await loadAll();
+})();
+</script>
+</body>
+</html>

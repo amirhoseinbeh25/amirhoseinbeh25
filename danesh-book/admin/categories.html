@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دسته‌بندی‌ها | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span style="color:var(--color-text-light); font-size:13.5px;">دسته‌بندی کتاب‌ها برای فیلتر فروشگاه و منوی سایت استفاده می‌شود.</span>
+          <button class="btn btn-primary" id="addCatBtn">➕ افزودن دسته‌بندی</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>آیکون</th><th>عنوان</th><th>شناسه</th><th>تعداد کتاب</th><th>عملیات</th></tr></thead>
+            <tbody id="catsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="catModal">
+  <div class="modal-box" style="max-width:420px;">
+    <h2 id="catModalTitle">افزودن دسته‌بندی</h2>
+    <form id="catForm">
+      <div class="form-grid" style="grid-template-columns:1fr;">
+        <div>
+          <label>شناسه یکتا (انگلیسی، بدون فاصله) *</label>
+          <input type="text" id="c_id" required placeholder="مثلاً: cooking">
+        </div>
+        <div>
+          <label>عنوان فارسی *</label>
+          <input type="text" id="c_title" required placeholder="مثلاً: آشپزی">
+        </div>
+        <div>
+          <label>آیکون (یک ایموجی)</label>
+          <input type="text" id="c_icon" placeholder="📚">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelCatBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("categories", "دسته‌بندی‌ها");
+
+  let categories = [];
+  let products = [];
+  const modal = document.getElementById("catModal");
+  const form = document.getElementById("catForm");
+  let editingId = null;
+
+  function countForCat(id) {
+    return products.filter(p => p.category === id).length;
+  }
+
+  function renderTable() {
+    document.getElementById("catsBody").innerHTML = categories.length
+      ? categories.map(c => `
+        <tr>
+          <td style="font-size:20px;">${c.icon || "📚"}</td>
+          <td>${c.title}</td>
+          <td><code>${c.id}</code></td>
+          <td>${countForCat(c.id)} کتاب</td>
+          <td>
+            <button class="icon-btn" data-act="edit" data-id="${c.id}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-act="delete" data-id="${c.id}" title="حذف">🗑️</button>
+          </td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">دسته‌بندی‌ای ثبت نشده.</td></tr>`;
+
+    document.querySelectorAll('[data-act="edit"]').forEach(b =>
+      b.addEventListener("click", () => openModal(b.dataset.id)));
+    document.querySelectorAll('[data-act="delete"]').forEach(b =>
+      b.addEventListener("click", () => deleteCat(b.dataset.id)));
+  }
+
+  async function loadAll() {
+    [categories, products] = await Promise.all([fetchCategories(), fetchProducts()]);
+    renderTable();
+  }
+
+  function openModal(id) {
+    editingId = id || null;
+    const c = id ? categories.find(x => x.id === id) : null;
+    document.getElementById("catModalTitle").textContent = c ? "ویرایش دسته‌بندی" : "افزودن دسته‌بندی";
+    document.getElementById("c_id").value = c ? c.id : "";
+    document.getElementById("c_id").disabled = !!c;
+    document.getElementById("c_title").value = c ? c.title : "";
+    document.getElementById("c_icon").value = c ? (c.icon || "") : "";
+    modal.classList.add("open");
+  }
+  function closeModal() { modal.classList.remove("open"); }
+
+  async function deleteCat(id) {
+    const c = categories.find(x => x.id === id);
+    if (!confirm(`آیا از حذف دسته‌بندی «${c.title}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/categories/" + id, { method: "DELETE" });
+      showAdminToast("دسته‌بندی حذف شد ✓");
+      await loadAll();
+    } catch (e) {
+      showAdminToast(e.message, true);
+    }
+  }
+
+  document.getElementById("addCatBtn").addEventListener("click", () => openModal(null));
+  document.getElementById("cancelCatBtn").addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      id: document.getElementById("c_id").value.trim(),
+      title: document.getElementById("c_title").value.trim(),
+      icon: document.getElementById("c_icon").value.trim() || "📚"
+    };
+    try {
+      if (editingId) {
+        await adminApi("/categories/" + editingId, { method: "PUT", body: payload });
+        showAdminToast("دسته‌بندی به‌روزرسانی شد ✓");
+      } else {
+        await adminApi("/categories", { method: "POST", body: payload });
+        showAdminToast("دسته‌بندی جدید اضافه شد ✓");
+      }
+      closeModal();
+      await loadAll();
+    } catch (e) {
+      showAdminToast(e.message, true);
+    }
+  });
+
+  await loadAll();
+})();
+</script>
+</body>
+</html>

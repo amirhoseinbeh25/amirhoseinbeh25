@@ -21,16 +21,30 @@
 <div id="site-footer"></div>
 
 <script src="js/data.js"></script>
+<script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/layout.js"></script>
 <script>
+(async () => {
+  try {
+    CATEGORIES = await fetchCategories();
+  } catch (e) { /* قابل چشم‌پوشی برای صفحه سبد خرید */ }
   renderLayout();
 
   function shippingCost(subtotal) {
     return subtotal === 0 || subtotal >= 500000 ? 0 : 35000;
   }
 
-  function renderCart() {
+  let cartBooks = {};
+
+  async function loadCartBooks() {
+    const cart = getCart();
+    const results = await Promise.all(cart.map(item => fetchProduct(item.id).catch(() => null)));
+    cartBooks = {};
+    results.forEach(b => { if (b) cartBooks[b.id] = b; });
+  }
+
+  async function renderCart() {
     const cart = getCart();
     const root = document.getElementById("cartRoot");
 
@@ -44,8 +58,11 @@
       return;
     }
 
+    root.innerHTML = `<div class="empty-state"><p>در حال بارگذاری سبد خرید...</p></div>`;
+    await loadCartBooks();
+
     const rows = cart.map(item => {
-      const book = getBookById(item.id);
+      const book = cartBooks[item.id];
       if (!book) return "";
       const lineTotal = book.price * item.qty;
       return `
@@ -62,18 +79,18 @@
           <td>${formatPrice(book.price)}</td>
           <td>
             <div class="qty-control" style="margin:0 auto;">
-              <button onclick="setCartQty(${book.id}, ${item.qty - 1}); renderCart();">−</button>
+              <button data-act="dec" data-id="${book.id}" data-qty="${item.qty}">−</button>
               <span>${item.qty}</span>
-              <button onclick="setCartQty(${book.id}, ${item.qty + 1}); renderCart();">+</button>
+              <button data-act="inc" data-id="${book.id}" data-qty="${item.qty}">+</button>
             </div>
           </td>
           <td><b>${formatPrice(lineTotal)}</b></td>
-          <td><button class="cart-remove" onclick="removeFromCart(${book.id}); renderCart();" title="حذف">🗑</button></td>
+          <td><button class="cart-remove" data-act="remove" data-id="${book.id}" title="حذف">🗑</button></td>
         </tr>`;
     }).join("");
 
     const subtotal = cart.reduce((sum, item) => {
-      const book = getBookById(item.id);
+      const book = cartBooks[item.id];
       return sum + (book ? book.price * item.qty : 0);
     }, 0);
     const shipping = shippingCost(subtotal);
@@ -95,27 +112,57 @@
           <div class="row"><span>جمع کل کالاها</span><span>${formatPrice(subtotal)}</span></div>
           <div class="row"><span>هزینه ارسال</span><span>${shipping === 0 ? "رایگان" : formatPrice(shipping)}</span></div>
           <div class="row total"><span>مبلغ قابل پرداخت</span><span>${formatPrice(total)}</span></div>
-          <div class="coupon-row">
-            <input type="text" placeholder="کد تخفیف">
-            <button class="btn btn-outline btn-sm" onclick="showToast('کد تخفیف نامعتبر است')">اعمال</button>
-          </div>
-          <button class="btn btn-primary btn-block" onclick="checkout()">ثبت نهایی سفارش</button>
+
+          <form id="checkoutForm" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+            <input type="text" id="custName" required placeholder="نام و نام خانوادگی">
+            <input type="tel" id="custPhone" required placeholder="شماره تماس">
+            <input type="text" id="custAddress" placeholder="آدرس (اختیاری)">
+            <button type="submit" class="btn btn-primary btn-block">ثبت نهایی سفارش</button>
+          </form>
         </div>
       </div>`;
-  }
 
-  function checkout() {
-    if (!getCart().length) return;
-    saveCart([]);
-    document.getElementById("cartRoot").innerHTML = `
-      <div class="empty-state">
-        <div class="ico">✅</div>
-        <p>سفارش شما با موفقیت ثبت شد! به‌زودی با شما تماس گرفته می‌شود.</p>
-        <a href="shop.html" class="btn btn-primary">ادامه خرید</a>
-      </div>`;
+    root.querySelectorAll("[data-act]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.dataset.id);
+        if (btn.dataset.act === "remove") removeFromCart(id);
+        if (btn.dataset.act === "inc") setCartQty(id, Number(btn.dataset.qty) + 1);
+        if (btn.dataset.act === "dec") setCartQty(id, Number(btn.dataset.qty) - 1);
+        await renderCart();
+      });
+    });
+
+    document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const submitBtn = e.target.querySelector("button[type=submit]");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "در حال ثبت سفارش...";
+      try {
+        const order = await submitOrder({
+          items: getCart(),
+          customer: {
+            name: document.getElementById("custName").value.trim(),
+            phone: document.getElementById("custPhone").value.trim(),
+            address: document.getElementById("custAddress").value.trim()
+          }
+        });
+        saveCart([]);
+        root.innerHTML = `
+          <div class="empty-state">
+            <div class="ico">✅</div>
+            <p>سفارش شما با کد پیگیری <b>#${order.id}</b> با موفقیت ثبت شد! به‌زودی با شما تماس گرفته می‌شود.</p>
+            <a href="shop.html" class="btn btn-primary">ادامه خرید</a>
+          </div>`;
+      } catch (err) {
+        showToast(err.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = "ثبت نهایی سفارش";
+      }
+    });
   }
 
   renderCart();
+})();
 </script>
 </body>
 </html>
