@@ -1,5 +1,19 @@
 /* دانش بوک — احراز هویت و لایه مشترک پنل ادمین */
 
+function injectBackgroundBlobs() {
+  if (document.querySelector(".bg-blobs")) return;
+  const wrap = document.createElement("div");
+  wrap.className = "bg-blobs";
+  wrap.innerHTML = `
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+    <span class="blob blob-4"></span>
+    <span class="blob blob-5"></span>`;
+  document.body.prepend(wrap);
+}
+injectBackgroundBlobs();
+
 const ADMIN_TOKEN_KEY = "db_admin_token";
 const ADMIN_INFO_KEY = "db_admin_info";
 

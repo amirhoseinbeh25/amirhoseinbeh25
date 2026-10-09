@@ -1,5 +1,19 @@
 /* دانش بوک — هدر و فوتر مشترک تمام صفحات */
 
+function injectBackgroundBlobs() {
+  if (document.querySelector(".bg-blobs")) return;
+  const wrap = document.createElement("div");
+  wrap.className = "bg-blobs";
+  wrap.innerHTML = `
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+    <span class="blob blob-4"></span>
+    <span class="blob blob-5"></span>`;
+  document.body.prepend(wrap);
+}
+injectBackgroundBlobs();
+
 function headerTemplate() {
   const catLinks = CATEGORIES.map(c =>
     `<li><a href="shop.html?cat=${c.id}">${c.icon} ${c.title}</a></li>`
