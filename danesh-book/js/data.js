@@ -19,13 +19,13 @@ function formatPrice(n) {
 /* تولید جلد کتاب به صورت SVG بدون نیاز به تصویر خارجی */
 function bookCoverDataUrl(book) {
   const initials = book.title.trim().split(" ").slice(0, 2).map(w => w[0]).join("");
-  const color = book.color || "#1f5d50";
+  const color = book.color || "#6d93ac";
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
       <defs>
         <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="${color}"/>
-          <stop offset="1" stop-color="#1b1410"/>
+          <stop offset="1" stop-color="#1c2a33"/>
         </linearGradient>
       </defs>
       <rect width="400" height="560" fill="url(#g)"/>

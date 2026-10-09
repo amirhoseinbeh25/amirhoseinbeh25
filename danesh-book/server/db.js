@@ -26,7 +26,7 @@ db.exec(`
     publisher   TEXT,
     pages       INTEGER,
     year        INTEGER,
-    color       TEXT DEFAULT '#1f5d50',
+    color       TEXT DEFAULT '#6d93ac',
     stock       INTEGER DEFAULT 0,
     description TEXT,
     created_at  TEXT DEFAULT (datetime('now'))

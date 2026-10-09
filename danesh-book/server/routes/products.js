@@ -76,7 +76,7 @@ router.post("/", requireAdmin, (req, res) => {
     Number(b.price), b.oldPrice ? Number(b.oldPrice) : null, b.badge || null,
     b.rating ? Number(b.rating) : 4.5, b.reviews ? Number(b.reviews) : 0,
     b.publisher || null, b.pages ? Number(b.pages) : null, b.year ? Number(b.year) : null,
-    b.color || "#1f5d50", b.stock ? Number(b.stock) : 0, b.desc || ""
+    b.color || "#6d93ac", b.stock ? Number(b.stock) : 0, b.desc || ""
   );
 
   const row = db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid);
