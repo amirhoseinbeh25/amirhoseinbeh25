@@ -8,8 +8,8 @@
   --color-primary-dark: #5fa0d4;
   --color-accent: #f8b8c8;
   --color-accent-dark: #f295ac;
-  --color-bg: #f2f9fd;
-  --color-bg-alt: #e4f3fb;
+  --color-bg: #f095a8;
+  --color-bg-alt: #fdeef2;
   --color-surface: #ffffff;
   --color-text: #35505f;
   --color-text-light: #7d93a0;
@@ -27,7 +27,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
-  background: linear-gradient(180deg, #eaf7fd 0%, #f2f9fd 35%, #fdf2f6 100%) fixed;
+  background: var(--color-bg);
   color: var(--color-text);
   direction: rtl;
   line-height: 1.8;
