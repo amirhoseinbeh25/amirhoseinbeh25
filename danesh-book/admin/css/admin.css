@@ -1,21 +1,21 @@
 /* دانش بوک — پنل ادمین */
 
 :root {
-  /* پالت رنگی برگرفته از Pantone 649 C (#BCCCD6) و Pantone 707 C (#F095A8) */
-  --color-primary: #6d93ac;
-  --color-primary-dark: #4a6e86;
-  --color-accent: #f095a8;
-  --color-bg: #f0f4f7;
-  --color-bg-alt: #eaf1f5;
+  /* پالت فانتزی و آسمانی، هماهنگ با سایت اصلی */
+  --color-primary: #6fb0e0;
+  --color-primary-dark: #5696cb;
+  --color-accent: #f8b8c8;
+  --color-bg: #f2f9fd;
+  --color-bg-alt: #e4f3fb;
   --color-surface: #ffffff;
-  --color-text: #2e3a42;
-  --color-text-light: #6d7b84;
-  --color-border: #dde6ec;
-  --color-danger: #c0392b;
-  --color-success: #1f7a4d;
-  --color-warning: #b3792c;
-  --radius: 12px;
-  --shadow: 0 4px 18px rgba(31, 53, 66, 0.08);
+  --color-text: #35505f;
+  --color-text-light: #7d93a0;
+  --color-border: #dcedf6;
+  --color-danger: #e0637a;
+  --color-success: #3bab7a;
+  --color-warning: #e0a94f;
+  --radius: 16px;
+  --shadow: 0 6px 22px rgba(95, 160, 212, 0.14);
   --sidebar-w: 240px;
 }
 

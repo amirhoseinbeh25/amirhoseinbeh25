@@ -1,22 +1,22 @@
 /* ===== دانش بوک — استایل اصلی فروشگاه ===== */
 
 :root {
-  /* پالت رنگی برگرفته از Pantone 649 C (#BCCCD6) و Pantone 707 C (#F095A8) */
+  /* پالت فانتزی و آسمانی، الهام‌گرفته از Pantone 649 C و 707 C ولی کم‌رنگ‌تر و روشن‌تر */
   --color-blue-pastel: #bcccd6;
   --color-pink-pastel: #f095a8;
-  --color-primary: #6d93ac;
-  --color-primary-dark: #4a6e86;
-  --color-accent: #f095a8;
-  --color-accent-dark: #dd7791;
-  --color-bg: #f7fafc;
-  --color-bg-alt: #eaf1f5;
+  --color-primary: #8fc1e8;
+  --color-primary-dark: #5fa0d4;
+  --color-accent: #f8b8c8;
+  --color-accent-dark: #f295ac;
+  --color-bg: #f2f9fd;
+  --color-bg-alt: #e4f3fb;
   --color-surface: #ffffff;
-  --color-text: #2e3a42;
-  --color-text-light: #6d7b84;
-  --color-border: #dde6ec;
-  --color-danger: #c0392b;
-  --radius: 12px;
-  --shadow: 0 4px 18px rgba(31, 53, 66, 0.08);
+  --color-text: #35505f;
+  --color-text-light: #7d93a0;
+  --color-border: #dcedf6;
+  --color-danger: #e0637a;
+  --radius: 16px;
+  --shadow: 0 6px 22px rgba(95, 160, 212, 0.14);
   --container: 1240px;
 }
 
@@ -27,7 +27,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
-  background: var(--color-bg);
+  background: linear-gradient(180deg, #eaf7fd 0%, #f2f9fd 35%, #fdf2f6 100%) fixed;
   color: var(--color-text);
   direction: rtl;
   line-height: 1.8;
@@ -157,17 +157,17 @@ header.site-header { background: var(--color-surface); box-shadow: var(--shadow)
 .menu-toggle { display: none; background: none; border: none; font-size: 26px; color: var(--color-primary); }
 
 /* Category nav */
-nav.category-nav { background: var(--color-primary); }
+nav.category-nav { background: var(--color-primary-dark); }
 nav.category-nav ul { display: flex; gap: 6px; flex-wrap: wrap; }
 nav.category-nav a {
   display: block;
   padding: 13px 16px;
-  color: #e7f0f5;
+  color: #eef7fc;
   font-size: 14px;
   font-weight: 500;
   transition: background .15s;
 }
-nav.category-nav a:hover, nav.category-nav a.active { background: var(--color-primary-dark); color: var(--color-accent); }
+nav.category-nav a:hover, nav.category-nav a.active { background: var(--color-accent); color: var(--color-text); }
 
 /* ===== Hero ===== */
 .hero { position: relative; overflow: hidden; border-radius: var(--radius); margin: 24px 0; }
@@ -177,17 +177,17 @@ nav.category-nav a:hover, nav.category-nav a.active { background: var(--color-pr
   justify-content: space-between;
   min-height: 320px;
   padding: 40px 56px;
-  color: #fff;
+  color: var(--color-text);
   gap: 20px;
 }
 .hero-slide.active { display: flex; }
 .hero-slide h2 { font-size: 34px; margin: 0 0 12px; }
-.hero-slide p { font-size: 16px; opacity: .9; max-width: 440px; margin: 0 0 20px; }
-.hero-slide .hero-badge { display: inline-block; background: rgba(255,255,255,.18); padding: 4px 14px; border-radius: 999px; font-size: 13px; margin-bottom: 14px; }
-.hero-emoji { font-size: 120px; opacity: .9; }
+.hero-slide p { font-size: 16px; opacity: .85; max-width: 440px; margin: 0 0 20px; }
+.hero-slide .hero-badge { display: inline-block; background: rgba(255,255,255,.55); padding: 4px 14px; border-radius: 999px; font-size: 13px; margin-bottom: 14px; }
+.hero-emoji { font-size: 120px; opacity: .9; filter: drop-shadow(0 8px 14px rgba(53, 80, 95, 0.18)); }
 .hero-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
-.hero-dots button { width: 10px; height: 10px; border-radius: 50%; border: none; background: rgba(255,255,255,.5); }
-.hero-dots button.active { background: #fff; }
+.hero-dots button { width: 10px; height: 10px; border-radius: 50%; border: none; background: rgba(255,255,255,.6); }
+.hero-dots button.active { background: var(--color-primary-dark); }
 
 /* Category grid */
 .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -266,13 +266,13 @@ nav.category-nav a:hover, nav.category-nav a.active { background: var(--color-pr
 .add-cart-btn:hover { background: var(--color-primary-dark); }
 
 /* Flash sale */
-.flash-sale { background: linear-gradient(120deg, var(--color-primary), var(--color-primary-dark)); border-radius: var(--radius); padding: 28px 30px; color: #fff; display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; flex-wrap: wrap; gap: 16px; }
+.flash-sale { background: linear-gradient(120deg, var(--color-primary), var(--color-primary-dark)); border-radius: var(--radius); padding: 28px 30px; color: var(--color-text); display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; flex-wrap: wrap; gap: 16px; }
 .flash-sale h3 { margin: 0 0 6px; font-size: 22px; }
-.flash-sale p { margin: 0; opacity: .85; font-size: 13.5px; }
+.flash-sale p { margin: 0; opacity: .8; font-size: 13.5px; }
 .countdown { display: flex; gap: 10px; }
-.countdown .box { background: rgba(255,255,255,.14); border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 56px; }
-.countdown .box b { font-size: 20px; display: block; }
-.countdown .box small { font-size: 11px; opacity: .8; }
+.countdown .box { background: rgba(255,255,255,.6); border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 56px; }
+.countdown .box b { font-size: 20px; display: block; color: var(--color-primary-dark); }
+.countdown .box small { font-size: 11px; opacity: .75; }
 
 /* Trust badges */
 .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center; }
