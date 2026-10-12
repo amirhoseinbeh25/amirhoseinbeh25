@@ -83,7 +83,7 @@ function productCardHTML(book) {
     <div class="product-info">
       <span class="product-cat">${getCategoryTitle(book.category)}</span>
       <a href="product.html?id=${book.id}"><h3 class="product-title">${book.title}</h3></a>
-      <span class="product-author">نویسنده: ${book.author}</span>
+      <span class="product-author">مؤلف: ${book.author}</span>
       <span class="product-rating">${starString(book.rating)}</span>
       <div class="product-price-row">
         <span class="price-now">${formatPrice(book.price)}</span>

@@ -62,7 +62,7 @@ router.get("/:id", (req, res) => {
 router.post("/", requireAdmin, (req, res) => {
   const b = req.body || {};
   if (!b.title || !b.author || !b.category || !b.price) {
-    return res.status(400).json({ error: "عنوان، نویسنده، دسته‌بندی و قیمت الزامی هستند." });
+    return res.status(400).json({ error: "عنوان، مؤلف، دسته‌بندی و قیمت الزامی هستند." });
   }
   const cat = db.prepare("SELECT 1 FROM categories WHERE id = ?").get(b.category);
   if (!cat) return res.status(400).json({ error: "دسته‌بندی انتخاب‌شده معتبر نیست." });

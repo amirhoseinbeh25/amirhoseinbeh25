@@ -57,7 +57,7 @@
         </div>
         <div class="pd-info">
           <h1 class="pd-title">${book.title}</h1>
-          <div class="pd-meta">نویسنده: ${book.author}${book.translator ? " | مترجم: " + book.translator : ""}</div>
+          <div class="pd-meta">مؤلف: ${book.author}</div>
           <div class="pd-rating">${starString(book.rating)} — ${book.reviews} نظر</div>
           <div class="pd-price-row">
             <span class="price-now">${formatPrice(book.price)}</span>
@@ -96,8 +96,8 @@
       <div class="tab-panel active" id="tab-desc">${book.desc}</div>
       <div class="tab-panel" id="tab-spec">
         <div class="pd-info-list">
-          <div><span>نویسنده</span><span>${book.author}</span></div>
-          <div><span>مترجم</span><span>${book.translator || "—"}</span></div>
+          <div><span>مؤلف</span><span>${book.author}</span></div>
+          <div><span>نوع کتاب</span><span>کمک درسی</span></div>
           <div><span>ناشر</span><span>${book.publisher}</span></div>
           <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
           <div><span>سال انتشار</span><span>${book.year}</span></div>

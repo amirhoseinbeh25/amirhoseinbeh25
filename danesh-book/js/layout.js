@@ -37,7 +37,7 @@ function headerTemplate() {
       <a href="index.html" class="logo"><span class="logo-icon">📚</span>دانش<span class="dot">بوک</span></a>
 
       <form class="search-box" id="searchForm">
-        <input type="text" id="searchInput" placeholder="نام کتاب، نویسنده یا ناشر را جست‌وجو کنید...">
+        <input type="text" id="searchInput" placeholder="نام کتاب، درس یا ناشر را جست‌وجو کنید...">
         <button type="submit" aria-label="جست‌وجو">🔍</button>
       </form>
 
@@ -71,7 +71,7 @@ function footerTemplate() {
     <div class="container footer-grid">
       <div class="footer-col">
         <h4>📚 دانش بوک</h4>
-        <p>دانش بوک، فروشگاه اینترنتی تخصصی کتاب با هزاران عنوان در حوزه‌های رمان، روان‌شناسی، تاریخ، کسب‌وکار و کودک و نوجوان. تجربه خریدی ساده، سریع و امن برای کتاب‌دوستان ایرانی.</p>
+        <p>دانش بوک، فروشگاه اینترنتی تخصصی کتاب‌های کمک درسی و کنکور، با پوشش کامل دروس ریاضی، فیزیک، شیمی، زیست، ادبیات، زبان و عربی برای تمام پایه‌های تحصیلی. تجربه خریدی ساده، سریع و امن برای دانش‌آموزان و داوطلبان کنکور.</p>
         <div class="footer-social">
           <a href="#" title="اینستاگرام">📷</a>
           <a href="#" title="تلگرام">✈️</a>
@@ -106,7 +106,7 @@ function footerTemplate() {
     </div>
     <div class="container footer-bottom">
       <span>© ۱۴۰۴ دانش بوک — تمامی حقوق محفوظ است.</span>
-      <span>طراحی و توسعه با ❤ برای کتاب‌دوستان ایران</span>
+      <span>طراحی و توسعه با ❤ برای دانش‌آموزان و داوطلبان کنکور ایران</span>
     </div>
   </footer>`;
 }
