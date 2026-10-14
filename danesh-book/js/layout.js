@@ -19,6 +19,11 @@ function headerTemplate() {
     `<li><a href="shop.html?cat=${c.id}">${c.icon} ${c.title}</a></li>`
   ).join("");
 
+  const customer = typeof getCustomerInfo === "function" ? getCustomerInfo() : null;
+  const accountLink = customer
+    ? `<a href="account.html" class="icon-link"><span class="icon">👤</span>${customer.name.split(" ")[0]}</a>`
+    : `<a href="login.html" class="icon-link"><span class="icon">👤</span>حساب من</a>`;
+
   return `
   <div class="topbar">
     <div class="container">
@@ -42,8 +47,11 @@ function headerTemplate() {
       </form>
 
       <div class="header-icons">
-        <a href="#" class="icon-link"><span class="icon">👤</span>حساب من</a>
-        <a href="#" class="icon-link"><span class="icon">❤</span>علاقه‌مندی</a>
+        ${accountLink}
+        <a href="compare.html" class="icon-link">
+          <span class="icon">⇄</span>مقایسه
+          <span class="badge-count" id="compareBadge">0</span>
+        </a>
         <a href="cart.html" class="icon-link">
           <span class="icon">🛒</span>سبد خرید
           <span class="badge-count" id="cartBadge">0</span>
@@ -57,6 +65,8 @@ function headerTemplate() {
           <li><a href="index.html" data-page="index">خانه</a></li>
           <li><a href="shop.html" data-page="shop">همه کتاب‌ها</a></li>
           ${catLinks}
+          <li><a href="bundles.html" data-page="bundles">🎁 پک‌های آموزشی</a></li>
+          <li><a href="blog.html" data-page="blog">✍️ وبلاگ</a></li>
           <li><a href="about.html" data-page="about">درباره ما</a></li>
           <li><a href="contact.html" data-page="contact">تماس با ما</a></li>
         </ul>
@@ -83,18 +93,20 @@ function footerTemplate() {
         <ul>
           <li><a href="index.html">صفحه اصلی</a></li>
           <li><a href="shop.html">فروشگاه</a></li>
-          <li><a href="about.html">درباره ما</a></li>
-          <li><a href="contact.html">تماس با ما</a></li>
+          <li><a href="bundles.html">پک‌های آموزشی</a></li>
+          <li><a href="blog.html">وبلاگ آموزشی</a></li>
           <li><a href="cart.html">سبد خرید</a></li>
+          <li><a href="account.html">حساب کاربری</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>خدمات مشتریان</h4>
         <ul>
-          <li><a href="#">راهنمای خرید</a></li>
-          <li><a href="#">شرایط ارسال و تحویل</a></li>
-          <li><a href="#">قوانین بازگشت کالا</a></li>
-          <li><a href="#">سوالات متداول</a></li>
+          <li><a href="buying-guide.html">راهنمای خرید</a></li>
+          <li><a href="shipping-policy.html">شرایط ارسال و تحویل</a></li>
+          <li><a href="returns-policy.html">قوانین بازگشت کالا</a></li>
+          <li><a href="faq.html">سوالات متداول</a></li>
+          <li><a href="bulk-order.html">سفارش عمده برای مدارس</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -138,4 +150,5 @@ function renderLayout(activePage) {
   }
 
   updateCartBadge();
+  if (typeof updateCompareBadge === "function") updateCompareBadge();
 }

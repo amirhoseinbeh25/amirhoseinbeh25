@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سفارش‌های عمده | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>مدرسه / مرکز</th><th>مسئول پیگیری</th><th>تماس</th><th>پایه</th><th>توضیحات</th><th>وضعیت</th><th>تاریخ</th></tr>
+            </thead>
+            <tbody id="bulkBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("bulk-orders", "سفارش‌های عمده مدارس");
+
+  const STATUS_LABELS = { new: "جدید", contacted: "در حال پیگیری", closed: "بسته‌شده" };
+
+  async function loadAll() {
+    const rows = await adminApi("/bulk-orders");
+    document.getElementById("bulkBody").innerHTML = rows.length
+      ? rows.map(r => `
+        <tr>
+          <td>${r.school_name}</td>
+          <td>${r.contact_name}</td>
+          <td>${r.phone}</td>
+          <td>${r.grade ? getGradeTitle(r.grade) : "—"}</td>
+          <td style="max-width:220px; white-space:normal;">${r.items_note || "—"}</td>
+          <td>
+            <select data-id="${r.id}" class="statusSelect">
+              <option value="new" ${r.status === "new" ? "selected" : ""}>جدید</option>
+              <option value="contacted" ${r.status === "contacted" ? "selected" : ""}>در حال پیگیری</option>
+              <option value="closed" ${r.status === "closed" ? "selected" : ""}>بسته‌شده</option>
+            </select>
+          </td>
+          <td>${r.created_at}</td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="7">درخواستی ثبت نشده است.</td></tr>`;
+
+    document.querySelectorAll(".statusSelect").forEach(sel => {
+      sel.addEventListener("change", async () => {
+        try {
+          await adminApi(`/bulk-orders/${sel.dataset.id}/status`, { method: "PUT", body: { status: sel.value } });
+          showAdminToast("وضعیت به‌روزرسانی شد ✓");
+        } catch (e) { showAdminToast(e.message, true); }
+      });
+    });
+  }
+
+  await loadAll();
+})();
+</script>
+</body>
+</html>

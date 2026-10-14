@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ثبت‌نام | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container auth-wrap">
+  <div class="auth-card">
+    <h1>📝 ساخت حساب کاربری</h1>
+    <p class="sub">با ساخت حساب، سفارش‌هایتان ثبت می‌شود و از هر خرید امتیاز می‌گیرید</p>
+    <div class="auth-error" id="errorMsg"></div>
+    <form id="registerForm">
+      <label>نام و نام خانوادگی</label>
+      <input type="text" id="name" required placeholder="مثلاً: علی رضایی">
+      <label>شماره موبایل</label>
+      <input type="tel" id="phone" required placeholder="09xxxxxxxxx">
+      <label>ایمیل (اختیاری)</label>
+      <input type="email" id="email" placeholder="email@example.com">
+      <label>رمز عبور</label>
+      <input type="password" id="password" required placeholder="حداقل ۶ کاراکتر">
+      <button type="submit" class="btn btn-primary" style="margin-top:6px;">ثبت‌نام</button>
+    </form>
+    <div class="switch-link">قبلاً ثبت‌نام کرده‌اید؟ <a href="login.html">وارد شوید</a></div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+(async () => {
+  try { CATEGORIES = await fetchCategories(); } catch (e) { /* قابل چشم‌پوشی */ }
+  renderLayout();
+
+  if (getCustomerToken()) window.location.href = "account.html";
+
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorBox = document.getElementById("errorMsg");
+    errorBox.style.display = "none";
+    const btn = e.target.querySelector("button[type=submit]");
+    btn.disabled = true; btn.textContent = "در حال ثبت‌نام...";
+    try {
+      const data = await registerCustomer({
+        name: document.getElementById("name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        password: document.getElementById("password").value
+      });
+      setCustomerSession(data.token, data.user);
+      showToast("حساب شما با موفقیت ساخته شد 🎉");
+      window.location.href = "account.html";
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.style.display = "block";
+      btn.disabled = false; btn.textContent = "ثبت‌نام";
+    }
+  });
+})();
+</script>
+</body>
+</html>

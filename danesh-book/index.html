@@ -47,6 +47,16 @@
     </div>
   </div>
 
+  <div class="container">
+    <div class="flash-sale" id="konkurCountdownBox" style="display:none;">
+      <div>
+        <h3>🎓 شمارش معکوس تا کنکور سراسری</h3>
+        <p>از همین حالا با بهترین منابع کمک درسی آماده شوید.</p>
+      </div>
+      <div class="countdown" id="konkurCountdown"></div>
+    </div>
+  </div>
+
   <section class="block">
     <div class="container">
       <div class="section-title">
@@ -100,6 +110,19 @@
 
   <section class="block">
     <div class="container">
+      <div class="section-title">
+        <div>
+          <h2>🎁 پک‌های آموزشی ویژه</h2>
+          <p>چند کتاب یک پایه را با تخفیف پکیج تهیه کنید</p>
+        </div>
+        <a href="bundles.html">مشاهده همه →</a>
+      </div>
+      <div class="bundle-grid" id="bundleGrid"></div>
+    </div>
+  </section>
+
+  <section class="block alt">
+    <div class="container">
       <div class="trust-grid">
         <div class="trust-item"><div class="ico">🚚</div><b>ارسال سریع</b><span>تحویل به سراسر ایران تا ۴۸ ساعت</span></div>
         <div class="trust-item"><div class="ico">🛡</div><b>ضمانت اصالت</b><span>تمامی کتاب‌ها اورجینال و تضمینی</span></div>
@@ -109,7 +132,7 @@
     </div>
   </section>
 
-  <section class="block alt">
+  <section class="block">
     <div class="container">
       <div class="newsletter">
         <h3>📬 عضویت در خبرنامه دانش بوک</h3>
@@ -131,8 +154,11 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
+  let settings = {};
+  let bundles = [];
   try {
     [CATEGORIES, BOOKS] = await Promise.all([fetchCategories(), fetchProducts()]);
+    [settings, bundles] = await Promise.all([fetchSettings().catch(() => ({})), fetchBundles().catch(() => [])]);
   } catch (e) {
     document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
     return;
@@ -140,6 +166,12 @@
 
   renderLayout("index");
   initHeroSlider();
+
+  if (settings.konkur_exam_date) {
+    document.getElementById("konkurCountdownBox").style.display = "flex";
+    startExamCountdown("konkurCountdown", settings.konkur_exam_date);
+  }
+  renderBundleGrid("bundleGrid", bundles.slice(0, 2));
 
   document.getElementById("catGrid").innerHTML = CATEGORIES.map(c => `
     <a class="cat-card" href="shop.html?cat=${c.id}">

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پک‌های آموزشی | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span style="color:var(--color-text-light); font-size:13.5px;">چند کتاب را در قالب یک پک آموزشی با تخفیف ویژه عرضه کنید.</span>
+          <button class="btn btn-primary" id="addBundleBtn">➕ افزودن پک جدید</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>عنوان پک</th><th>تعداد کتاب</th><th>قیمت</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <tbody id="bundlesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bundleModal">
+  <div class="modal-box">
+    <h2 id="modalTitle">افزودن پک جدید</h2>
+    <form id="bundleForm">
+      <input type="hidden" id="bundleId">
+      <div class="form-grid">
+        <div class="full">
+          <label>عنوان پک *</label>
+          <input type="text" id="f_title" required>
+        </div>
+        <div class="full">
+          <label>توضیحات</label>
+          <textarea id="f_description"></textarea>
+        </div>
+        <div>
+          <label>قیمت پک (تومان) *</label>
+          <input type="number" id="f_price" required min="0">
+        </div>
+        <div>
+          <label>قیمت قبل از تخفیف</label>
+          <input type="number" id="f_oldPrice" min="0">
+        </div>
+        <div>
+          <label>رنگ</label>
+          <input type="color" id="f_color" value="#2c5f8a">
+        </div>
+        <div>
+          <label>وضعیت</label>
+          <select id="f_active">
+            <option value="1">فعال</option>
+            <option value="0">غیرفعال</option>
+          </select>
+        </div>
+        <div class="full">
+          <label>کتاب‌های این پک *</label>
+          <div id="productChecklist" style="max-height:220px; overflow-y:auto; border:1px solid var(--color-border); border-radius:8px; padding:10px; background:rgba(255,255,255,.6);"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelModalBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره پک</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("bundles", "پک‌های آموزشی");
+
+  let bundles = [];
+  let products = [];
+  const modal = document.getElementById("bundleModal");
+  let editingId = null;
+
+  function renderTable() {
+    document.getElementById("bundlesBody").innerHTML = bundles.length
+      ? bundles.map(b => `
+        <tr>
+          <td>${b.title}</td>
+          <td>${b.items.length} کتاب</td>
+          <td>${formatPrice(b.price)}</td>
+          <td><span class="badge ${b.active ? "stock-ok" : "stock-low"}">${b.active ? "فعال" : "غیرفعال"}</span></td>
+          <td>
+            <button class="icon-btn" data-act="edit" data-id="${b.id}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-act="delete" data-id="${b.id}" title="حذف">🗑️</button>
+          </td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">پکی ثبت نشده است.</td></tr>`;
+
+    document.querySelectorAll('[data-act="edit"]').forEach(b => b.addEventListener("click", () => openModal(Number(b.dataset.id))));
+    document.querySelectorAll('[data-act="delete"]').forEach(b => b.addEventListener("click", () => deleteBundle(Number(b.dataset.id))));
+  }
+
+  async function loadAll() {
+    [bundles, products] = await Promise.all([adminApi("/bundles/admin/all"), fetchProducts()]);
+    renderTable();
+  }
+
+  function openModal(id) {
+    editingId = id || null;
+    const b = id ? bundles.find(x => x.id === id) : null;
+    document.getElementById("modalTitle").textContent = b ? "ویرایش پک" : "افزودن پک جدید";
+    document.getElementById("f_title").value = b ? b.title : "";
+    document.getElementById("f_description").value = b ? (b.description || "") : "";
+    document.getElementById("f_price").value = b ? b.price : "";
+    document.getElementById("f_oldPrice").value = b && b.oldPrice ? b.oldPrice : "";
+    document.getElementById("f_color").value = b ? b.color : "#2c5f8a";
+    document.getElementById("f_active").value = b ? (b.active ? "1" : "0") : "1";
+
+    const selectedIds = b ? b.items.map(it => it.id) : [];
+    document.getElementById("productChecklist").innerHTML = products.map(p => `
+      <label style="display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13px;">
+        <input type="checkbox" value="${p.id}" ${selectedIds.includes(p.id) ? "checked" : ""}>
+        ${p.title} — ${formatPrice(p.price)}
+      </label>`).join("");
+
+    modal.classList.add("open");
+  }
+  function closeModal() { modal.classList.remove("open"); }
+
+  async function deleteBundle(id) {
+    const b = bundles.find(x => x.id === id);
+    if (!confirm(`آیا از حذف پک «${b.title}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/bundles/" + id, { method: "DELETE" });
+      showAdminToast("پک حذف شد ✓");
+      await loadAll();
+    } catch (e) { showAdminToast(e.message, true); }
+  }
+
+  document.getElementById("addBundleBtn").addEventListener("click", () => openModal(null));
+  document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  document.getElementById("bundleForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const productIds = Array.from(document.querySelectorAll('#productChecklist input:checked')).map(i => Number(i.value));
+    if (!productIds.length) { showAdminToast("حداقل یک کتاب برای پک انتخاب کنید", true); return; }
+
+    const payload = {
+      title: document.getElementById("f_title").value.trim(),
+      description: document.getElementById("f_description").value.trim(),
+      price: Number(document.getElementById("f_price").value),
+      oldPrice: document.getElementById("f_oldPrice").value ? Number(document.getElementById("f_oldPrice").value) : null,
+      color: document.getElementById("f_color").value,
+      active: document.getElementById("f_active").value === "1",
+      productIds
+    };
+
+    try {
+      if (editingId) {
+        await adminApi("/bundles/" + editingId, { method: "PUT", body: payload });
+        showAdminToast("پک به‌روزرسانی شد ✓");
+      } else {
+        await adminApi("/bundles", { method: "POST", body: payload });
+        showAdminToast("پک جدید اضافه شد ✓");
+      }
+      closeModal();
+      await loadAll();
+    } catch (e) { showAdminToast(e.message, true); }
+  });
+
+  await loadAll();
+})();
+</script>
+</body>
+</html>

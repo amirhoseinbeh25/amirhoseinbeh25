@@ -11,6 +11,8 @@ function mapRow(row) {
     author: row.author,
     translator: row.translator,
     category: row.category_id,
+    grade: row.grade,
+    track: row.track,
     price: row.price,
     oldPrice: row.old_price,
     badge: row.badge,
@@ -21,17 +23,21 @@ function mapRow(row) {
     year: row.year,
     color: row.color,
     stock: row.stock,
-    desc: row.description
+    desc: row.description,
+    samplePdfUrl: row.sample_pdf_url
   };
 }
 
 router.get("/", (req, res) => {
-  const { cat, q, minPrice, maxPrice, onlyDiscount, sort } = req.query;
+  const { cat, grade, track, publisher, q, minPrice, maxPrice, onlyDiscount, sort } = req.query;
 
   let sql = "SELECT * FROM products WHERE 1=1";
   const params = [];
 
   if (cat) { sql += " AND category_id = ?"; params.push(cat); }
+  if (grade) { sql += " AND grade = ?"; params.push(grade); }
+  if (track) { sql += " AND (track = ? OR track = 'moshtarek')"; params.push(track); }
+  if (publisher) { sql += " AND publisher = ?"; params.push(publisher); }
   if (minPrice) { sql += " AND price >= ?"; params.push(Number(minPrice)); }
   if (maxPrice) { sql += " AND price <= ?"; params.push(Number(maxPrice)); }
   if (onlyDiscount === "true") { sql += " AND old_price IS NOT NULL"; }
@@ -69,14 +75,15 @@ router.post("/", requireAdmin, (req, res) => {
 
   const info = db.prepare(`
     INSERT INTO products
-      (title, author, translator, category_id, price, old_price, badge, rating, reviews, publisher, pages, year, color, stock, description)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (title, author, translator, category_id, grade, track, price, old_price, badge, rating, reviews, publisher, pages, year, color, stock, description, sample_pdf_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     b.title, b.author, b.translator || null, b.category,
+    b.grade || null, b.track || null,
     Number(b.price), b.oldPrice ? Number(b.oldPrice) : null, b.badge || null,
     b.rating ? Number(b.rating) : 4.5, b.reviews ? Number(b.reviews) : 0,
     b.publisher || null, b.pages ? Number(b.pages) : null, b.year ? Number(b.year) : null,
-    b.color || "#6d93ac", b.stock ? Number(b.stock) : 0, b.desc || ""
+    b.color || "#6d93ac", b.stock ? Number(b.stock) : 0, b.desc || "", b.samplePdfUrl || null
   );
 
   const row = db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid);
@@ -95,14 +102,16 @@ router.put("/:id", requireAdmin, (req, res) => {
 
   db.prepare(`
     UPDATE products SET
-      title = ?, author = ?, translator = ?, category_id = ?, price = ?, old_price = ?,
-      badge = ?, rating = ?, reviews = ?, publisher = ?, pages = ?, year = ?, color = ?, stock = ?, description = ?
+      title = ?, author = ?, translator = ?, category_id = ?, grade = ?, track = ?, price = ?, old_price = ?,
+      badge = ?, rating = ?, reviews = ?, publisher = ?, pages = ?, year = ?, color = ?, stock = ?, description = ?, sample_pdf_url = ?
     WHERE id = ?
   `).run(
     b.title ?? existing.title,
     b.author ?? existing.author,
     b.translator ?? existing.translator,
     b.category ?? existing.category_id,
+    b.grade !== undefined ? b.grade : existing.grade,
+    b.track !== undefined ? b.track : existing.track,
     b.price != null ? Number(b.price) : existing.price,
     b.oldPrice !== undefined ? (b.oldPrice ? Number(b.oldPrice) : null) : existing.old_price,
     b.badge !== undefined ? b.badge : existing.badge,
@@ -114,6 +123,7 @@ router.put("/:id", requireAdmin, (req, res) => {
     b.color ?? existing.color,
     b.stock != null ? Number(b.stock) : existing.stock,
     b.desc ?? existing.description,
+    b.samplePdfUrl !== undefined ? b.samplePdfUrl : existing.sample_pdf_url,
     req.params.id
   );
 

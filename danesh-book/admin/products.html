@@ -27,7 +27,7 @@
         <div class="table-wrap">
           <table class="data-table">
             <thead>
-              <tr><th>کتاب</th><th>دسته‌بندی</th><th>قیمت</th><th>موجودی</th><th>عملیات</th></tr>
+              <tr><th>کتاب</th><th>درس</th><th>پایه</th><th>قیمت</th><th>موجودی</th><th>عملیات</th></tr>
             </thead>
             <tbody id="productsBody"></tbody>
           </table>
@@ -57,8 +57,16 @@
           <input type="text" id="f_translator">
         </div>
         <div>
-          <label>دسته‌بندی *</label>
+          <label>درس (دسته‌بندی) *</label>
           <select id="f_category" required></select>
+        </div>
+        <div>
+          <label>پایه تحصیلی</label>
+          <select id="f_grade"><option value="">—</option></select>
+        </div>
+        <div>
+          <label>رشته</label>
+          <select id="f_track"><option value="">—</option></select>
         </div>
         <div>
           <label>ناشر</label>
@@ -95,6 +103,10 @@
         <div>
           <label>رنگ جلد</label>
           <input type="color" id="f_color" value="#6d93ac">
+        </div>
+        <div class="full">
+          <label>لینک نمونه سوال رایگان (PDF، اختیاری)</label>
+          <input type="text" id="f_samplePdfUrl" placeholder="sample-pdfs/example.pdf">
         </div>
         <div class="full">
           <label>توضیحات</label>
@@ -148,6 +160,7 @@
             </div>
           </td>
           <td>${getCategoryTitle(p.category)}</td>
+          <td>${p.grade ? getGradeTitle(p.grade) : "—"}</td>
           <td>${formatPrice(p.price)}</td>
           <td>${statusBadge(p.stock)}</td>
           <td>
@@ -155,7 +168,7 @@
             <button class="icon-btn" data-act="delete" data-id="${p.id}" title="حذف">🗑️</button>
           </td>
         </tr>`).join("")
-      : `<tr class="empty-row"><td colspan="5">کتابی پیدا نشد.</td></tr>`;
+      : `<tr class="empty-row"><td colspan="6">کتابی پیدا نشد.</td></tr>`;
 
     document.querySelectorAll('[data-act="edit"]').forEach(b =>
       b.addEventListener("click", () => openModal(Number(b.dataset.id))));
@@ -171,6 +184,10 @@
       `<option value="${c.id}">${c.icon} ${c.title}</option>`).join("");
     document.getElementById("catFilterBox").innerHTML = `<option value="">همه دسته‌بندی‌ها</option>` +
       categories.map(c => `<option value="${c.id}">${c.icon} ${c.title}</option>`).join("");
+    document.getElementById("f_grade").innerHTML = `<option value="">—</option>` +
+      GRADES.map(g => `<option value="${g.id}">${g.title}</option>`).join("");
+    document.getElementById("f_track").innerHTML = `<option value="">—</option>` +
+      TRACKS.map(t => `<option value="${t.id}">${t.title}</option>`).join("");
 
     renderTable();
   }
@@ -183,6 +200,8 @@
     document.getElementById("f_author").value = p ? p.author : "";
     document.getElementById("f_translator").value = p ? (p.translator || "") : "";
     document.getElementById("f_category").value = p ? p.category : categories[0]?.id || "";
+    document.getElementById("f_grade").value = p ? (p.grade || "") : "";
+    document.getElementById("f_track").value = p ? (p.track || "") : "";
     document.getElementById("f_publisher").value = p ? (p.publisher || "") : "";
     document.getElementById("f_price").value = p ? p.price : "";
     document.getElementById("f_oldPrice").value = p && p.oldPrice ? p.oldPrice : "";
@@ -192,6 +211,7 @@
     document.getElementById("f_year").value = p ? (p.year || "") : "";
     document.getElementById("f_rating").value = p ? (p.rating || 4.5) : 4.5;
     document.getElementById("f_color").value = p ? (p.color || "#6d93ac") : "#6d93ac";
+    document.getElementById("f_samplePdfUrl").value = p ? (p.samplePdfUrl || "") : "";
     document.getElementById("f_desc").value = p ? (p.desc || "") : "";
     modal.classList.add("open");
   }
@@ -225,6 +245,8 @@
       author: document.getElementById("f_author").value.trim(),
       translator: document.getElementById("f_translator").value.trim() || null,
       category: document.getElementById("f_category").value,
+      grade: document.getElementById("f_grade").value || null,
+      track: document.getElementById("f_track").value || null,
       publisher: document.getElementById("f_publisher").value.trim(),
       price: Number(document.getElementById("f_price").value),
       oldPrice: document.getElementById("f_oldPrice").value ? Number(document.getElementById("f_oldPrice").value) : null,
@@ -234,6 +256,7 @@
       year: document.getElementById("f_year").value ? Number(document.getElementById("f_year").value) : null,
       rating: Number(document.getElementById("f_rating").value || 4.5),
       color: document.getElementById("f_color").value,
+      samplePdfUrl: document.getElementById("f_samplePdfUrl").value.trim() || null,
       desc: document.getElementById("f_desc").value.trim()
     };
 

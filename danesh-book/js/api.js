@@ -1,6 +1,8 @@
 /* دانش بوک — ارتباط با API بک‌اند */
 
 const API_BASE = "/api";
+const CUSTOMER_TOKEN_KEY = "db_customer_token";
+const CUSTOMER_INFO_KEY = "db_customer_info";
 
 async function apiRequest(path, { method = "GET", body, token } = {}) {
   const headers = {};
@@ -23,6 +25,7 @@ async function apiRequest(path, { method = "GET", body, token } = {}) {
   return data;
 }
 
+/* ===== دسته‌بندی و محصولات ===== */
 function fetchCategories() {
   return apiRequest("/categories");
 }
@@ -40,6 +43,78 @@ function fetchProduct(id) {
   return apiRequest("/products/" + id);
 }
 
+/* ===== سبد خرید و سفارش ===== */
 function submitOrder(payload) {
-  return apiRequest("/orders", { method: "POST", body: payload });
+  return apiRequest("/orders", { method: "POST", body: payload, token: getCustomerToken() });
+}
+
+function fetchMyOrders() {
+  return apiRequest("/orders/mine", { token: getCustomerToken() });
+}
+
+function fetchMyOrder(id) {
+  return apiRequest("/orders/mine/" + id, { token: getCustomerToken() });
+}
+
+function submitReturnRequest(orderId, reason) {
+  return apiRequest(`/orders/mine/${orderId}/return`, { method: "POST", body: { reason }, token: getCustomerToken() });
+}
+
+/* ===== حساب کاربری مشتری ===== */
+function getCustomerToken() {
+  return localStorage.getItem(CUSTOMER_TOKEN_KEY);
+}
+function getCustomerInfo() {
+  try { return JSON.parse(localStorage.getItem(CUSTOMER_INFO_KEY)); } catch (e) { return null; }
+}
+function setCustomerSession(token, user) {
+  localStorage.setItem(CUSTOMER_TOKEN_KEY, token);
+  localStorage.setItem(CUSTOMER_INFO_KEY, JSON.stringify(user));
+}
+function clearCustomerSession() {
+  localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+  localStorage.removeItem(CUSTOMER_INFO_KEY);
+}
+function registerCustomer(payload) {
+  return apiRequest("/customers/register", { method: "POST", body: payload });
+}
+function loginCustomer(payload) {
+  return apiRequest("/customers/login", { method: "POST", body: payload });
+}
+function fetchMyProfile() {
+  return apiRequest("/customers/me", { token: getCustomerToken() });
+}
+
+/* ===== پک‌های آموزشی ===== */
+function fetchBundles() {
+  return apiRequest("/bundles");
+}
+function fetchBundle(id) {
+  return apiRequest("/bundles/" + id);
+}
+
+/* ===== تنظیمات سایت ===== */
+function fetchSettings() {
+  return apiRequest("/settings");
+}
+
+/* ===== بلاگ آموزشی ===== */
+function fetchPosts() {
+  return apiRequest("/posts");
+}
+function fetchPost(slug) {
+  return apiRequest("/posts/" + slug);
+}
+
+/* ===== خرید عمده/سازمانی ===== */
+function submitBulkOrder(payload) {
+  return apiRequest("/bulk-orders", { method: "POST", body: payload });
+}
+
+/* ===== پرداخت ===== */
+function requestPayment(orderId) {
+  return apiRequest("/payment/request", { method: "POST", body: { orderId } });
+}
+function fetchPaymentStatus(orderId) {
+  return apiRequest("/payment/status/" + orderId);
 }

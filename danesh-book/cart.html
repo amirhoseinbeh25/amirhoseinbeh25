@@ -35,13 +35,26 @@
     return subtotal === 0 || subtotal >= 500000 ? 0 : 35000;
   }
 
-  let cartBooks = {};
+  let itemsData = {};
 
-  async function loadCartBooks() {
+  function keyOf(item) { return `${item.type || "product"}-${item.id}`; }
+
+  async function loadItemsData() {
     const cart = getCart();
-    const results = await Promise.all(cart.map(item => fetchProduct(item.id).catch(() => null)));
-    cartBooks = {};
-    results.forEach(b => { if (b) cartBooks[b.id] = b; });
+    itemsData = {};
+    await Promise.all(cart.map(async item => {
+      try {
+        const data = item.type === "bundle" ? await fetchBundle(item.id) : await fetchProduct(item.id);
+        itemsData[keyOf(item)] = data;
+      } catch (e) { /* حذف‌شده از فروشگاه */ }
+    }));
+  }
+
+  function coverHTML(item, data) {
+    if (item.type === "bundle") {
+      return `<div style="width:56px; height:76px; border-radius:6px; background:linear-gradient(135deg, ${data.color}, #16222b); display:flex; align-items:center; justify-content:center; font-size:22px;">🎁</div>`;
+    }
+    return `<img src="${bookCoverDataUrl(data)}" alt="${data.title}">`;
   }
 
   async function renderCart() {
@@ -59,49 +72,51 @@
     }
 
     root.innerHTML = `<div class="empty-state"><p>در حال بارگذاری سبد خرید...</p></div>`;
-    await loadCartBooks();
+    await loadItemsData();
 
     const rows = cart.map(item => {
-      const book = cartBooks[item.id];
-      if (!book) return "";
-      const lineTotal = book.price * item.qty;
+      const data = itemsData[keyOf(item)];
+      if (!data) return "";
+      const lineTotal = data.price * item.qty;
+      const link = item.type === "bundle" ? `bundles.html` : `product.html?id=${data.id}`;
       return `
         <tr>
           <td>
             <div class="cart-item-info">
-              <img src="${bookCoverDataUrl(book)}" alt="${book.title}">
+              ${coverHTML(item, data)}
               <div>
-                <a href="product.html?id=${book.id}"><b>${book.title}</b></a><br>
-                <small style="color:var(--color-text-light)">${book.author}</small>
+                <a href="${link}"><b>${data.title}</b></a><br>
+                <small style="color:var(--color-text-light)">${item.type === "bundle" ? "پک آموزشی" : data.author}</small>
               </div>
             </div>
           </td>
-          <td>${formatPrice(book.price)}</td>
+          <td>${formatPrice(data.price)}</td>
           <td>
             <div class="qty-control" style="margin:0 auto;">
-              <button data-act="dec" data-id="${book.id}" data-qty="${item.qty}">−</button>
+              <button data-act="dec" data-id="${item.id}" data-type="${item.type || "product"}" data-qty="${item.qty}">−</button>
               <span>${item.qty}</span>
-              <button data-act="inc" data-id="${book.id}" data-qty="${item.qty}">+</button>
+              <button data-act="inc" data-id="${item.id}" data-type="${item.type || "product"}" data-qty="${item.qty}">+</button>
             </div>
           </td>
           <td><b>${formatPrice(lineTotal)}</b></td>
-          <td><button class="cart-remove" data-act="remove" data-id="${book.id}" title="حذف">🗑</button></td>
+          <td><button class="cart-remove" data-act="remove" data-id="${item.id}" data-type="${item.type || "product"}" title="حذف">🗑</button></td>
         </tr>`;
     }).join("");
 
     const subtotal = cart.reduce((sum, item) => {
-      const book = cartBooks[item.id];
-      return sum + (book ? book.price * item.qty : 0);
+      const data = itemsData[keyOf(item)];
+      return sum + (data ? data.price * item.qty : 0);
     }, 0);
     const shipping = shippingCost(subtotal);
     const total = subtotal + shipping;
+    const customer = getCustomerInfo();
 
     root.innerHTML = `
       <div class="cart-layout">
         <div>
           <table class="cart-table">
             <thead>
-              <tr><th>کتاب</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th><th></th></tr>
+              <tr><th>کالا</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th><th></th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
@@ -114,10 +129,10 @@
           <div class="row total"><span>مبلغ قابل پرداخت</span><span>${formatPrice(total)}</span></div>
 
           <form id="checkoutForm" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
-            <input type="text" id="custName" required placeholder="نام و نام خانوادگی">
-            <input type="tel" id="custPhone" required placeholder="شماره تماس">
+            <input type="text" id="custName" required placeholder="نام و نام خانوادگی" value="${customer ? customer.name : ""}">
+            <input type="tel" id="custPhone" required placeholder="شماره تماس" value="${customer ? customer.phone : ""}">
             <input type="text" id="custAddress" placeholder="آدرس (اختیاری)">
-            <button type="submit" class="btn btn-primary btn-block">ثبت نهایی سفارش</button>
+            <button type="submit" class="btn btn-primary btn-block">پرداخت و ثبت سفارش</button>
           </form>
         </div>
       </div>`;
@@ -125,9 +140,10 @@
     root.querySelectorAll("[data-act]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = Number(btn.dataset.id);
-        if (btn.dataset.act === "remove") removeFromCart(id);
-        if (btn.dataset.act === "inc") setCartQty(id, Number(btn.dataset.qty) + 1);
-        if (btn.dataset.act === "dec") setCartQty(id, Number(btn.dataset.qty) - 1);
+        const type = btn.dataset.type;
+        if (btn.dataset.act === "remove") removeFromCart(id, type);
+        if (btn.dataset.act === "inc") setCartQty(id, Number(btn.dataset.qty) + 1, type);
+        if (btn.dataset.act === "dec") setCartQty(id, Number(btn.dataset.qty) - 1, type);
         await renderCart();
       });
     });
@@ -147,16 +163,14 @@
           }
         });
         saveCart([]);
-        root.innerHTML = `
-          <div class="empty-state">
-            <div class="ico">✅</div>
-            <p>سفارش شما با کد پیگیری <b>#${order.id}</b> با موفقیت ثبت شد! به‌زودی با شما تماس گرفته می‌شود.</p>
-            <a href="shop.html" class="btn btn-primary">ادامه خرید</a>
-          </div>`;
+
+        submitBtn.textContent = "در حال انتقال به درگاه پرداخت...";
+        const pay = await requestPayment(order.id);
+        window.location.href = pay.paymentUrl;
       } catch (err) {
-        showToast(err.message);
+        showToast(err.message, true);
         submitBtn.disabled = false;
-        submitBtn.textContent = "ثبت نهایی سفارش";
+        submitBtn.textContent = "پرداخت و ثبت سفارش";
       }
     });
   }

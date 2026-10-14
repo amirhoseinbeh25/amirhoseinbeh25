@@ -62,8 +62,9 @@
           <div class="pd-price-row">
             <span class="price-now">${formatPrice(book.price)}</span>
             ${book.oldPrice ? `<span class="price-old">${formatPrice(book.oldPrice)}</span><span class="product-badge discount">٪${discount} تخفیف</span>` : ""}
+            ${book.year ? `<span class="edition-badge" style="position:static;">چاپ ${book.year}</span>` : ""}
           </div>
-          <div class="pd-stock">✓ ${book.stock} عدد در انبار موجود است</div>
+          <div class="pd-stock">${book.stock > 0 ? `✓ ${book.stock} عدد در انبار موجود است` : "✖ موجود نیست"}</div>
 
           <div class="qty-row">
             <div class="qty-control">
@@ -71,19 +72,22 @@
               <span id="qtyValue">1</span>
               <button id="qtyPlus">+</button>
             </div>
-            <button class="btn btn-primary" id="addToCartBtn">🛒 افزودن به سبد خرید</button>
+            <button class="btn btn-primary" id="addToCartBtn" ${book.stock <= 0 ? "disabled" : ""}>🛒 افزودن به سبد خرید</button>
           </div>
 
           <div class="pd-actions">
             <button class="btn btn-outline" onclick="showToast('به علاقه‌مندی‌ها اضافه شد')">♡ افزودن به علاقه‌مندی</button>
-            <button class="btn btn-outline" onclick="showToast('لینک کپی شد')">↗ اشتراک‌گذاری</button>
+            <button class="btn btn-outline" id="compareBtn">⇄ افزودن به مقایسه</button>
+            ${book.samplePdfUrl ? `<a class="btn btn-outline" href="${book.samplePdfUrl}" target="_blank">📄 دانلود نمونه سوال رایگان</a>` : ""}
           </div>
 
           <div class="pd-info-list">
             <div><span>ناشر</span><span>${book.publisher}</span></div>
+            <div><span>پایه تحصیلی</span><span>${book.grade ? getGradeTitle(book.grade) : "—"}</span></div>
+            <div><span>رشته</span><span>${book.track ? getTrackTitle(book.track) : "—"}</span></div>
             <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
-            <div><span>سال انتشار</span><span>${book.year}</span></div>
-            <div><span>دسته‌بندی</span><span>${getCategoryTitle(book.category)}</span></div>
+            <div><span>سال چاپ</span><span>${book.year}</span></div>
+            <div><span>درس</span><span>${getCategoryTitle(book.category)}</span></div>
           </div>
         </div>
       </div>
@@ -99,8 +103,10 @@
           <div><span>مؤلف</span><span>${book.author}</span></div>
           <div><span>نوع کتاب</span><span>کمک درسی</span></div>
           <div><span>ناشر</span><span>${book.publisher}</span></div>
+          <div><span>پایه تحصیلی</span><span>${book.grade ? getGradeTitle(book.grade) : "—"}</span></div>
+          <div><span>رشته</span><span>${book.track ? getTrackTitle(book.track) : "—"}</span></div>
           <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
-          <div><span>سال انتشار</span><span>${book.year}</span></div>
+          <div><span>سال چاپ</span><span>${book.year}</span></div>
           <div><span>نوع جلد</span><span>شومیز</span></div>
         </div>
       </div>
@@ -127,6 +133,15 @@
       document.getElementById("qtyValue").textContent = qty;
     });
     document.getElementById("addToCartBtn").addEventListener("click", () => addToCart(book.id, qty));
+
+    const compareBtn = document.getElementById("compareBtn");
+    function refreshCompareBtn() {
+      const active = getCompareList().includes(book.id);
+      compareBtn.textContent = active ? "✓ در لیست مقایسه" : "⇄ افزودن به مقایسه";
+      compareBtn.classList.toggle("active", active);
+    }
+    refreshCompareBtn();
+    compareBtn.addEventListener("click", () => { toggleCompare(book.id); refreshCompareBtn(); });
 
     document.querySelectorAll(".tabs-nav button").forEach(btn => {
       btn.addEventListener("click", () => {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مقایسه کتاب‌ها | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container page-content">
+  <div class="breadcrumb"><a href="index.html">خانه</a> / مقایسه کتاب‌ها</div>
+  <h1 style="margin-bottom:18px;">⇄ مقایسه کتاب‌های کمک درسی</h1>
+  <div id="compareRoot" style="overflow-x:auto;"></div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+(async () => {
+  try { CATEGORIES = await fetchCategories(); } catch (e) { /* قابل چشم‌پوشی */ }
+  renderLayout();
+
+  const root = document.getElementById("compareRoot");
+
+  async function render() {
+    const ids = getCompareList();
+    if (!ids.length) {
+      root.innerHTML = `<div class="empty-state"><div class="ico">⇄</div><p>هنوز کتابی برای مقایسه انتخاب نکرده‌اید.</p><a href="shop.html" class="btn btn-primary">مشاهده فروشگاه</a></div>`;
+      return;
+    }
+    root.innerHTML = `<p>در حال بارگذاری...</p>`;
+    const books = (await Promise.all(ids.map(id => fetchProduct(id).catch(() => null)))).filter(Boolean);
+
+    const rows = [
+      ["جلد", b => `<img src="${bookCoverDataUrl(b)}" alt="" style="width:70px; border-radius:6px; margin:0 auto;">`],
+      ["عنوان", b => `<a href="product.html?id=${b.id}"><b>${b.title}</b></a>`],
+      ["درس", b => getCategoryTitle(b.category)],
+      ["پایه", b => b.grade ? getGradeTitle(b.grade) : "—"],
+      ["رشته", b => b.track ? getTrackTitle(b.track) : "—"],
+      ["ناشر", b => b.publisher || "—"],
+      ["چاپ", b => b.year || "—"],
+      ["تعداد صفحات", b => b.pages || "—"],
+      ["امتیاز", b => `${b.rating} ★ (${b.reviews} نظر)`],
+      ["قیمت", b => formatPrice(b.price)],
+      ["موجودی", b => b.stock > 0 ? `${b.stock} عدد` : "ناموجود"],
+      ["", b => `
+        <button class="btn btn-primary btn-sm" onclick="addToCart(${b.id})">افزودن به سبد</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleCompare(${b.id}); location.reload();">حذف از مقایسه</button>`]
+    ];
+
+    root.innerHTML = `
+      <table class="compare-table">
+        ${rows.map(([label, fn]) => `
+          <tr><th>${label}</th>${books.map(b => `<td>${fn(b)}</td>`).join("")}</tr>
+        `).join("")}
+      </table>`;
+  }
+
+  await render();
+})();
+</script>
+</body>
+</html>

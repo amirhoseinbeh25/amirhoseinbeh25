@@ -31,7 +31,7 @@
         <div class="table-wrap">
           <table class="data-table">
             <thead>
-              <tr><th>شماره سفارش</th><th>مشتری</th><th>تماس</th><th>تعداد اقلام</th><th>مبلغ کل</th><th>وضعیت</th><th>تاریخ</th><th></th></tr>
+              <tr><th>شماره سفارش</th><th>مشتری</th><th>تماس</th><th>تعداد اقلام</th><th>مبلغ کل</th><th>پرداخت</th><th>وضعیت</th><th>تاریخ</th><th></th></tr>
             </thead>
             <tbody id="ordersBody"></tbody>
           </table>
@@ -47,12 +47,17 @@
     <h2>جزئیات سفارش #<span id="om_id"></span></h2>
     <p style="font-size:13.5px; color:var(--color-text-light);">
       مشتری: <b id="om_name"></b> — تماس: <b id="om_phone"></b><br>
-      آدرس: <span id="om_address"></span>
+      آدرس: <span id="om_address"></span><br>
+      وضعیت پرداخت: <b id="om_payment"></b>
     </p>
     <table class="data-table">
       <thead><tr><th>کتاب</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead>
       <tbody id="om_items"></tbody>
     </table>
+
+    <h3 style="font-size:14px; margin:16px 0 6px;">📨 اعلان‌های ارسال‌شده (شبیه‌سازی‌شده)</h3>
+    <div id="om_notifications" style="font-size:12.5px; color:var(--color-text-light); max-height:120px; overflow-y:auto;"></div>
+
     <div class="form-grid" style="grid-template-columns:1fr; margin-top:16px;">
       <div>
         <label>تغییر وضعیت سفارش</label>
@@ -101,11 +106,12 @@
           <td>${o.phone}</td>
           <td>${o.itemCount}</td>
           <td>${formatPrice(o.total)}</td>
+          <td><span class="badge ${o.payment_status === "paid" ? "stock-ok" : "stock-low"}">${o.payment_status === "paid" ? "پرداخت‌شده" : "پرداخت‌نشده"}</span></td>
           <td><span class="badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
           <td>${o.created_at}</td>
           <td><button class="btn btn-outline btn-sm" data-act="view" data-id="${o.id}">جزئیات</button></td>
         </tr>`).join("")
-      : `<tr class="empty-row"><td colspan="8">سفارشی پیدا نشد.</td></tr>`;
+      : `<tr class="empty-row"><td colspan="9">سفارشی پیدا نشد.</td></tr>`;
 
     document.querySelectorAll('[data-act="view"]').forEach(b =>
       b.addEventListener("click", () => openOrder(Number(b.dataset.id))));
@@ -124,6 +130,7 @@
       document.getElementById("om_name").textContent = order.customer_name;
       document.getElementById("om_phone").textContent = order.phone;
       document.getElementById("om_address").textContent = order.address || "—";
+      document.getElementById("om_payment").textContent = order.payment_status === "paid" ? "پرداخت‌شده ✓" : "پرداخت‌نشده";
       document.getElementById("om_status").value = order.status;
       document.getElementById("om_items").innerHTML = order.items.map(it => `
         <tr>
@@ -132,6 +139,9 @@
           <td>${it.qty}</td>
           <td>${formatPrice(it.price * it.qty)}</td>
         </tr>`).join("");
+      document.getElementById("om_notifications").innerHTML = (order.notifications && order.notifications.length)
+        ? order.notifications.map(n => `<div>📨 [${n.channel === "sms" ? "پیامک" : "ایمیل"}] ${n.recipient} — ${n.message} <small>(${n.created_at})</small></div>`).join("")
+        : "هنوز اعلانی ارسال نشده.";
       modal.classList.add("open");
     } catch (e) {
       showAdminToast(e.message, true);

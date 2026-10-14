@@ -17,6 +17,7 @@
     <div class="content">
 
       <div class="stat-grid" id="statGrid"></div>
+      <div class="stat-grid" id="statGrid2" style="margin-top:-10px;"></div>
 
       <div class="panel">
         <h2>⚠️ کتاب‌های رو به اتمام (موجودی ۵ یا کمتر)</h2>
@@ -61,7 +62,12 @@
       <div class="stat-card"><div class="ico">📚</div><div><b>${stats.totalProducts}</b><span>تعداد کتاب‌ها</span></div></div>
       <div class="stat-card"><div class="ico">🏷️</div><div><b>${stats.totalCategories}</b><span>دسته‌بندی‌ها</span></div></div>
       <div class="stat-card"><div class="ico">🧾</div><div><b>${stats.totalOrders}</b><span>تعداد سفارش‌ها (${stats.pendingOrders} در انتظار)</span></div></div>
-      <div class="stat-card"><div class="ico">💰</div><div><b>${formatPrice(stats.totalRevenue)}</b><span>مجموع فروش</span></div></div>`;
+      <div class="stat-card"><div class="ico">💰</div><div><b>${formatPrice(stats.totalRevenue)}</b><span>مجموع فروش (پرداخت‌شده)</span></div></div>`;
+
+    document.getElementById("statGrid2").innerHTML = `
+      <div class="stat-card"><div class="ico">👥</div><div><b>${stats.totalCustomers}</b><span>مشتریان ثبت‌نام‌شده</span></div></div>
+      <div class="stat-card"><div class="ico">🏫</div><div><b>${stats.pendingBulkOrders}</b><span>سفارش عمده در انتظار</span></div></div>
+      <div class="stat-card"><div class="ico">↩️</div><div><b>${stats.pendingReturns}</b><span>درخواست مرجوعی در انتظار</span></div></div>`;
 
     document.getElementById("lowStockBody").innerHTML = stats.lowStock.length
       ? stats.lowStock.map(p => `

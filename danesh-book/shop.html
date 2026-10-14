@@ -18,9 +18,25 @@
   <div class="shop-layout">
     <aside>
       <div class="filter-box">
-        <h4>دسته‌بندی</h4>
-        <label><input type="radio" name="cat" value="" checked> همه کتاب‌ها</label>
+        <h4>درس</h4>
+        <label><input type="radio" name="cat" value="" checked> همه دروس</label>
         <div id="catFilters"></div>
+      </div>
+      <div class="filter-box">
+        <h4>پایه تحصیلی</h4>
+        <label><input type="radio" name="grade" value="" checked> همه پایه‌ها</label>
+        <div id="gradeFilters"></div>
+      </div>
+      <div class="filter-box">
+        <h4>رشته</h4>
+        <label><input type="radio" name="track" value="" checked> همه رشته‌ها</label>
+        <div id="trackFilters"></div>
+      </div>
+      <div class="filter-box">
+        <h4>ناشر</h4>
+        <select id="publisherFilter" style="width:100%; padding:9px; border-radius:8px; border:1px solid var(--color-border); background:rgba(255,255,255,.7); font-family:inherit;">
+          <option value="">همه ناشران</option>
+        </select>
       </div>
       <div class="filter-box">
         <h4>محدوده قیمت</h4>
@@ -72,6 +88,18 @@
   document.getElementById("catFilters").innerHTML = CATEGORIES.map(c =>
     `<label><input type="radio" name="cat" value="${c.id}"> ${c.icon} ${c.title}</label>`
   ).join("");
+  document.getElementById("gradeFilters").innerHTML = GRADES.map(g =>
+    `<label><input type="radio" name="grade" value="${g.id}"> ${g.title}</label>`
+  ).join("");
+  document.getElementById("trackFilters").innerHTML = TRACKS.filter(t => t.id !== "moshtarek").map(t =>
+    `<label><input type="radio" name="track" value="${t.id}"> ${t.title}</label>`
+  ).join("");
+
+  try {
+    const allBooks = await fetchProducts();
+    const publishers = [...new Set(allBooks.map(b => b.publisher).filter(Boolean))].sort();
+    document.getElementById("publisherFilter").innerHTML += publishers.map(p => `<option value="${p}">${p}</option>`).join("");
+  } catch (e) { /* قابل چشم‌پوشی */ }
 
   const params = new URLSearchParams(window.location.search);
   const initialCat = params.get("cat") || "";
@@ -89,6 +117,9 @@
 
   async function applyFilters() {
     const cat = document.querySelector('input[name="cat"]:checked').value;
+    const grade = document.querySelector('input[name="grade"]:checked').value;
+    const track = document.querySelector('input[name="track"]:checked').value;
+    const publisher = document.getElementById("publisherFilter").value;
     const min = Number(document.getElementById("minPrice").value);
     const max = Number(document.getElementById("maxPrice").value);
     const onlyDiscount = document.getElementById("onlyDiscount").checked;
@@ -97,7 +128,7 @@
     document.getElementById("resultCount").textContent = "در حال بارگذاری...";
     try {
       BOOKS = await fetchProducts({
-        cat, minPrice: min, maxPrice: max,
+        cat, grade, track, publisher, minPrice: min, maxPrice: max,
         onlyDiscount: onlyDiscount ? "true" : "", sort, q: initialQuery
       });
     } catch (e) {
@@ -119,6 +150,9 @@
   });
 
   document.querySelectorAll('input[name="cat"]').forEach(r => r.addEventListener("change", applyFilters));
+  document.querySelectorAll('input[name="grade"]').forEach(r => r.addEventListener("change", applyFilters));
+  document.querySelectorAll('input[name="track"]').forEach(r => r.addEventListener("change", applyFilters));
+  document.getElementById("publisherFilter").addEventListener("change", applyFilters);
   document.getElementById("onlyDiscount").addEventListener("change", applyFilters);
   document.getElementById("sortSelect").addEventListener("change", applyFilters);
   document.getElementById("resetFilters").addEventListener("click", () => {

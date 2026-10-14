@@ -3,6 +3,24 @@
 let CATEGORIES = [];
 let BOOKS = [];
 
+const GRADES = [
+  { id: "7", title: "هفتم" },
+  { id: "8", title: "هشتم" },
+  { id: "9", title: "نهم" },
+  { id: "10", title: "دهم" },
+  { id: "11", title: "یازدهم" },
+  { id: "12", title: "دوازدهم" },
+  { id: "konkur", title: "کنکور / جامع" }
+];
+
+const TRACKS = [
+  { id: "riazi", title: "ریاضی‌فیزیک" },
+  { id: "tajrobi", title: "علوم تجربی" },
+  { id: "ensani", title: "علوم انسانی" },
+  { id: "fan", title: "فنی و حرفه‌ای" },
+  { id: "moshtarek", title: "مشترک همه رشته‌ها" }
+];
+
 function getBookById(id) {
   return BOOKS.find(b => String(b.id) === String(id));
 }
@@ -10,6 +28,16 @@ function getBookById(id) {
 function getCategoryTitle(catId) {
   const c = CATEGORIES.find(c => c.id === catId);
   return c ? c.title : catId;
+}
+
+function getGradeTitle(gradeId) {
+  const g = GRADES.find(g => g.id === gradeId);
+  return g ? g.title : gradeId;
+}
+
+function getTrackTitle(trackId) {
+  const t = TRACKS.find(t => t.id === trackId);
+  return t ? t.title : trackId;
 }
 
 function formatPrice(n) {

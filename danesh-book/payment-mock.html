@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>درگاه پرداخت (حالت آزمایشی) | زرین‌پال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .bank-card {
+    background: rgba(255,255,255,.75); backdrop-filter: blur(20px) saturate(180%);
+    border: var(--glass-border); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 36px 32px; max-width: 420px; width: 100%; text-align: center;
+  }
+  .bank-logo { font-size: 26px; font-weight: 800; color: var(--color-primary-dark); margin-bottom: 4px; }
+  .bank-badge { display:inline-block; background: rgba(224,99,122,.15); color:var(--color-danger); font-size:12px; padding:4px 12px; border-radius:999px; margin-bottom:18px; }
+  .bank-amount { font-size: 28px; font-weight: 800; color: var(--color-text); margin: 10px 0 4px; }
+  .bank-actions { display:flex; flex-direction:column; gap:10px; margin-top:24px; }
+</style>
+</head>
+<body>
+
+<div class="bank-card">
+  <div class="bank-logo">💳 زرین‌پال</div>
+  <span class="bank-badge">حالت آزمایشی / شبیه‌سازی‌شده</span>
+  <p style="color:var(--color-text-light); font-size:13.5px;">پرداخت به: دانش بوک</p>
+  <div class="bank-amount" id="amountBox">—</div>
+  <p style="color:var(--color-text-light); font-size:12.5px;">این یک درگاه واقعی نیست و صرفاً برای تست سایت طراحی شده است.</p>
+  <div class="bank-actions">
+    <button class="btn btn-primary btn-block" id="successBtn">✅ پرداخت موفق (شبیه‌سازی)</button>
+    <button class="btn btn-outline btn-block" id="cancelBtn">✖ انصراف از پرداخت</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script>
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const authority = params.get("authority");
+  const amount = Number(params.get("amount") || 0);
+  document.getElementById("amountBox").textContent = formatPrice(amount);
+
+  async function complete(success) {
+    document.querySelectorAll("button").forEach(b => b.disabled = true);
+    try {
+      const res = await apiRequest("/payment/mock-complete", { method: "POST", body: { authority, success } });
+      window.location.href = `payment-result.html?order=${res.orderId}&status=${res.status}`;
+    } catch (e) {
+      alert(e.message);
+      document.querySelectorAll("button").forEach(b => b.disabled = false);
+    }
+  }
+
+  document.getElementById("successBtn").addEventListener("click", () => complete(true));
+  document.getElementById("cancelBtn").addEventListener("click", () => complete(false));
+})();
+</script>
+</body>
+</html>

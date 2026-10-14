@@ -70,7 +70,12 @@ const ADMIN_NAV = [
   { href: "index.html", label: "داشبورد", icon: "📊", key: "dashboard" },
   { href: "products.html", label: "مدیریت کتاب‌ها", icon: "📚", key: "products" },
   { href: "categories.html", label: "دسته‌بندی‌ها", icon: "🏷️", key: "categories" },
-  { href: "orders.html", label: "سفارش‌ها", icon: "🧾", key: "orders" }
+  { href: "bundles.html", label: "پک‌های آموزشی", icon: "🎁", key: "bundles" },
+  { href: "orders.html", label: "سفارش‌ها", icon: "🧾", key: "orders" },
+  { href: "returns.html", label: "درخواست‌های مرجوعی", icon: "↩️", key: "returns" },
+  { href: "bulk-orders.html", label: "سفارش‌های عمده", icon: "🏫", key: "bulk-orders" },
+  { href: "posts.html", label: "وبلاگ", icon: "✍️", key: "posts" },
+  { href: "settings.html", label: "تنظیمات سایت", icon: "⚙️", key: "settings" }
 ];
 
 function renderAdminShell(activeKey, pageTitle) {

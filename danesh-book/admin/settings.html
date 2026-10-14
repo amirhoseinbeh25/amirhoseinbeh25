@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تنظیمات سایت | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel" style="max-width:560px;">
+        <h2>⚙️ تنظیمات عمومی سایت</h2>
+        <form id="settingsForm" style="display:flex; flex-direction:column; gap:16px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">تاریخ کنکور سراسری (برای شمارش معکوس صفحه اصلی)</label>
+            <input type="date" id="konkurDate" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--color-border); font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">متن اعلان بالای سایت</label>
+            <input type="text" id="announcement" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--color-border); font-family:inherit;">
+          </div>
+          <button type="submit" class="btn btn-primary" style="align-self:flex-start;">ذخیره تنظیمات</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("settings", "تنظیمات سایت");
+
+  const settings = await fetchSettings();
+  document.getElementById("konkurDate").value = settings.konkur_exam_date || "";
+  document.getElementById("announcement").value = settings.site_announcement || "";
+
+  document.getElementById("settingsForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      await adminApi("/settings", {
+        method: "PUT",
+        body: {
+          konkur_exam_date: document.getElementById("konkurDate").value,
+          site_announcement: document.getElementById("announcement").value
+        }
+      });
+      showAdminToast("تنظیمات ذخیره شد ✓");
+    } catch (e) { showAdminToast(e.message, true); }
+  });
+})();
+</script>
+</body>
+</html>

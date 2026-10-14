@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وبلاگ | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span style="color:var(--color-text-light); font-size:13.5px;">مطالب آموزشی برای وبلاگ سایت.</span>
+          <button class="btn btn-primary" id="addPostBtn">➕ نوشتن مطلب جدید</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>عنوان</th><th>نامک (slug)</th><th>تاریخ انتشار</th><th>عملیات</th></tr></thead>
+            <tbody id="postsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="postModal">
+  <div class="modal-box">
+    <h2 id="modalTitle">نوشتن مطلب جدید</h2>
+    <form id="postForm">
+      <input type="hidden" id="postId">
+      <div class="form-grid">
+        <div class="full">
+          <label>عنوان *</label>
+          <input type="text" id="f_title" required>
+        </div>
+        <div>
+          <label>نامک (slug) — فقط حروف انگلیسی و خط تیره *</label>
+          <input type="text" id="f_slug" required placeholder="my-post-title">
+        </div>
+        <div>
+          <label>رنگ کاور</label>
+          <input type="color" id="f_color" value="#2c5f8a">
+        </div>
+        <div class="full">
+          <label>خلاصه</label>
+          <input type="text" id="f_excerpt">
+        </div>
+        <div class="full">
+          <label>متن کامل *</label>
+          <textarea id="f_content" required style="min-height:160px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelModalBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره مطلب</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(async () => {
+  renderAdminShell("posts", "وبلاگ");
+
+  let posts = [];
+  const modal = document.getElementById("postModal");
+  let editingId = null;
+
+  function renderTable() {
+    document.getElementById("postsBody").innerHTML = posts.length
+      ? posts.map(p => `
+        <tr>
+          <td>${p.title}</td>
+          <td><code>${p.slug}</code></td>
+          <td>${p.published_at}</td>
+          <td>
+            <button class="icon-btn" data-act="edit" data-id="${p.id}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-act="delete" data-id="${p.id}" title="حذف">🗑️</button>
+          </td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="4">مطلبی ثبت نشده است.</td></tr>`;
+
+    document.querySelectorAll('[data-act="edit"]').forEach(b => b.addEventListener("click", () => openModal(Number(b.dataset.id))));
+    document.querySelectorAll('[data-act="delete"]').forEach(b => b.addEventListener("click", () => deletePost(Number(b.dataset.id))));
+  }
+
+  async function loadAll() {
+    posts = await adminApi("/posts/admin/all");
+    renderTable();
+  }
+
+  function openModal(id) {
+    editingId = id || null;
+    const p = id ? posts.find(x => x.id === id) : null;
+    document.getElementById("modalTitle").textContent = p ? "ویرایش مطلب" : "نوشتن مطلب جدید";
+    document.getElementById("f_title").value = p ? p.title : "";
+    document.getElementById("f_slug").value = p ? p.slug : "";
+    document.getElementById("f_slug").disabled = !!p;
+    document.getElementById("f_color").value = p ? p.cover_color : "#2c5f8a";
+    document.getElementById("f_excerpt").value = p ? (p.excerpt || "") : "";
+    document.getElementById("f_content").value = p ? p.content : "";
+    modal.classList.add("open");
+  }
+  function closeModal() { modal.classList.remove("open"); }
+
+  async function deletePost(id) {
+    const p = posts.find(x => x.id === id);
+    if (!confirm(`آیا از حذف مطلب «${p.title}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/posts/" + id, { method: "DELETE" });
+      showAdminToast("مطلب حذف شد ✓");
+      await loadAll();
+    } catch (e) { showAdminToast(e.message, true); }
+  }
+
+  document.getElementById("addPostBtn").addEventListener("click", () => openModal(null));
+  document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+  document.getElementById("postForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: document.getElementById("f_title").value.trim(),
+      slug: document.getElementById("f_slug").value.trim(),
+      coverColor: document.getElementById("f_color").value,
+      excerpt: document.getElementById("f_excerpt").value.trim(),
+      content: document.getElementById("f_content").value.trim()
+    };
+    try {
+      if (editingId) {
+        await adminApi("/posts/" + editingId, { method: "PUT", body: payload });
+        showAdminToast("مطلب به‌روزرسانی شد ✓");
+      } else {
+        await adminApi("/posts", { method: "POST", body: payload });
+        showAdminToast("مطلب جدید منتشر شد ✓");
+      }
+      closeModal();
+      await loadAll();
+    } catch (e) { showAdminToast(e.message, true); }
+  });
+
+  await loadAll();
+})();
+</script>
+</body>
+</html>

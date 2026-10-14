@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پک‌های آموزشی | دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main class="container page-content">
+  <div class="breadcrumb"><a href="index.html">خانه</a> / پک‌های آموزشی</div>
+  <h1>🎁 پک‌های آموزشی ویژه</h1>
+  <p style="max-width:700px; color:var(--color-text-light);">مجموعه کتاب‌های یک پایه یا رشته را در قالب یک پک آموزشی و با تخفیف ویژه تهیه کنید.</p>
+  <div class="bundle-grid" id="bundleGrid" style="margin-top:20px;"></div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+(async () => {
+  try {
+    CATEGORIES = await fetchCategories();
+    const bundles = await fetchBundles();
+    renderLayout("bundles");
+    renderBundleGrid("bundleGrid", bundles);
+  } catch (e) {
+    document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
+  }
+})();
+</script>
+</body>
+</html>
