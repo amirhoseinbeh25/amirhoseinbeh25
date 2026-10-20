@@ -225,6 +225,7 @@ nav.category-nav a:hover, nav.category-nav a.active { background: rgba(var(--rgb
 /* ===== Hero ===== */
 .hero { position: relative; overflow: hidden; border-radius: var(--radius); margin: 24px 0; box-shadow: var(--shadow); }
 .hero-slide {
+  position: relative;
   display: none;
   align-items: center;
   justify-content: space-between;
@@ -232,12 +233,58 @@ nav.category-nav a:hover, nav.category-nav a.active { background: rgba(var(--rgb
   padding: 40px 56px;
   color: var(--color-text);
   gap: 20px;
+  overflow: hidden;
 }
 .hero-slide.active { display: flex; }
+.hero-slide > div { position: relative; z-index: 1; }
 .hero-slide h2 { font-size: 34px; margin: 0 0 12px; }
 .hero-slide p { font-size: 16px; opacity: .85; max-width: 440px; margin: 0 0 20px; }
 .hero-slide .hero-badge { display: inline-block; background: rgba(255,255,255,.55); backdrop-filter: blur(6px); padding: 4px 14px; border-radius: 999px; font-size: 13px; margin-bottom: 14px; }
 .hero-emoji { font-size: 120px; opacity: .9; filter: drop-shadow(0 8px 14px rgba(53, 80, 95, 0.18)); }
+
+/* لایه عکس پس‌زمینه واقعی (محو و با پوشش رنگی برند) برای بخش‌های تزئینی */
+.photo-layer {
+  position: absolute;
+  inset: -15px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(7px) saturate(1.15) brightness(0.97);
+  z-index: 0;
+}
+.photo-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--overlay, linear-gradient(135deg, rgba(var(--rgb-primary), .6), rgba(var(--rgb-primary-dark), .6)));
+}
+.has-photo-bg { position: relative; overflow: hidden; }
+.has-photo-bg > .container { position: relative; z-index: 1; }
+.glass-panel {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+/* بنر عکس برای صفحات ایستا (مثل درباره ما) */
+.photo-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  min-height: 220px;
+  margin: 18px 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.photo-banner h1 { position: relative; z-index: 1; font-size: 28px; margin: 0; }
+.photo-banner p { position: relative; z-index: 1; margin: 8px 0 0; opacity: .9; }
 .hero-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
 .hero-dots button { width: 10px; height: 10px; border-radius: 50%; border: none; background: rgba(255,255,255,.6); }
 .hero-dots button.active { background: var(--color-primary-dark); }
