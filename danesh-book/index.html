@@ -6,9 +6,8 @@
 <link rel="icon" href="data:,">
 <title>دانش بوک | فروشگاه کتاب‌های کمک درسی و کنکور</title>
 <meta name="description" content="دانش بوک، فروشگاه اینترنتی تخصصی کتاب‌های کمک درسی و کنکور؛ خرید آنلاین کتاب‌های ریاضی، فیزیک، شیمی، زیست، ادبیات، زبان و عربی برای تمام پایه‌ها با ارسال سریع به سراسر ایران.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="assets/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css?v=ed8bbddf">
 </head>
 <body>
 
@@ -20,12 +19,18 @@
 
 <div id="site-footer"></div>
 
-<script src="js/data.js"></script>
-<script src="js/api.js"></script>
-<script src="js/app.js"></script>
-<script src="js/layout.js"></script>
+<script src="js/data.js?v=01b60733"></script>
+<script src="js/api.js?v=c165e67f"></script>
+<script src="js/app.js?v=4a2e24d2"></script>
+<script src="js/layout.js?v=490623c1"></script>
 <script>
 (async () => {
+  // داده‌های صفحه هم‌زمان با تنظیمات سایت درخواست می‌شوند (نه پشت سر هم)
+  const productsReq = fetchProducts();
+  const slidesReq = fetchSlides().catch(() => []);
+  const bundlesReq = fetchBundles().catch(() => []);
+  const postsReq = fetchPosts().catch(() => []);
+  productsReq.catch(() => {});
   await initPage("index");
 
   const root = document.getElementById("homeRoot");
@@ -41,12 +46,7 @@
 
   let slides = [], bundles = [], posts = [];
   try {
-    [BOOKS, slides, bundles, posts] = await Promise.all([
-      fetchProducts(),
-      has("slider") ? fetchSlides().catch(() => []) : [],
-      has("bundles") ? fetchBundles().catch(() => []) : [],
-      has("blog") ? fetchPosts().catch(() => []) : []
-    ]);
+    [BOOKS, slides, bundles, posts] = await Promise.all([productsReq, slidesReq, bundlesReq, postsReq]);
   } catch (e) {
     root.innerHTML = `<div class="container"><div class="empty-state"><div class="ico">⚠️</div><p>${esc(e.message)}</p></div></div>`;
     return;
@@ -93,7 +93,7 @@
             const img = safeImageUrl(c.imageUrl);
             return `
             <a class="cat-card ${img ? "has-image" : ""}" href="shop.html?cat=${encodeURIComponent(c.id)}">
-              ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<div class="ico">${esc(c.icon || "📚")}</div>`}
+              ${img ? imgTag(img) : `<div class="ico">${esc(c.icon || "📚")}</div>`}
               <div class="ttl">${esc(c.title)}</div>
               ${c.productCount ? `<div class="cnt">${Number(c.productCount).toLocaleString("fa-IR")} کتاب</div>` : ""}
             </a>`;

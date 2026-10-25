@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:,">
 <title>فروشگاه کتاب‌های کمک درسی | دانش بوک</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="assets/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css?v=ed8bbddf">
 </head>
 <body>
 
@@ -80,12 +79,14 @@
 
 <div id="site-footer"></div>
 
-<script src="js/data.js"></script>
-<script src="js/api.js"></script>
-<script src="js/app.js"></script>
-<script src="js/layout.js"></script>
+<script src="js/data.js?v=01b60733"></script>
+<script src="js/api.js?v=c165e67f"></script>
+<script src="js/app.js?v=4a2e24d2"></script>
+<script src="js/layout.js?v=490623c1"></script>
 <script>
 (async () => {
+  const allBooksReq = fetchProducts();
+  allBooksReq.catch(() => {});
   await initPage("shop");
 
   const params = new URLSearchParams(window.location.search);
@@ -103,8 +104,9 @@
     `<label><input type="radio" name="track" value="${esc(t.id)}"> ${esc(t.title)}</label>`
   ).join("");
 
+  let allBooks = null;
   try {
-    const allBooks = await fetchProducts();
+    allBooks = await allBooksReq;
     const publishers = [...new Set(allBooks.map(b => b.publisher).filter(Boolean))].sort();
     document.getElementById("publisherFilter").innerHTML += publishers.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
     // بیشترین قیمت فیلتر بر اساس گران‌ترین کتاب
@@ -150,8 +152,10 @@
     const myRequest = ++requestId;
     document.getElementById("resultCount").textContent = "در حال بارگذاری...";
     let books;
+    const isDefault = !cat && !grade && !track && !publisher && !onlyDiscount && !initialQuery && sort === "default" &&
+      min === 0 && max === Number(document.getElementById("maxPrice").max);
     try {
-      books = await fetchProducts({
+      books = isDefault && allBooks ? allBooks : await fetchProducts({
         cat, grade, track, publisher, minPrice: min, maxPrice: max,
         onlyDiscount: onlyDiscount ? "true" : "", sort, q: initialQuery
       });

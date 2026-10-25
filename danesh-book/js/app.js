@@ -126,7 +126,7 @@ function productCardHTML(book) {
       ${badge}
       ${book.year ? `<span class="edition-badge">چاپ ${faNum(book.year)}</span>` : ""}
       <button class="wish-btn" title="افزودن به علاقه‌مندی" aria-label="افزودن به علاقه‌مندی" onclick="event.preventDefault();showToast('به علاقه‌مندی‌ها اضافه شد')">♡</button>
-      <img src="${esc(productImage(book))}" alt="${esc(book.title)}" loading="lazy">
+      ${productImgTag(book)}
     </a>
     <div class="product-info">
       <span class="product-cat">${esc(getCategoryTitle(book.category))}${book.grade ? " | پایه " + esc(getGradeTitle(book.grade)) : ""}</span>
@@ -151,7 +151,7 @@ function bundleCardHTML(bundle) {
   const discount = bundle.oldPrice ? Math.round(100 - (bundle.price / bundle.oldPrice) * 100) : 0;
   const img = safeImageUrl(bundle.imageUrl);
   const head = img
-    ? `<div class="bundle-head has-image" style="background-image:${esc(cssUrl(img))};">`
+    ? `<div class="bundle-head has-image">${imgTag(img, { alt: bundle.title, cls: "bundle-cover", thumb: false })}`
     : `<div class="bundle-head" style="background:linear-gradient(135deg, ${esc(hexToRgba(bundle.color, 1))}, #16222b);"><span class="bundle-ico">🎁</span>`;
   return `
   <div class="bundle-card">
@@ -176,11 +176,11 @@ function bundleCardHTML(bundle) {
 function postCardHTML(p) {
   const img = safeImageUrl(p.cover_image);
   const cover = img
-    ? `background-image:${cssUrl(img)}`
-    : `background:linear-gradient(135deg, ${hexToRgba(p.cover_color, 1)}, #16222b)`;
+    ? `<div class="post-cover">${imgTag(img, { alt: p.title })}</div>`
+    : `<div class="post-cover" style="${esc(`background:linear-gradient(135deg, ${hexToRgba(p.cover_color, 1)}, #16222b)`)}">✍️</div>`;
   return `
     <a href="blog-post.html?slug=${encodeURIComponent(p.slug)}" class="post-card">
-      <div class="post-cover" style="${esc(cover)}">${img ? "" : "✍️"}</div>
+      ${cover}
       <div class="post-body">
         <h3>${esc(p.title)}</h3>
         <p>${esc(p.excerpt || "")}</p>
@@ -260,19 +260,22 @@ function slideHTML(s, i) {
   const hasText = !!(s.title || s.subtitle || s.badge || s.buttonText);
   const link = s.buttonLink ? safeUrl(s.buttonLink) : "";
 
+  // عکس اسلایدهای بعدی بعد از بارگذاری کامل صفحه دانلود می‌شوند تا صفحه زودتر نمایش داده شود
+  const lazy = i > 0;
   const vars = [
     `--overlay: linear-gradient(120deg, ${hexToRgba(s.colorStart, opacity)}, ${hexToRgba(s.colorEnd, opacity)})`,
     `--slide-blur: ${Math.max(0, Math.min(20, blur))}px`,
-    img ? `--bg: ${cssUrl(img)}` : "",
-    mobileImg ? `--bg-m: ${cssUrl(mobileImg)}` : ""
+    img && !lazy ? `--bg: ${cssUrl(img)}` : "",
+    mobileImg && !lazy ? `--bg-m: ${cssUrl(mobileImg)}` : ""
   ].filter(Boolean).join("; ");
+  const lazyAttrs = lazy ? `${img ? ` data-bg="${esc(img)}"` : ""}${mobileImg ? ` data-bg-m="${esc(mobileImg)}"` : ""}` : "";
 
   const classes = ["hero-slide", i === 0 ? "active" : "", hasText ? "" : "image-only", mobileImg ? "has-mobile-img" : "",
     s.textTheme === "light" ? "text-light" : "", img ? "" : "no-image"].filter(Boolean).join(" ");
 
   return `
     <div class="${classes}" aria-roledescription="اسلاید" aria-label="${i + 1}">
-      <div class="photo-layer" style="${esc(vars)}"></div>
+      <div class="photo-layer" style="${esc(vars)}"${lazyAttrs}></div>
       ${!hasText && link ? `<a class="slide-link" href="${esc(link)}" aria-label="مشاهده"></a>` : ""}
       ${hasText ? `
         <div class="hero-text">
@@ -309,8 +312,20 @@ function initHeroSlider() {
   dotsWrap.innerHTML = Array.from(slides).map((_, i) =>
     `<button class="${i === 0 ? "active" : ""}" data-i="${i}" aria-label="اسلاید ${i + 1}"></button>`).join("");
 
+  function loadBackground(slide) {
+    const layer = slide.querySelector(".photo-layer");
+    if (layer.dataset.bg) layer.style.setProperty("--bg", cssUrl(layer.dataset.bg));
+    if (layer.dataset.bgM) layer.style.setProperty("--bg-m", cssUrl(layer.dataset.bgM));
+    delete layer.dataset.bg;
+    delete layer.dataset.bgM;
+  }
+  const loadAll = () => slides.forEach(loadBackground);
+  if (document.readyState === "complete") setTimeout(loadAll, 300);
+  else window.addEventListener("load", loadAll, { once: true });
+
   function show(i) {
     idx = (i + slides.length) % slides.length;
+    loadBackground(slides[idx]);
     slides.forEach((s, j) => s.classList.toggle("active", j === idx));
     dotsWrap.querySelectorAll("button").forEach((b, j) => b.classList.toggle("active", j === idx));
   }

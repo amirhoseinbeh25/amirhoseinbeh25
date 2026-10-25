@@ -40,6 +40,24 @@ async function resizeImageFile(file, { maxWidth = 1600, maxHeight = 1600, qualit
   return blob && blob.size < file.size ? blob : file;
 }
 
+/* نسخه کوچک JPEG برای کارت‌ها و فهرست‌ها (سرعت بیشتر در موبایل) */
+async function makeThumbBlob(file, maxWidth = 480, maxHeight = 640) {
+  try {
+    const img = await loadImageElement(file);
+    const scale = Math.min(1, maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return await canvasToBlob(canvas, "image/jpeg", 0.8);
+  } catch (e) {
+    return null;
+  }
+}
+
 async function uploadImage(file, resizeOptions) {
   if (!file) throw new Error("فایلی انتخاب نشده است.");
   if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
@@ -51,6 +69,8 @@ async function uploadImage(file, resizeOptions) {
   const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" }[blob.type] || "jpg";
   const form = new FormData();
   form.append("file", blob, "image." + ext);
+  const thumb = await makeThumbBlob(file);
+  if (thumb) form.append("thumb", thumb, "thumb.jpg");
 
   const res = await fetch(API_BASE + "/uploads", {
     method: "POST",
@@ -98,7 +118,7 @@ function openMediaLibrary({ multiple = false } = {}) {
       try {
         const files = await adminApi("/uploads");
         grid.innerHTML = files.length
-          ? files.map(f => `<button type="button" class="media-item" data-url="${esc(f.url)}"><img src="${esc(f.url)}" alt="" loading="lazy"></button>`).join("")
+          ? files.map(f => `<button type="button" class="media-item" data-url="${esc(f.url)}">${imgTag(f.url)}</button>`).join("")
           : `<div class="muted">هنوز تصویری آپلود نشده است.</div>`;
         grid.querySelectorAll(".media-item").forEach(btn => btn.addEventListener("click", () => {
           if (!multiple) return finish(btn.dataset.url);
@@ -161,7 +181,7 @@ function createImageField(el, opts = {}) {
   function render() {
     const src = safeImageUrl(value);
     preview.innerHTML = src
-      ? `<img src="${esc(src)}" alt="">`
+      ? imgTag(src, { lazy: false })
       : `<span class="image-field-empty">🖼<br>بدون تصویر<br><small>کلیک یا رها کردن فایل</small></span>`;
     removeBtn.disabled = !value;
     manual.value = value;
@@ -230,7 +250,7 @@ function createGalleryField(el, opts = {}) {
       <div class="gallery-items">
         ${list.map((url, i) => `
           <div class="gallery-item">
-            <img src="${esc(safeImageUrl(url))}" alt="">
+            ${imgTag(url, { lazy: false })}
             <div class="gallery-item-tools">
               <button type="button" class="icon-btn" data-move="${i}" data-dir="-1" title="جابه‌جایی به راست" ${i === 0 ? "disabled" : ""}>→</button>
               <button type="button" class="icon-btn" data-remove="${i}" title="حذف">🗑️</button>

@@ -10,7 +10,8 @@ const { scheduleAutoBackups } = require("./lib/backup");
 
 const PORT = process.env.PORT || 4000;
 
-scheduleAutoBackups();
+// پشتیبان‌گیری چند ثانیه بعد از شروع انجام می‌شود تا اولین بازدیدکننده منتظر نماند
+setTimeout(scheduleAutoBackups, 10000).unref();
 
 app.listen(PORT, () => {
   console.log(`✅ سرور دانش بوک روی پورت ${PORT} اجرا شد`);

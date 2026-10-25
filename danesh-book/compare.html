@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:,">
 <title>مقایسه کتاب‌ها | دانش بوک</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="assets/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css?v=ed8bbddf">
 </head>
 <body>
 
@@ -21,12 +20,13 @@
 
 <div id="site-footer"></div>
 
-<script src="js/data.js"></script>
-<script src="js/api.js"></script>
-<script src="js/app.js"></script>
-<script src="js/layout.js"></script>
+<script src="js/data.js?v=01b60733"></script>
+<script src="js/api.js?v=c165e67f"></script>
+<script src="js/app.js?v=4a2e24d2"></script>
+<script src="js/layout.js?v=490623c1"></script>
 <script>
 (async () => {
+  let firstLoad = Promise.all(getCompareList().map(id => fetchProduct(id).catch(() => null)));
   await initPage("compare");
 
   const root = document.getElementById("compareRoot");
@@ -38,12 +38,13 @@
       return;
     }
     root.innerHTML = `<p>در حال بارگذاری...</p>`;
-    const books = (await Promise.all(ids.map(id => fetchProduct(id).catch(() => null)))).filter(Boolean);
+    const books = (await (firstLoad || Promise.all(ids.map(id => fetchProduct(id).catch(() => null))))).filter(Boolean);
+    firstLoad = null;
     if (books.length !== ids.length) saveCompareList(books.map(b => b.id));
     if (!books.length) return render();
 
     const rows = [
-      ["جلد", b => `<a href="product.html?id=${Number(b.id)}"><img src="${esc(productImage(b))}" alt="${esc(b.title)}"></a>`],
+      ["جلد", b => `<a href="product.html?id=${Number(b.id)}">${productImgTag(b)}</a>`],
       ["عنوان", b => `<a href="product.html?id=${Number(b.id)}"><b>${esc(b.title)}</b></a>`],
       ["درس", b => esc(getCategoryTitle(b.category))],
       ["پایه", b => b.grade ? esc(getGradeTitle(b.grade)) : "—"],

@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>درس، پایه و رشته | پنل ادمین دانش بوک</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/admin.css">
+<link rel="preload" href="../assets/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/admin.css?v=0b03412c">
 </head>
 <body>
 
@@ -81,10 +80,10 @@
   </div>
 </div>
 
-<script src="../js/data.js"></script>
-<script src="../js/api.js"></script>
-<script src="js/admin-auth.js"></script>
-<script src="js/admin-ui.js"></script>
+<script src="../js/data.js?v=01b60733"></script>
+<script src="../js/api.js?v=c165e67f"></script>
+<script src="js/admin-auth.js?v=aa1a6307"></script>
+<script src="js/admin-ui.js?v=81739b02"></script>
 <script>
 (async () => {
   renderAdminShell("categories", "درس، پایه و رشته");
@@ -125,7 +124,7 @@
             <button class="icon-btn" data-move="${i}" data-dir="-1" title="بالاتر" ${i === 0 ? "disabled" : ""}>▲</button>
             <button class="icon-btn" data-move="${i}" data-dir="1" title="پایین‌تر" ${i === rows.length - 1 ? "disabled" : ""}>▼</button>
           </td>
-          ${t.media ? `<td>${safeImageUrl(r.imageUrl) ? `<img class="row-thumb" src="${esc(r.imageUrl)}" alt="">` : `<span style="font-size:22px;">${esc(r.icon || "📚")}</span>`}</td>` : ""}
+          ${t.media ? `<td>${safeImageUrl(r.imageUrl) ? imgTag(r.imageUrl, { cls: "row-thumb" }) : `<span style="font-size:22px;">${esc(r.icon || "📚")}</span>`}</td>` : ""}
           <td><b>${esc(r.title)}</b></td>
           <td><code>${esc(r.id)}</code></td>
           <td>${Number(r.productCount || 0).toLocaleString("fa-IR")} کتاب</td>

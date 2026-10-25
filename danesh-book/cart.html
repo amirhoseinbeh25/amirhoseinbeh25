@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:,">
 <title>سبد خرید | دانش بوک</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="assets/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css?v=ed8bbddf">
 </head>
 <body>
 
@@ -21,15 +20,14 @@
 
 <div id="site-footer"></div>
 
-<script src="js/data.js"></script>
-<script src="js/api.js"></script>
-<script src="js/app.js"></script>
-<script src="js/layout.js"></script>
+<script src="js/data.js?v=01b60733"></script>
+<script src="js/api.js?v=c165e67f"></script>
+<script src="js/app.js?v=4a2e24d2"></script>
+<script src="js/layout.js?v=490623c1"></script>
 <script>
 (async () => {
-  await initPage("cart");
-
   let itemsData = {};
+  let itemsReady = null;
 
   function keyOf(item) { return `${item.type || "product"}-${item.id}`; }
 
@@ -48,10 +46,10 @@
     if (item.type === "bundle") {
       const img = safeImageUrl(data.imageUrl);
       return img
-        ? `<img src="${esc(img)}" alt="${esc(data.title)}">`
+        ? imgTag(img, { alt: data.title, lazy: false })
         : `<div class="cart-thumb" style="background:linear-gradient(135deg, ${esc(hexToRgba(data.color, 1))}, #16222b);">🎁</div>`;
     }
-    return `<img src="${esc(productImage(data))}" alt="${esc(data.title)}">`;
+    return productImgTag(data, { lazy: false });
   }
 
   async function renderCart() {
@@ -68,8 +66,13 @@
       return;
     }
 
-    root.innerHTML = `<div class="empty-state"><p>در حال بارگذاری سبد خرید...</p></div>`;
-    await loadItemsData();
+    if (itemsReady) {
+      await itemsReady; // بار اول اطلاعات از قبل دریافت شده است
+      itemsReady = null;
+    } else {
+      root.innerHTML = `<div class="empty-state"><p>در حال بارگذاری سبد خرید...</p></div>`;
+      await loadItemsData();
+    }
 
     // کالاهایی که دیگر در فروشگاه نیستند از سبد حذف می‌شوند
     const validCart = cart.filter(item => itemsData[keyOf(item)]);
@@ -181,6 +184,9 @@
     });
   }
 
+  // اطلاعات کالاهای سبد هم‌زمان با هدر و فوتر دریافت می‌شود
+  itemsReady = loadItemsData();
+  await initPage("cart");
   renderCart();
 })();
 </script>

@@ -36,6 +36,7 @@ danesh-book/
 │   ├── layout.js     ← هدر، منوها، منوی موبایل، نوار پایین موبایل و فوتر (همه از تنظیمات ادمین)
 │   └── app.js        ← سبد خرید، مقایسه، کارت محصول/پک/مطلب، اسلایدر، شمارش معکوس
 ├── assets/images/    ← عکس‌های پیش‌فرض پس‌زمینه
+├── assets/fonts/     ← فونت وزیرمتن (بدون وابستگی به گوگل)
 ├── uploads/          ← تصاویر آپلودشده از پنل ادمین (خودکار ساخته می‌شود)
 ├── sample-pdfs/      ← فایل‌های نمونه سوال رایگان (placeholder)
 ├── admin/            ← پنل مدیریت
@@ -47,7 +48,8 @@ danesh-book/
 └── server/           ← بک‌اند (Express + node:sqlite + JWT)
     ├── server.js, app.js, db.js, defaults.js (محتوای پیش‌فرض)
     ├── lib/{validate,settings}.js
-    ├── middleware/{auth,rateLimit}.js
+    ├── middleware/{auth,rateLimit,speed}.js
+    ├── tools/version-assets.js  ← نسخه‌گذاری فایل‌های CSS/JS بعد از هر تغییر
     ├── services/{notify,payment}.js
     ├── lib/backup.js            ← پشتیبان‌گیری خودکار روزانه و دانلود از پنل
     └── routes/{auth,taxonomy,products,orders,dashboard,customers,bundles,settings,site,slides,menus,
@@ -159,6 +161,21 @@ ZARINPAL_SANDBOX=true   # برای تست در محیط آزمایشی زرین�
 | GET/PUT/DELETE | `/api/contact`, `/api/newsletter` | ادمین |
 | GET | `/api/customers` | ادمین |
 | GET | `/api/backup`, `/api/backup/download` | ادمین |
+
+## سرعت سایت
+
+- فونت وزیرمتن از روی خود سایت لود می‌شود (`assets/fonts`، مجوز OFL) — گوگل‌فونت در ایران باعث می‌شد صفحه تا ۲۰ ثانیه سفید بماند.
+- فایل‌های HTML/CSS/JS و پاسخ‌های JSON به‌صورت gzip فشرده ارسال می‌شوند (بدون پکیج اضافه، `server/middleware/speed.js`).
+- فایل‌های CSS/JS نسخه‌دار هستند و یک هفته در مرورگر کش می‌شوند؛ **بعد از هر تغییر در فایل‌های CSS یا JS** این دستور را اجرا کنید تا نسخه‌ها به‌روز شوند:
+  ```bash
+  cd server && node tools/version-assets.js
+  ```
+- برای هر عکسی که از پنل آپلود می‌شود یک نسخه کوچک (`-t.jpg`) هم ساخته می‌شود و کارت‌ها و فهرست‌ها از آن استفاده می‌کنند.
+- افکت‌های سنگین (بلور متحرک پشت کارت‌ها) با نسخه سبک جایگزین شده‌اند تا اسکرول در گوشی روان باشد.
+- روی هاست اشتراکی، برنامه بعد از چند دقیقه بی‌استفاده خاموش می‌شود و اولین بازدید کند است؛ با یک Cron Job هر ۵ دقیقه آن را بیدار نگه دارید:
+  ```
+  curl -s -o /dev/null https://daneshbookk.ir/api/site
+  ```
 
 ## دیتابیس و پشتیبان‌گیری
 

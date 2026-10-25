@@ -22,6 +22,7 @@ const siteRoutes = require("./routes/site");
 const contactRoutes = require("./routes/contact");
 const newsletterRoutes = require("./routes/newsletter");
 const backupRoutes = require("./routes/backup");
+const { createGzipStatic, gzipJson, createStaticCacheHeaders } = require("./middleware/speed");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 });
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
+app.use("/api", gzipJson);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -82,7 +84,8 @@ app.use((req, res, next) => {
 });
 // نام فایل‌های آپلودی یکتا است، پس مرورگر می‌تواند آن‌ها را طولانی‌مدت کش کند
 app.use("/uploads", express.static(uploadRoutes.UPLOAD_DIR, { maxAge: "30d", immutable: true, fallthrough: false }));
-app.use(express.static(siteRoot, { dotfiles: "deny" }));
+app.use(createGzipStatic(siteRoot));
+app.use(express.static(siteRoot, { dotfiles: "deny", setHeaders: createStaticCacheHeaders(siteRoot) }));
 
 app.use((req, res) => {
   res.status(404).sendFile(path.join(siteRoot, "index.html"));

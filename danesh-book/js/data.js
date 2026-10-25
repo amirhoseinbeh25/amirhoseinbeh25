@@ -60,6 +60,22 @@ function safeImageUrl(url) {
   return /^(\/(uploads|assets)\/[A-Za-z0-9._\/-]+|https?:\/\/[^\s"'<>()\\]+)$/.test(u) && !u.includes("..") ? u : "";
 }
 
+/* نسخه کوچک تصویری که از پنل آپلود شده (برای کارت‌ها)؛ برای بقیه آدرس‌ها همان تصویر */
+function thumbUrl(url) {
+  const u = safeImageUrl(url);
+  const m = /^\/uploads\/([a-z0-9]+-[a-f0-9]{16})\.(jpg|png|webp|gif)$/.exec(u);
+  return m ? `/uploads/${m[1]}-t.jpg` : u;
+}
+
+/* تگ تصویر سبک: نسخه کوچک + بارگذاری تنبل؛ اگر نسخه کوچک نبود، خود تصویر نمایش داده می‌شود */
+function imgTag(url, { alt = "", cls = "", thumb = true, lazy = true } = {}) {
+  const full = safeImageUrl(url);
+  if (!full) return "";
+  const src = thumb ? thumbUrl(full) : full;
+  const fallback = src !== full ? ` onerror="this.onerror=null;this.src='${esc(full)}'"` : "";
+  return `<img src="${esc(src)}"${cls ? ` class="${esc(cls)}"` : ""} alt="${esc(alt)}"${lazy ? ` loading="lazy"` : ""} decoding="async"${fallback}>`;
+}
+
 /* مقدار امن برای background-image داخل استایل */
 function cssUrl(url) {
   const u = safeImageUrl(url);
@@ -215,4 +231,10 @@ function bookCoverDataUrl(book) {
 /* عکس واقعی کتاب اگر آپلود شده باشد، وگرنه جلد تولیدی */
 function productImage(book) {
   return safeImageUrl(book.imageUrl) || bookCoverDataUrl(book);
+}
+
+/* تگ تصویر کتاب برای کارت‌ها و فهرست‌ها (نسخه کوچک عکس یا جلد تولیدی) */
+function productImgTag(book, { cls = "", lazy = true, thumb = true } = {}) {
+  if (safeImageUrl(book.imageUrl)) return imgTag(book.imageUrl, { alt: book.title, cls, lazy, thumb });
+  return `<img src="${esc(bookCoverDataUrl(book))}"${cls ? ` class="${esc(cls)}"` : ""} alt="${esc(book.title)}"${lazy ? ` loading="lazy"` : ""} decoding="async">`;
 }

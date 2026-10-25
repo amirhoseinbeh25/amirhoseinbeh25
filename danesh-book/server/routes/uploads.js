@@ -10,6 +10,8 @@ const router = express.Router();
 const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads");
 const MAX_BYTES = 8 * 1024 * 1024;
 const FILE_NAME_RE = /^[a-z0-9]+-[a-f0-9]{16}\.(jpg|png|gif|webp)$/;
+// نسخه کوچک هر تصویر (برای کارت‌ها و فهرست‌ها) کنار آن با پسوند -t.jpg ذخیره می‌شود
+const thumbNameOf = (name) => name.replace(/\.(jpg|png|gif|webp)$/, "-t.jpg");
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -44,10 +46,11 @@ router.post("/", requireAdmin, express.raw({ type: "multipart/form-data", limit:
     return res.status(400).json({ error: "فایلی دریافت نشد." });
   }
 
-  let file;
+  let file, thumb;
   try {
     const form = await new Response(req.body, { headers: { "content-type": req.get("content-type") } }).formData();
     file = form.get("file");
+    thumb = form.get("thumb");
   } catch (e) {
     return res.status(400).json({ error: "فرمت درخواست آپلود معتبر نیست." });
   }
@@ -61,7 +64,17 @@ router.post("/", requireAdmin, express.raw({ type: "multipart/form-data", limit:
 
   const name = `${Date.now().toString(36)}-${crypto.randomBytes(8).toString("hex")}.${ext}`;
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
-  res.status(201).json({ url: `/uploads/${name}`, name, size: buf.length });
+
+  // نسخه کوچک اختیاری است و فقط اگر JPEG معتبر باشد ذخیره می‌شود
+  let thumbUrl = null;
+  if (thumb && typeof thumb !== "string") {
+    const tbuf = Buffer.from(await thumb.arrayBuffer());
+    if (tbuf.length <= MAX_BYTES && detectImageType(tbuf) === "jpg") {
+      fs.writeFileSync(path.join(UPLOAD_DIR, thumbNameOf(name)), tbuf);
+      thumbUrl = `/uploads/${thumbNameOf(name)}`;
+    }
+  }
+  res.status(201).json({ url: `/uploads/${name}`, thumbUrl, name, size: buf.length });
 });
 
 router.get("/", requireAdmin, (req, res) => {
@@ -85,6 +98,8 @@ router.delete("/:name", requireAdmin, (req, res) => {
     return res.status(409).json({ error: "این تصویر هنوز در بخشی از سایت استفاده می‌شود." });
   }
   fs.unlinkSync(filePath);
+  const thumbPath = path.join(UPLOAD_DIR, thumbNameOf(name));
+  if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
   res.status(204).end();
 });
 
