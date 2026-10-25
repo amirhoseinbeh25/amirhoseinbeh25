@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>وبلاگ | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -34,21 +35,28 @@
 </div>
 
 <div class="modal-overlay" id="postModal">
-  <div class="modal-box">
-    <h2 id="modalTitle">نوشتن مطلب جدید</h2>
+  <div class="modal-box modal-wide">
+    <div class="modal-head">
+      <h2 id="modalTitle">نوشتن مطلب جدید</h2>
+      <button type="button" class="icon-btn" id="closeModalBtn" aria-label="بستن">✕</button>
+    </div>
     <form id="postForm">
       <input type="hidden" id="postId">
       <div class="form-grid">
+        <div class="full">
+          <label>تصویر کاور (اختیاری)</label>
+          <div id="coverField" class="wide"></div>
+        </div>
         <div class="full">
           <label>عنوان *</label>
           <input type="text" id="f_title" required>
         </div>
         <div>
-          <label>نامک (slug) — فقط حروف انگلیسی و خط تیره *</label>
-          <input type="text" id="f_slug" required placeholder="my-post-title">
+          <label>نامک (slug) — فقط حروف انگلیسی کوچک و خط تیره *</label>
+          <input type="text" id="f_slug" required dir="ltr" maxlength="80" placeholder="my-post-title">
         </div>
         <div>
-          <label>رنگ کاور</label>
+          <label>رنگ کاور (وقتی تصویر ندارد)</label>
           <input type="color" id="f_color" value="#2c5f8a">
         </div>
         <div class="full">
@@ -57,7 +65,7 @@
         </div>
         <div class="full">
           <label>متن کامل *</label>
-          <textarea id="f_content" required style="min-height:160px;"></textarea>
+          <textarea id="f_content" maxlength="60000"></textarea>
         </div>
       </div>
       <div class="modal-actions">
@@ -71,22 +79,33 @@
 <script src="../js/data.js"></script>
 <script src="../js/api.js"></script>
 <script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
 <script>
 (async () => {
   renderAdminShell("posts", "وبلاگ");
 
   let posts = [];
-  const modal = document.getElementById("postModal");
+  const modalCtl = setupModal(document.getElementById("postModal"));
   let editingId = null;
+  const coverField = createImageField(document.getElementById("coverField"), {
+    hint: "عکس عریض با نسبت ۱۶ به ۹ (مثلاً ۱۲۸۰ × ۷۲۰ پیکسل).", resize: { maxWidth: 1600, maxHeight: 1000 }
+  });
+  const contentEditor = createRichEditor(document.getElementById("f_content"));
 
   function renderTable() {
     document.getElementById("postsBody").innerHTML = posts.length
       ? posts.map(p => `
         <tr>
-          <td>${p.title}</td>
-          <td><code>${p.slug}</code></td>
-          <td>${p.published_at}</td>
           <td>
+            <div class="row-flex">
+              ${safeImageUrl(p.cover_image) ? `<img class="row-thumb" src="${esc(p.cover_image)}" alt="">` : ""}
+              <span>${esc(p.title)}</span>
+            </div>
+          </td>
+          <td><code>${esc(p.slug)}</code></td>
+          <td style="white-space:nowrap;">${esc(p.published_at)}</td>
+          <td class="cell-actions">
+            <a class="icon-btn" href="../blog-post.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener" title="مشاهده">👁</a>
             <button class="icon-btn" data-act="edit" data-id="${p.id}" title="ویرایش">✏️</button>
             <button class="icon-btn" data-act="delete" data-id="${p.id}" title="حذف">🗑️</button>
           </td>
@@ -112,9 +131,11 @@
     document.getElementById("f_color").value = p ? p.cover_color : "#2c5f8a";
     document.getElementById("f_excerpt").value = p ? (p.excerpt || "") : "";
     document.getElementById("f_content").value = p ? p.content : "";
-    modal.classList.add("open");
+    coverField.set(p ? p.cover_image || "" : "");
+    contentEditor.reset();
+    modalCtl.open();
   }
-  function closeModal() { modal.classList.remove("open"); }
+  function closeModal() { modalCtl.close(); }
 
   async function deletePost(id) {
     const p = posts.find(x => x.id === id);
@@ -128,7 +149,7 @@
 
   document.getElementById("addPostBtn").addEventListener("click", () => openModal(null));
   document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.getElementById("closeModalBtn").addEventListener("click", closeModal);
 
   document.getElementById("postForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -136,8 +157,9 @@
       title: document.getElementById("f_title").value.trim(),
       slug: document.getElementById("f_slug").value.trim(),
       coverColor: document.getElementById("f_color").value,
+      coverImage: coverField.get() || null,
       excerpt: document.getElementById("f_excerpt").value.trim(),
-      content: document.getElementById("f_content").value.trim()
+      content: document.getElementById("f_content").value
     };
     try {
       if (editingId) {

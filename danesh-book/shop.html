@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>فروشگاه کتاب‌های کمک درسی | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -16,7 +17,12 @@
   <div class="breadcrumb"><a href="index.html">خانه</a> / فروشگاه</div>
 
   <div class="shop-layout">
-    <aside>
+    <div class="drawer-overlay" id="filtersOverlay"></div>
+    <aside class="shop-filters" id="shopFilters" aria-label="فیلترها">
+      <div class="shop-filters-head">
+        <h3>🔍 فیلتر کتاب‌ها</h3>
+        <button class="drawer-close" id="closeFilters" aria-label="بستن فیلترها">✕</button>
+      </div>
       <div class="filter-box">
         <h4>درس</h4>
         <label><input type="radio" name="cat" value="" checked> همه دروس</label>
@@ -34,15 +40,17 @@
       </div>
       <div class="filter-box">
         <h4>ناشر</h4>
-        <select id="publisherFilter" style="width:100%; padding:9px; border-radius:8px; border:1px solid var(--color-border); background:rgba(255,255,255,.7); font-family:inherit;">
+        <select id="publisherFilter" aria-label="ناشر">
           <option value="">همه ناشران</option>
         </select>
       </div>
       <div class="filter-box">
         <h4>محدوده قیمت</h4>
         <div class="price-range">
-          <label>حداقل: <span id="minPriceLabel">۰</span> تومان<input type="range" id="minPrice" min="0" max="600000" step="10000" value="0" style="width:100%"></label>
-          <label>حداکثر: <span id="maxPriceLabel">۶۰۰,۰۰۰</span> تومان<input type="range" id="maxPrice" min="0" max="600000" step="10000" value="600000" style="width:100%"></label>
+          <label>حداقل: <span id="minPriceLabel">۰</span> تومان</label>
+          <input type="range" id="minPrice" min="0" max="600000" step="10000" value="0" style="width:100%" aria-label="حداقل قیمت">
+          <label>حداکثر: <span id="maxPriceLabel">۶۰۰,۰۰۰</span> تومان</label>
+          <input type="range" id="maxPrice" min="0" max="600000" step="10000" value="600000" style="width:100%" aria-label="حداکثر قیمت">
         </div>
       </div>
       <div class="filter-box">
@@ -50,12 +58,14 @@
         <label><input type="checkbox" id="onlyDiscount"> نمایش فقط تخفیف‌دارها</label>
       </div>
       <button class="btn btn-outline btn-block" id="resetFilters">حذف فیلترها</button>
+      <button class="btn btn-primary btn-block shop-filters-apply filters-toggle" id="applyFilters" style="margin-top:10px;">نمایش نتایج</button>
     </aside>
 
     <div>
       <div class="shop-toolbar">
+        <button class="btn btn-outline btn-sm filters-toggle" id="openFilters">🔍 فیلترها</button>
         <span class="result-count" id="resultCount"></span>
-        <select id="sortSelect">
+        <select id="sortSelect" aria-label="مرتب‌سازی">
           <option value="default">مرتب‌سازی پیش‌فرض</option>
           <option value="cheap">ارزان‌ترین</option>
           <option value="expensive">گران‌ترین</option>
@@ -76,45 +86,57 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try {
-    CATEGORIES = await fetchCategories();
-  } catch (e) {
-    document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
-    return;
-  }
+  await initPage("shop");
 
-  renderLayout("shop");
+  const params = new URLSearchParams(window.location.search);
+  const initialCat = params.get("cat") || "";
+  const initialQuery = (params.get("q") || "").trim();
+  const initialSort = params.get("sort") || "default";
 
   document.getElementById("catFilters").innerHTML = CATEGORIES.map(c =>
-    `<label><input type="radio" name="cat" value="${c.id}"> ${c.icon} ${c.title}</label>`
+    `<label><input type="radio" name="cat" value="${esc(c.id)}"> ${esc(c.icon || "")} ${esc(c.title)}</label>`
   ).join("");
   document.getElementById("gradeFilters").innerHTML = GRADES.map(g =>
-    `<label><input type="radio" name="grade" value="${g.id}"> ${g.title}</label>`
+    `<label><input type="radio" name="grade" value="${esc(g.id)}"> ${esc(g.title)}</label>`
   ).join("");
   document.getElementById("trackFilters").innerHTML = TRACKS.filter(t => t.id !== "moshtarek").map(t =>
-    `<label><input type="radio" name="track" value="${t.id}"> ${t.title}</label>`
+    `<label><input type="radio" name="track" value="${esc(t.id)}"> ${esc(t.title)}</label>`
   ).join("");
 
   try {
     const allBooks = await fetchProducts();
     const publishers = [...new Set(allBooks.map(b => b.publisher).filter(Boolean))].sort();
-    document.getElementById("publisherFilter").innerHTML += publishers.map(p => `<option value="${p}">${p}</option>`).join("");
+    document.getElementById("publisherFilter").innerHTML += publishers.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
+    // بیشترین قیمت فیلتر بر اساس گران‌ترین کتاب
+    const maxPrice = Math.max(600000, ...allBooks.map(b => b.price));
+    const rounded = Math.ceil(maxPrice / 50000) * 50000;
+    ["minPrice", "maxPrice"].forEach(id => document.getElementById(id).max = rounded);
+    document.getElementById("maxPrice").value = rounded;
+    document.getElementById("maxPriceLabel").textContent = rounded.toLocaleString("fa-IR");
   } catch (e) { /* قابل چشم‌پوشی */ }
 
-  const params = new URLSearchParams(window.location.search);
-  const initialCat = params.get("cat") || "";
-  const initialQuery = (params.get("q") || "").trim();
-
-  if (initialCat) {
-    const radio = document.querySelector(`input[name="cat"][value="${initialCat}"]`);
-    if (radio) radio.checked = true;
+  const catRadio = Array.from(document.querySelectorAll('input[name="cat"]')).find(r => r.value === initialCat);
+  if (catRadio) catRadio.checked = true;
+  if ([...document.getElementById("sortSelect").options].some(o => o.value === initialSort)) {
+    document.getElementById("sortSelect").value = initialSort;
   }
 
   if (initialQuery) {
-    document.querySelector('.shop-toolbar').insertAdjacentHTML("beforebegin",
-      `<p>نتایج جست‌وجو برای: «<b>${initialQuery}</b>»</p>`);
+    document.querySelector(".shop-toolbar").insertAdjacentHTML("beforebegin",
+      `<p>نتایج جست‌وجو برای: «<b>${esc(initialQuery)}</b>» — <a href="shop.html" style="color:var(--color-primary-dark)">حذف جست‌وجو</a></p>`);
   }
 
+  // کشوی فیلتر در موبایل
+  const filters = document.getElementById("shopFilters");
+  const overlay = document.getElementById("filtersOverlay");
+  const openFilters = () => { filters.classList.add("open"); overlay.classList.add("show"); document.body.classList.add("no-scroll"); };
+  const closeFilters = () => { filters.classList.remove("open"); overlay.classList.remove("show"); document.body.classList.remove("no-scroll"); };
+  document.getElementById("openFilters").addEventListener("click", openFilters);
+  document.getElementById("closeFilters").addEventListener("click", closeFilters);
+  document.getElementById("applyFilters").addEventListener("click", closeFilters);
+  overlay.addEventListener("click", closeFilters);
+
+  let requestId = 0;
   async function applyFilters() {
     const cat = document.querySelector('input[name="cat"]:checked').value;
     const grade = document.querySelector('input[name="grade"]:checked').value;
@@ -125,19 +147,24 @@
     const onlyDiscount = document.getElementById("onlyDiscount").checked;
     const sort = document.getElementById("sortSelect").value;
 
+    const myRequest = ++requestId;
     document.getElementById("resultCount").textContent = "در حال بارگذاری...";
+    let books;
     try {
-      BOOKS = await fetchProducts({
+      books = await fetchProducts({
         cat, grade, track, publisher, minPrice: min, maxPrice: max,
         onlyDiscount: onlyDiscount ? "true" : "", sort, q: initialQuery
       });
     } catch (e) {
+      if (myRequest !== requestId) return;
       renderProductGrid("shopGrid", []);
       document.getElementById("resultCount").textContent = e.message;
       return;
     }
-
-    document.getElementById("resultCount").textContent = `${BOOKS.length} کتاب پیدا شد`;
+    if (myRequest !== requestId) return; // پاسخ درخواست قدیمی‌تر نادیده گرفته می‌شود
+    BOOKS = books;
+    document.getElementById("resultCount").textContent = `${BOOKS.length.toLocaleString("fa-IR")} کتاب پیدا شد`;
+    document.getElementById("applyFilters").textContent = `نمایش ${BOOKS.length.toLocaleString("fa-IR")} نتیجه`;
     renderProductGrid("shopGrid", BOOKS);
   }
 
@@ -149,9 +176,7 @@
     });
   });
 
-  document.querySelectorAll('input[name="cat"]').forEach(r => r.addEventListener("change", applyFilters));
-  document.querySelectorAll('input[name="grade"]').forEach(r => r.addEventListener("change", applyFilters));
-  document.querySelectorAll('input[name="track"]').forEach(r => r.addEventListener("change", applyFilters));
+  document.querySelectorAll('input[name="cat"], input[name="grade"], input[name="track"]').forEach(r => r.addEventListener("change", applyFilters));
   document.getElementById("publisherFilter").addEventListener("change", applyFilters);
   document.getElementById("onlyDiscount").addEventListener("change", applyFilters);
   document.getElementById("sortSelect").addEventListener("change", applyFilters);

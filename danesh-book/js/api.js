@@ -40,7 +40,7 @@ function fetchProducts(params = {}) {
 }
 
 function fetchProduct(id) {
-  return apiRequest("/products/" + id);
+  return apiRequest("/products/" + encodeURIComponent(id));
 }
 
 /* ===== سبد خرید و سفارش ===== */
@@ -90,12 +90,27 @@ function fetchBundles() {
   return apiRequest("/bundles");
 }
 function fetchBundle(id) {
-  return apiRequest("/bundles/" + id);
+  return apiRequest("/bundles/" + encodeURIComponent(id));
 }
 
-/* ===== تنظیمات سایت ===== */
+/* ===== تنظیمات و محتوای سایت ===== */
 function fetchSettings() {
   return apiRequest("/settings");
+}
+function fetchSite() {
+  return apiRequest("/site");
+}
+function fetchSlides() {
+  return apiRequest("/slides");
+}
+function fetchPage(slug) {
+  return apiRequest("/pages/" + encodeURIComponent(slug));
+}
+function submitContactMessage(payload) {
+  return apiRequest("/contact", { method: "POST", body: payload });
+}
+function subscribeNewsletter(email) {
+  return apiRequest("/newsletter", { method: "POST", body: { email } });
 }
 
 /* ===== بلاگ آموزشی ===== */
@@ -103,7 +118,7 @@ function fetchPosts() {
   return apiRequest("/posts");
 }
 function fetchPost(slug) {
-  return apiRequest("/posts/" + slug);
+  return apiRequest("/posts/" + encodeURIComponent(slug));
 }
 
 /* ===== خرید عمده/سازمانی ===== */
@@ -116,5 +131,5 @@ function requestPayment(orderId) {
   return apiRequest("/payment/request", { method: "POST", body: { orderId } });
 }
 function fetchPaymentStatus(orderId) {
-  return apiRequest("/payment/status/" + orderId);
+  return apiRequest("/payment/status/" + encodeURIComponent(orderId));
 }

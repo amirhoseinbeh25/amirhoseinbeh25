@@ -1,8 +1,18 @@
 const express = require("express");
 const db = require("../db");
 const { requireAdmin } = require("../middleware/auth");
+const v = require("../lib/validate");
 
 const router = express.Router();
+
+function parseGallery(value) {
+  try {
+    const list = JSON.parse(value || "[]");
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
 
 function mapRow(row) {
   return {
@@ -24,8 +34,24 @@ function mapRow(row) {
     color: row.color,
     stock: row.stock,
     desc: row.description,
-    samplePdfUrl: row.sample_pdf_url
+    samplePdfUrl: row.sample_pdf_url,
+    imageUrl: row.image_url,
+    gallery: parseGallery(row.gallery)
   };
+}
+
+function cleanGallery(list) {
+  if (!Array.isArray(list)) return "[]";
+  return JSON.stringify(list.slice(0, 8).map(u => v.imageUrl(u, "تصویر گالری")).filter(Boolean));
+}
+
+function checkTaxonomy(b) {
+  if (b.category !== undefined && !db.prepare("SELECT 1 FROM categories WHERE id = ?").get(b.category)) {
+    return "دسته‌بندی انتخاب‌شده معتبر نیست.";
+  }
+  if (b.grade && !db.prepare("SELECT 1 FROM grades WHERE id = ?").get(b.grade)) return "پایه انتخاب‌شده معتبر نیست.";
+  if (b.track && !db.prepare("SELECT 1 FROM tracks WHERE id = ?").get(b.track)) return "رشته انتخاب‌شده معتبر نیست.";
+  return null;
 }
 
 router.get("/", (req, res) => {
@@ -70,20 +96,29 @@ router.post("/", requireAdmin, (req, res) => {
   if (!b.title || !b.author || !b.category || !b.price) {
     return res.status(400).json({ error: "عنوان، مؤلف، دسته‌بندی و قیمت الزامی هستند." });
   }
-  const cat = db.prepare("SELECT 1 FROM categories WHERE id = ?").get(b.category);
-  if (!cat) return res.status(400).json({ error: "دسته‌بندی انتخاب‌شده معتبر نیست." });
+  const taxonomyError = checkTaxonomy(b);
+  if (taxonomyError) return res.status(400).json({ error: taxonomyError });
 
   const info = db.prepare(`
     INSERT INTO products
-      (title, author, translator, category_id, grade, track, price, old_price, badge, rating, reviews, publisher, pages, year, color, stock, description, sample_pdf_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (title, author, translator, category_id, grade, track, price, old_price, badge, rating, reviews, publisher, pages, year, color, stock, description, sample_pdf_url, image_url, gallery)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    b.title, b.author, b.translator || null, b.category,
+    v.text(b.title, { required: true, max: 200, label: "عنوان" }),
+    v.text(b.author, { required: true, max: 150, label: "مؤلف" }),
+    v.text(b.translator, { max: 150, label: "مترجم" }) || null,
+    b.category,
     b.grade || null, b.track || null,
-    Number(b.price), b.oldPrice ? Number(b.oldPrice) : null, b.badge || null,
-    b.rating ? Number(b.rating) : 4.5, b.reviews ? Number(b.reviews) : 0,
-    b.publisher || null, b.pages ? Number(b.pages) : null, b.year ? Number(b.year) : null,
-    b.color || "#6d93ac", b.stock ? Number(b.stock) : 0, b.desc || "", b.samplePdfUrl || null
+    v.int(b.price, { min: 0, label: "قیمت" }), b.oldPrice ? v.int(b.oldPrice, { min: 0, label: "قیمت قبلی" }) : null,
+    v.text(b.badge, { max: 40, label: "برچسب" }) || null,
+    v.num(b.rating, { min: 0, max: 5, fallback: 4.5 }), v.int(b.reviews, { min: 0, fallback: 0 }),
+    v.text(b.publisher, { max: 120, label: "ناشر" }) || null,
+    v.int(b.pages, { min: 0 }), v.int(b.year, { min: 0, max: 3000 }),
+    v.color(b.color, "#6d93ac", "رنگ جلد"), v.int(b.stock, { min: 0, fallback: 0 }),
+    v.text(b.desc, { max: 20000, label: "توضیحات" }),
+    v.link(b.samplePdfUrl, "لینک نمونه سوال") || null,
+    v.imageUrl(b.imageUrl, "تصویر کتاب"),
+    cleanGallery(b.gallery)
   );
 
   const row = db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid);
@@ -95,35 +130,37 @@ router.put("/:id", requireAdmin, (req, res) => {
   if (!existing) return res.status(404).json({ error: "کتاب پیدا نشد." });
 
   const b = req.body || {};
-  if (b.category) {
-    const cat = db.prepare("SELECT 1 FROM categories WHERE id = ?").get(b.category);
-    if (!cat) return res.status(400).json({ error: "دسته‌بندی انتخاب‌شده معتبر نیست." });
-  }
+  const taxonomyError = checkTaxonomy({ ...b, category: b.category || undefined });
+  if (taxonomyError) return res.status(400).json({ error: taxonomyError });
+  const has = (key) => b[key] !== undefined;
 
   db.prepare(`
     UPDATE products SET
       title = ?, author = ?, translator = ?, category_id = ?, grade = ?, track = ?, price = ?, old_price = ?,
-      badge = ?, rating = ?, reviews = ?, publisher = ?, pages = ?, year = ?, color = ?, stock = ?, description = ?, sample_pdf_url = ?
+      badge = ?, rating = ?, reviews = ?, publisher = ?, pages = ?, year = ?, color = ?, stock = ?, description = ?,
+      sample_pdf_url = ?, image_url = ?, gallery = ?
     WHERE id = ?
   `).run(
-    b.title ?? existing.title,
-    b.author ?? existing.author,
-    b.translator ?? existing.translator,
-    b.category ?? existing.category_id,
-    b.grade !== undefined ? b.grade : existing.grade,
-    b.track !== undefined ? b.track : existing.track,
-    b.price != null ? Number(b.price) : existing.price,
-    b.oldPrice !== undefined ? (b.oldPrice ? Number(b.oldPrice) : null) : existing.old_price,
-    b.badge !== undefined ? b.badge : existing.badge,
-    b.rating != null ? Number(b.rating) : existing.rating,
-    b.reviews != null ? Number(b.reviews) : existing.reviews,
-    b.publisher ?? existing.publisher,
-    b.pages != null ? Number(b.pages) : existing.pages,
-    b.year != null ? Number(b.year) : existing.year,
-    b.color ?? existing.color,
-    b.stock != null ? Number(b.stock) : existing.stock,
-    b.desc ?? existing.description,
-    b.samplePdfUrl !== undefined ? b.samplePdfUrl : existing.sample_pdf_url,
+    has("title") ? v.text(b.title, { required: true, max: 200, label: "عنوان" }) : existing.title,
+    has("author") ? v.text(b.author, { required: true, max: 150, label: "مؤلف" }) : existing.author,
+    has("translator") ? (v.text(b.translator, { max: 150, label: "مترجم" }) || null) : existing.translator,
+    b.category || existing.category_id,
+    has("grade") ? (b.grade || null) : existing.grade,
+    has("track") ? (b.track || null) : existing.track,
+    b.price != null ? v.int(b.price, { min: 0, label: "قیمت" }) : existing.price,
+    has("oldPrice") ? (b.oldPrice ? v.int(b.oldPrice, { min: 0, label: "قیمت قبلی" }) : null) : existing.old_price,
+    has("badge") ? (v.text(b.badge, { max: 40, label: "برچسب" }) || null) : existing.badge,
+    b.rating != null ? v.num(b.rating, { min: 0, max: 5, fallback: existing.rating }) : existing.rating,
+    b.reviews != null ? v.int(b.reviews, { min: 0, fallback: existing.reviews }) : existing.reviews,
+    has("publisher") ? (v.text(b.publisher, { max: 120, label: "ناشر" }) || null) : existing.publisher,
+    has("pages") ? v.int(b.pages, { min: 0 }) : existing.pages,
+    has("year") ? v.int(b.year, { min: 0, max: 3000 }) : existing.year,
+    has("color") ? v.color(b.color, existing.color, "رنگ جلد") : existing.color,
+    b.stock != null ? v.int(b.stock, { min: 0, fallback: existing.stock }) : existing.stock,
+    has("desc") ? v.text(b.desc, { max: 20000, label: "توضیحات" }) : existing.description,
+    has("samplePdfUrl") ? (v.link(b.samplePdfUrl, "لینک نمونه سوال") || null) : existing.sample_pdf_url,
+    has("imageUrl") ? v.imageUrl(b.imageUrl, "تصویر کتاب") : existing.image_url,
+    has("gallery") ? cleanGallery(b.gallery) : (existing.gallery || "[]"),
     req.params.id
   );
 
@@ -134,6 +171,10 @@ router.put("/:id", requireAdmin, (req, res) => {
 router.delete("/:id", requireAdmin, (req, res) => {
   const existing = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "کتاب پیدا نشد." });
+  const inBundles = db.prepare("SELECT COUNT(*) AS n FROM bundle_items WHERE product_id = ?").get(existing.id).n;
+  if (inBundles > 0) {
+    return res.status(409).json({ error: `این کتاب در ${inBundles} پک آموزشی استفاده شده؛ ابتدا آن را از پک‌ها حذف کنید.` });
+  }
   db.prepare("DELETE FROM products WHERE id = ?").run(req.params.id);
   res.status(204).end();
 });

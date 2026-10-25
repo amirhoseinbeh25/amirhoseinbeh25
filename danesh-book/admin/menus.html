@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>منوها و لینک‌ها | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content" id="menusRoot">
+
+      <div class="tabs">
+        <button data-tab="main">🧭 منوی اصلی (هدر)</button>
+        <button data-tab="footer_1">⬇️ ستون اول فوتر</button>
+        <button data-tab="footer_2">⬇️ ستون دوم فوتر</button>
+        <button data-tab="social">📱 شبکه‌های اجتماعی</button>
+      </div>
+
+      <div class="panel">
+        <p class="panel-desc" id="locationDesc"></p>
+        <div id="columnTitleBox" class="form-grid" style="margin-bottom:16px;" hidden>
+          <div>
+            <label for="columnTitle">عنوان این ستون در فوتر</label>
+            <input type="text" id="columnTitle" maxlength="60">
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button type="button" class="btn btn-outline" id="saveColumnTitle">ذخیره عنوان</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <span class="muted" id="itemCount"></span>
+          <button class="btn btn-primary" id="addItemBtn">➕ افزودن لینک</button>
+        </div>
+        <div class="sort-list" id="itemsList"></div>
+      </div>
+
+      <span data-panel="main" hidden></span>
+      <span data-panel="footer_1" hidden></span>
+      <span data-panel="footer_2" hidden></span>
+      <span data-panel="social" hidden></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="itemModal">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-head">
+      <h2 id="itemModalTitle">افزودن لینک</h2>
+      <button type="button" class="icon-btn" id="closeItemBtn" aria-label="بستن">✕</button>
+    </div>
+    <form id="itemForm">
+      <div class="form-grid" style="grid-template-columns:1fr;">
+        <div id="typeBox">
+          <label>نوع</label>
+          <div class="radio-cards">
+            <label><input type="radio" name="m_type" value="link" checked><span><b>لینک معمولی</b><small>به یک صفحه یا آدرس دلخواه</small></span></label>
+            <label><input type="radio" name="m_type" value="categories"><span><b>فهرست خودکار درس‌ها</b><small>همه دسته‌بندی‌ها به شکل زیرمنو</small></span></label>
+          </div>
+        </div>
+        <div>
+          <label for="m_label">عنوان *</label>
+          <input type="text" id="m_label" required maxlength="80">
+        </div>
+        <div class="link-only">
+          <label for="m_quick">انتخاب سریع صفحه</label>
+          <select id="m_quick"><option value="">— یک صفحه انتخاب کنید یا آدرس را دستی بنویسید —</option></select>
+        </div>
+        <div class="link-only">
+          <label for="m_url">آدرس لینک *</label>
+          <input type="text" id="m_url" dir="ltr" placeholder="shop.html">
+          <small class="field-hint">برای شبکه‌های اجتماعی آدرس کامل صفحه را وارد کنید (مثلاً https://instagram.com/...).</small>
+        </div>
+        <div>
+          <label for="m_icon">آیکون (ایموجی، اختیاری)</label>
+          <input type="text" id="m_icon" maxlength="16" placeholder="مثلاً 🎁">
+        </div>
+        <div class="link-only">
+          <label class="check-row"><input type="checkbox" id="m_newTab"> باز شدن در تب جدید</label>
+        </div>
+        <div>
+          <label class="switch"><input type="checkbox" id="m_active" checked> نمایش در سایت</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="cancelItemBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary" id="saveItemBtn">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
+<script>
+(async () => {
+  renderAdminShell("menus", "منوها و لینک‌ها");
+
+  const LOCATIONS = {
+    main: { desc: "لینک‌های نوار منوی آبی زیر هدر (در موبایل داخل منوی کشویی ☰).", titleKey: null },
+    footer_1: { desc: "لینک‌های ستون اول فوتر سایت.", titleKey: "footer_col1_title" },
+    footer_2: { desc: "لینک‌های ستون دوم فوتر سایت.", titleKey: "footer_col2_title" },
+    social: { desc: "شبکه‌های اجتماعی در نوار بالای هدر (با عنوان) و فوتر (با آیکون). آیکون را حتماً وارد کنید.", titleKey: null }
+  };
+  const $ = (id) => document.getElementById(id);
+
+  let currentLocation = "main";
+  let menus = {};
+  let settings = {};
+  let editingId = null;
+  const modal = setupModal($("itemModal"));
+
+  // صفحات سایت برای انتخاب سریع آدرس
+  const quickOptions = [
+    ["صفحه اصلی", "index.html"], ["فروشگاه (همه کتاب‌ها)", "shop.html"], ["پک‌های آموزشی", "bundles.html"],
+    ["وبلاگ", "blog.html"], ["سبد خرید", "cart.html"], ["حساب کاربری", "account.html"], ["مقایسه کتاب‌ها", "compare.html"],
+    ["تماس با ما", "contact.html"], ["درباره ما", "about.html"], ["سوالات متداول", "faq.html"], ["راهنمای خرید", "buying-guide.html"],
+    ["شرایط ارسال", "shipping-policy.html"], ["قوانین بازگشت کالا", "returns-policy.html"], ["سفارش عمده مدارس", "bulk-order.html"]
+  ];
+
+  async function loadQuickOptions() {
+    const [pages, categories] = await Promise.all([apiRequest("/pages").catch(() => []), fetchCategories().catch(() => [])]);
+    const custom = pages.filter(p => !p.isSystem).map(p => [`صفحه: ${p.title}`, `page.html?slug=${p.slug}`]);
+    const cats = categories.map(c => [`درس: ${c.title}`, `shop.html?cat=${c.id}`]);
+    const group = (label, list) => list.length ? `<optgroup label="${esc(label)}">${list.map(([t, u]) => `<option value="${esc(u)}">${esc(t)}</option>`).join("")}</optgroup>` : "";
+    $("m_quick").innerHTML = `<option value="">— یک صفحه انتخاب کنید یا آدرس را دستی بنویسید —</option>` +
+      group("صفحات اصلی", quickOptions) + group("صفحات سفارشی", custom) + group("درس‌ها", cats);
+  }
+
+  function items() { return menus[currentLocation] || []; }
+
+  function render() {
+    const conf = LOCATIONS[currentLocation];
+    $("locationDesc").textContent = conf.desc;
+    $("columnTitleBox").hidden = !conf.titleKey;
+    if (conf.titleKey) $("columnTitle").value = settings[conf.titleKey] || "";
+    const list = items();
+    $("itemCount").textContent = `${list.length.toLocaleString("fa-IR")} لینک`;
+    $("itemsList").innerHTML = list.length
+      ? list.map((it, i) => `
+        <div class="sort-row ${it.active ? "" : "disabled"}">
+          <div class="sort-arrows">
+            <button class="icon-btn" data-move="${i}" data-dir="-1" title="بالاتر" ${i === 0 ? "disabled" : ""}>▲</button>
+            <button class="icon-btn" data-move="${i}" data-dir="1" title="پایین‌تر" ${i === list.length - 1 ? "disabled" : ""}>▼</button>
+          </div>
+          <span style="font-size:20px; width:28px; text-align:center;">${esc(it.icon || "🔗")}</span>
+          <div class="sort-main">
+            <b>${esc(it.label)}</b>
+            <small>${it.type === "categories" ? "فهرست خودکار همه درس‌ها" : esc(it.url)}${it.newTab ? " · تب جدید" : ""}</small>
+          </div>
+          <label class="switch"><input type="checkbox" data-toggle="${Number(it.id)}" ${it.active ? "checked" : ""}> ${it.active ? "فعال" : "غیرفعال"}</label>
+          <div class="cell-actions">
+            <button class="icon-btn" data-edit="${i}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-delete="${i}" title="حذف">🗑️</button>
+          </div>
+        </div>`).join("")
+      : `<div class="muted" style="padding:24px; text-align:center;">لینکی ثبت نشده است.</div>`;
+
+    document.querySelectorAll("[data-move]").forEach(b => b.addEventListener("click", () => reorder(Number(b.dataset.move), Number(b.dataset.dir))));
+    document.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openModal(items()[Number(b.dataset.edit)])));
+    document.querySelectorAll("[data-delete]").forEach(b => b.addEventListener("click", () => removeItem(items()[Number(b.dataset.delete)])));
+    document.querySelectorAll("[data-toggle]").forEach(cb => cb.addEventListener("change", async () => {
+      try {
+        await adminApi("/menus/" + cb.dataset.toggle, { method: "PUT", body: { active: cb.checked } });
+        await load();
+      } catch (e) { showAdminToast(e.message, true); cb.checked = !cb.checked; }
+    }));
+  }
+
+  async function load() {
+    menus = await adminApi("/menus/admin/all");
+    render();
+  }
+
+  async function reorder(i, dir) {
+    const list = items();
+    if (!moveItem(list, i, dir)) return;
+    render();
+    try {
+      menus = await adminApi("/menus/reorder", { method: "PUT", body: { ids: list.map(it => it.id) } });
+      render();
+    } catch (e) { showAdminToast(e.message, true); await load(); }
+  }
+
+  function updateTypeVisibility() {
+    const isCats = document.querySelector('input[name="m_type"]:checked').value === "categories";
+    document.querySelectorAll(".link-only").forEach(el => { el.hidden = isCats; });
+  }
+
+  function openModal(it) {
+    editingId = it ? it.id : null;
+    $("itemModalTitle").textContent = it ? "ویرایش لینک" : "افزودن لینک";
+    $("typeBox").hidden = currentLocation !== "main";
+    document.querySelector(`input[name="m_type"][value="${it && it.type === "categories" ? "categories" : "link"}"]`).checked = true;
+    $("m_label").value = it ? it.label : "";
+    $("m_url").value = it ? it.url || "" : "";
+    $("m_icon").value = it ? it.icon || "" : "";
+    $("m_newTab").checked = it ? it.newTab : currentLocation === "social";
+    $("m_active").checked = it ? it.active : true;
+    $("m_quick").value = "";
+    updateTypeVisibility();
+    modal.open();
+  }
+
+  async function removeItem(it) {
+    if (!confirm(`آیا از حذف لینک «${it.label}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/menus/" + it.id, { method: "DELETE" });
+      showAdminToast("لینک حذف شد ✓");
+      await load();
+    } catch (e) { showAdminToast(e.message, true); }
+  }
+
+  document.querySelectorAll('input[name="m_type"]').forEach(r => r.addEventListener("change", updateTypeVisibility));
+  $("m_quick").addEventListener("change", () => {
+    const opt = $("m_quick").selectedOptions[0];
+    if (!opt || !opt.value) return;
+    $("m_url").value = opt.value;
+    if (!$("m_label").value.trim()) $("m_label").value = opt.textContent.replace(/^(صفحه|درس): /, "");
+  });
+  $("addItemBtn").addEventListener("click", () => openModal(null));
+  $("cancelItemBtn").addEventListener("click", modal.close);
+  $("closeItemBtn").addEventListener("click", modal.close);
+
+  $("saveColumnTitle").addEventListener("click", async () => {
+    const key = LOCATIONS[currentLocation].titleKey;
+    try {
+      settings = await adminApi("/settings", { method: "PUT", body: { [key]: $("columnTitle").value.trim() } });
+      showAdminToast("عنوان ستون ذخیره شد ✓");
+    } catch (e) { showAdminToast(e.message, true); }
+  });
+
+  $("itemForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const type = currentLocation === "main" ? document.querySelector('input[name="m_type"]:checked').value : "link";
+    const payload = {
+      location: currentLocation, type,
+      label: $("m_label").value.trim(),
+      url: type === "link" ? $("m_url").value.trim() : "",
+      icon: $("m_icon").value.trim(),
+      newTab: $("m_newTab").checked,
+      active: $("m_active").checked
+    };
+    const btn = $("saveItemBtn");
+    btn.disabled = true;
+    try {
+      if (editingId) await adminApi("/menus/" + editingId, { method: "PUT", body: payload });
+      else await adminApi("/menus", { method: "POST", body: payload });
+      showAdminToast("ذخیره شد ✓");
+      modal.close();
+      await load();
+    } catch (err) {
+      showAdminToast(err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  try {
+    [settings] = await Promise.all([fetchSettings(), loadQuickOptions()]);
+  } catch (e) { showAdminToast(e.message, true); }
+
+  initTabs($("menusRoot"), (name) => {
+    currentLocation = name;
+    if (menus.main) render(); else load().catch(err => showAdminToast(err.message, true));
+  });
+})();
+</script>
+</body>
+</html>

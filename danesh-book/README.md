@@ -24,27 +24,33 @@ npm start
 
 ```
 danesh-book/
-├── index.html, shop.html, product.html, cart.html, bundles.html, blog.html, blog-post.html
-├── login.html, register.html, account.html, compare.html, bulk-order.html
+├── index.html            ← صفحه اصلی (بخش‌ها و ترتیبشان از پنل ادمین)
+├── shop.html, product.html, cart.html, bundles.html, blog.html, blog-post.html, compare.html
+├── login.html, register.html, account.html, bulk-order.html, contact.html
+├── about.html, faq.html, buying-guide.html, shipping-policy.html, returns-policy.html, page.html ← صفحات محتوایی (متن از پنل ادمین)
 ├── payment-mock.html, payment-result.html
-├── buying-guide.html, shipping-policy.html, returns-policy.html, faq.html, about.html, contact.html
 ├── css/style.css
 ├── js/
 │   ├── api.js        ← ارتباط با API بک‌اند (fetch) + مدیریت نشست مشتری
-│   ├── data.js        ← کمک‌توابع نمایش (قیمت، جلد SVG، پایه/رشته، دسته‌بندی)
-│   ├── layout.js      ← هدر و فوتر مشترک
-│   └── app.js         ← سبد خرید، مقایسه، رندر کارت محصول/پک، اسلایدر، شمارش معکوس
-├── sample-pdfs/       ← فایل‌های نمونه سوال رایگان (placeholder)
-├── admin/             ← پنل مدیریت
-│   ├── login.html, index.html (داشبورد), products.html, categories.html, bundles.html
-│   ├── orders.html, returns.html, bulk-orders.html, posts.html, settings.html
+│   ├── data.js       ← کمک‌توابع نمایش (قیمت، تصویر، متن قالب‌دار، پایه/رشته)
+│   ├── layout.js     ← هدر، منوها، منوی موبایل، نوار پایین موبایل و فوتر (همه از تنظیمات ادمین)
+│   └── app.js        ← سبد خرید، مقایسه، کارت محصول/پک/مطلب، اسلایدر، شمارش معکوس
+├── assets/images/    ← عکس‌های پیش‌فرض پس‌زمینه
+├── uploads/          ← تصاویر آپلودشده از پنل ادمین (خودکار ساخته می‌شود)
+├── sample-pdfs/      ← فایل‌های نمونه سوال رایگان (placeholder)
+├── admin/            ← پنل مدیریت
+│   ├── index.html (داشبورد), products.html, categories.html, bundles.html, orders.html, returns.html
+│   ├── bulk-orders.html, customers.html, slides.html, settings.html, menus.html, pages.html
+│   ├── posts.html, media.html, messages.html, newsletter.html, login.html
 │   ├── css/admin.css
-│   └── js/admin-auth.js
-└── server/            ← بک‌اند (Express + node:sqlite + JWT)
-    ├── server.js, app.js, db.js
-    ├── middleware/auth.js      ← احراز هویت جدا برای ادمین و مشتری
+│   └── js/admin-auth.js (لایه مشترک و منو), admin-ui.js (آپلود تصویر، گالری، ویرایشگر متن، تب‌ها)
+└── server/           ← بک‌اند (Express + node:sqlite + JWT)
+    ├── server.js, app.js, db.js, defaults.js (محتوای پیش‌فرض)
+    ├── lib/{validate,settings}.js
+    ├── middleware/{auth,rateLimit}.js
     ├── services/{notify,payment}.js
-    └── routes/{auth,categories,products,orders,dashboard,customers,bundles,settings,bulkOrders,posts,payment,returns}.js
+    └── routes/{auth,taxonomy,products,orders,dashboard,customers,bundles,settings,site,slides,menus,
+               pages,uploads,contact,newsletter,bulkOrders,posts,payment,returns}.js
 ```
 
 سایت فروشگاه و پنل ادمین هر دو داده‌ها را به‌صورت زنده از API بک‌اند (`/api/...`) می‌خوانند؛ دیگر داده‌ای در فرانت‌اند هاردکد نیست.
@@ -80,22 +86,43 @@ ZARINPAL_SANDBOX=true   # برای تست در محیط آزمایشی زرین�
 - پیامک: کلید API کاوه‌نگار/ملی‌پیامک را در `server/services/notify.js` (`KAVENEGAR_API_KEY`) وصل کنید.
 - ایمیل: SMTP واقعی را در همان فایل (`SMTP_HOST` و...) با nodemailer پیکربندی کنید.
 
-## پنل ادمین
+## پنل ادمین (مدیریت کامل سایت از هدر تا فوتر)
 
-- ورود امن با ایمیل/رمز عبور (JWT) — جدا از حساب مشتریان
-- داشبورد: کتاب‌ها، دسته‌بندی‌ها، سفارش‌ها، مجموع فروش پرداخت‌شده، مشتریان ثبت‌نام‌شده، سفارش عمده و درخواست مرجوعی در انتظار، هشدار کمبود موجودی
-- مدیریت کامل کتاب‌ها (شامل پایه، رشته، نمونه سوال رایگان)، دسته‌بندی‌ها، پک‌های آموزشی
-- مدیریت سفارش‌ها: جزئیات، وضعیت پرداخت، لاگ اعلان‌های ارسالی، تغییر وضعیت
-- مدیریت درخواست‌های مرجوعی و سفارش‌های عمده مدارس
-- مدیریت وبلاگ (نوشتن/ویرایش/حذف مطلب)
-- تنظیمات سایت: تاریخ کنکور سراسری، متن اعلان بالای سایت
+- ورود امن با ایمیل/رمز عبور (JWT) — جدا از حساب مشتریان؛ محدودیت تلاش ناموفق برای جلوگیری از حدس رمز
+- **داشبورد**: آمار فروش، سفارش‌ها، مشتریان، هشدار کمبود موجودی، هشدار رمز عبور پیش‌فرض و پیام‌های خوانده‌نشده
+- **کتاب‌ها**: افزودن/ویرایش با **آپلود عکس جلد و گالری تصاویر**، ویرایشگر متن برای توضیحات
+- **درس، پایه و رشته**: افزودن، ویرایش، حذف و مرتب‌سازی دسته‌بندی‌ها (با آیکون یا عکس)، پایه‌های تحصیلی و رشته‌ها
+- **پک‌های آموزشی** با عکس
+- **اسلایدر صفحه اصلی**: بنر تصویری کامل یا متن روی عکس، عکس جداگانه برای موبایل، رنگ و میزان محو، پیش‌نمایش زنده، ترتیب و فعال/غیرفعال
+- **تنظیمات و ظاهر سایت**:
+  - هدر: نام سایت، لوگوی متنی یا تصویری، فاوآیکون، نوار بالای هدر و متن اعلان، متن جست‌وجو، توضیح سئو
+  - صفحه اصلی: ترتیب و نمایش/پنهان کردن همه بخش‌ها، عنوان‌ها و تعداد کتاب هر بخش، بنرهای تبلیغاتی، مزایای خرید، خبرنامه و عکس‌های پس‌زمینه
+  - فوتر: متن معرفی، اطلاعات تماس، عنوان ستون‌ها، نماد اعتماد (اینماد)، متن کپی‌رایت
+  - رنگ‌بندی کل سایت با پیش‌نمایش
+  - فروشگاه: هزینه ارسال و سقف ارسال رایگان
+  - حساب مدیر: تغییر نام، ایمیل و رمز عبور
+- **منوها و لینک‌ها**: منوی اصلی (با زیرمنوی خودکار درس‌ها)، دو ستون لینک فوتر، شبکه‌های اجتماعی
+- **صفحات سایت**: ویرایش «درباره ما»، «سوالات متداول»، قوانین و ... و ساخت صفحه جدید (`page.html?slug=...`)
+- **وبلاگ** با عکس کاور و ویرایشگر متن
+- **کتابخانه تصاویر**: مشاهده، استفاده مجدد و حذف تصاویر آپلودشده (با تشخیص تصاویر در حال استفاده)
+- سفارش‌ها، مرجوعی‌ها، سفارش‌های عمده، **مشتریان**، **پیام‌های فرم تماس** و **مشترکین خبرنامه** (خروجی CSV)
+- پنل ادمین و سایت هر دو برای موبایل بهینه شده‌اند (منوی کشویی، نوار پایین موبایل، جدول‌ها و فرم‌های واکنش‌گرا)
+
+### آپلود تصاویر
+
+تصاویر قبل از آپلود در مرورگر کوچک و فشرده می‌شوند و در پوشه `uploads/` (کنار پوشه `server`) ذخیره می‌شوند.
+فقط JPG، PNG، WebP و GIF (حداکثر ۸ مگابایت) پذیرفته می‌شود و نوع فایل از روی محتوای واقعی آن بررسی می‌شود.
+
+### قالب متن صفحات و توضیحات
+
+`## تیتر`، `### زیرتیتر`، `- لیست`، `**پررنگ**`، `[متن](لینک)`، `![توضیح](آدرس تصویر)`، `---`،
+`[[card:آیکون|عنوان|متن]]`، `[[faq:سوال|پاسخ]]` و `[[button:متن|لینک]]` — ویرایشگر پنل ادمین دکمه‌های آماده برای همه این‌ها دارد.
 
 ## API
 
 | متد | مسیر | دسترسی |
 |---|---|---|
 | GET | `/api/categories` | عمومی |
-| POST/PUT/DELETE | `/api/categories` | ادمین |
 | GET | `/api/products` (فیلتر: `cat`,`grade`,`track`,`publisher`,`q`,`minPrice`,`maxPrice`,`onlyDiscount`,`sort`) | عمومی |
 | GET/POST/PUT/DELETE | `/api/products/:id` | عمومی (GET) / ادمین |
 | GET | `/api/bundles`, `/api/bundles/:id` | عمومی |
@@ -115,4 +142,28 @@ ZARINPAL_SANDBOX=true   # برای تست در محیط آزمایشی زرین�
 | GET/PUT | `/api/bulk-orders` | ادمین |
 | GET/PUT | `/api/returns` | ادمین |
 | POST | `/api/auth/login` | عمومی (ادمین) |
-| GET | `/api/dashboard/stats` | ادمین |
+| PUT | `/api/auth/account` | ادمین |
+| GET | `/api/dashboard/stats`, `/api/dashboard/badges` | ادمین |
+| GET | `/api/site` (تنظیمات، منوها، دسته‌بندی‌ها، پایه‌ها و رشته‌ها در یک درخواست) | عمومی |
+| GET | `/api/grades`, `/api/tracks` | عمومی |
+| POST/PUT/DELETE, PUT `/reorder` | `/api/grades`, `/api/tracks`, `/api/categories` | ادمین |
+| GET | `/api/slides` | عمومی |
+| GET `/admin/all`, POST/PUT/DELETE, PUT `/reorder` | `/api/slides` | ادمین |
+| GET | `/api/menus` | عمومی |
+| GET `/admin/all`, POST/PUT/DELETE, PUT `/reorder` | `/api/menus` | ادمین |
+| GET | `/api/pages`, `/api/pages/:slug` | عمومی |
+| GET `/admin/all`, POST/PUT/DELETE | `/api/pages` | ادمین |
+| POST/GET/DELETE | `/api/uploads` (آپلود multipart با فیلد `file`) | ادمین |
+| POST | `/api/contact`, `/api/newsletter` | عمومی (با محدودیت تعداد) |
+| GET/PUT/DELETE | `/api/contact`, `/api/newsletter` | ادمین |
+| GET | `/api/customers` | ادمین |
+
+## به‌روزرسانی نسخه روی هاست (cPanel)
+
+1. از پنل cPanel یک نسخه پشتیبان از فایل `server/daneshbook.db` و پوشه `uploads/` بگیرید.
+2. فایل‌های جدید را روی پوشه قبلی آپلود و جایگزین کنید — **فایل `server/daneshbook.db`، پوشه `uploads/` و پوشه `server/node_modules` را پاک نکنید.**
+3. در «Setup Node.js App» روی **Restart** بزنید (پکیج جدیدی اضافه نشده و نیازی به `npm install` دوباره نیست).
+4. ساختار دیتابیس قبلی به‌صورت خودکار به‌روز می‌شود و داده‌ها حفظ می‌شوند.
+5. بعد از به‌روزرسانی، یک‌بار دوباره وارد پنل ادمین شوید و از «تنظیمات ← حساب مدیر» رمز پیش‌فرض را عوض کنید.
+
+اگر `JWT_SECRET` تنظیم نشده باشد، سرور یک کلید تصادفی امن می‌سازد و در دیتابیس نگه می‌دارد (فایل `.env` کنار `server.js` هم در صورت وجود خوانده می‌شود).

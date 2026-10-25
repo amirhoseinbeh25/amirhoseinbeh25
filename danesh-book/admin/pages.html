@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>صفحات سایت | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span class="muted">متن صفحاتی مثل «درباره ما»، «قوانین» و «سوالات متداول» را ویرایش کنید یا صفحه جدید بسازید.</span>
+          <button class="btn btn-primary" id="addPageBtn">➕ ساخت صفحه جدید</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>عنوان</th><th>آدرس صفحه</th><th>وضعیت</th><th>آخرین ویرایش</th><th>عملیات</th></tr></thead>
+            <tbody id="pagesBody"></tbody>
+          </table>
+        </div>
+        <small class="field-hint">برای نمایش صفحه جدید در منو یا فوتر، از بخش «منوها و لینک‌ها» یک لینک به آن اضافه کنید.</small>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pageModal">
+  <div class="modal-box modal-wide">
+    <div class="modal-head">
+      <h2 id="pageModalTitle">ساخت صفحه جدید</h2>
+      <button type="button" class="icon-btn" id="closePageBtn" aria-label="بستن">✕</button>
+    </div>
+    <form id="pageForm">
+      <div class="form-grid">
+        <div>
+          <label for="p_title">عنوان صفحه *</label>
+          <input type="text" id="p_title" required maxlength="150">
+        </div>
+        <div>
+          <label for="p_slug">نامک (آدرس) — حروف انگلیسی کوچک و خط تیره *</label>
+          <input type="text" id="p_slug" dir="ltr" maxlength="60" placeholder="privacy-policy">
+          <small class="field-hint" id="slugHint"></small>
+        </div>
+        <div>
+          <label for="p_icon">آیکون کنار عنوان (اختیاری)</label>
+          <input type="text" id="p_icon" maxlength="16" placeholder="📄">
+        </div>
+        <div>
+          <label for="p_subtitle">زیرعنوان (اختیاری)</label>
+          <input type="text" id="p_subtitle" maxlength="300">
+        </div>
+        <div class="full">
+          <label>تصویر بنر بالای صفحه (اختیاری)</label>
+          <div id="p_banner" class="wide"></div>
+        </div>
+        <div class="full">
+          <label for="p_content">متن صفحه</label>
+          <textarea id="p_content" maxlength="60000"></textarea>
+        </div>
+        <div class="full" id="activeBox">
+          <label class="switch"><input type="checkbox" id="p_active" checked> صفحه منتشر شود</label>
+        </div>
+      </div>
+      <div class="modal-actions sticky-actions">
+        <a class="btn btn-outline" id="viewPageLink" href="#" target="_blank" rel="noopener" hidden>👁 مشاهده صفحه</a>
+        <button type="button" class="btn btn-outline" id="cancelPageBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary" id="savePageBtn">ذخیره صفحه</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
+<script>
+(async () => {
+  renderAdminShell("pages", "صفحات سایت");
+
+  const SYSTEM_URLS = {
+    about: "about.html", faq: "faq.html", "buying-guide": "buying-guide.html",
+    "shipping-policy": "shipping-policy.html", "returns-policy": "returns-policy.html", contact: "contact.html"
+  };
+  const pageUrl = (p) => SYSTEM_URLS[p.slug] || `page.html?slug=${encodeURIComponent(p.slug)}`;
+  const $ = (id) => document.getElementById(id);
+
+  let pages = [];
+  let editing = null;
+  const modal = setupModal($("pageModal"));
+  const bannerField = createImageField($("p_banner"), { hint: "عکس عریض، مثلاً ۱۶۰۰ × ۴۰۰ پیکسل. روی آن رنگ محو برند قرار می‌گیرد.", resize: { maxWidth: 1920, maxHeight: 900 } });
+  const contentEditor = createRichEditor($("p_content"));
+
+  function render() {
+    $("pagesBody").innerHTML = pages.length
+      ? pages.map((p, i) => `
+        <tr class="${p.active ? "" : "inactive"}">
+          <td><b>${esc(p.icon ? p.icon + " " : "")}${esc(p.title)}</b>${p.isSystem ? ` <span class="badge muted-badge">صفحه اصلی سایت</span>` : ""}</td>
+          <td><code>${esc(pageUrl(p))}</code></td>
+          <td>${p.active ? `<span class="badge stock-ok">منتشرشده</span>` : `<span class="badge stock-low">پیش‌نویس</span>`}</td>
+          <td>${esc(p.updatedAt || "")}</td>
+          <td class="cell-actions">
+            <a class="icon-btn" href="../${pageUrl(p)}" target="_blank" rel="noopener" title="مشاهده">👁</a>
+            <button class="icon-btn" data-edit="${i}" title="ویرایش">✏️</button>
+            ${p.isSystem ? "" : `<button class="icon-btn" data-delete="${i}" title="حذف">🗑️</button>`}
+          </td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">صفحه‌ای ثبت نشده است.</td></tr>`;
+    document.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openModal(pages[Number(b.dataset.edit)])));
+    document.querySelectorAll("[data-delete]").forEach(b => b.addEventListener("click", () => removePage(pages[Number(b.dataset.delete)])));
+  }
+
+  async function load() {
+    pages = await adminApi("/pages/admin/all");
+    render();
+  }
+
+  function openModal(p) {
+    editing = p;
+    $("pageModalTitle").textContent = p ? `ویرایش صفحه «${p.title}»` : "ساخت صفحه جدید";
+    $("p_title").value = p ? p.title : "";
+    $("p_slug").value = p ? p.slug : "";
+    $("p_slug").disabled = !!p;
+    $("slugHint").textContent = p ? `آدرس: ${pageUrl(p)}` : "آدرس صفحه: page.html?slug=نامک";
+    $("p_icon").value = p ? p.icon || "" : "";
+    $("p_subtitle").value = p ? p.subtitle || "" : "";
+    $("p_content").value = p ? p.content || "" : "";
+    $("p_active").checked = p ? p.active : true;
+    $("activeBox").hidden = !!(p && p.isSystem);
+    bannerField.set(p ? p.bannerImage || "" : "");
+    contentEditor.reset();
+    const link = $("viewPageLink");
+    link.hidden = !p;
+    if (p) link.href = "../" + pageUrl(p);
+    modal.open();
+  }
+
+  async function removePage(p) {
+    if (!confirm(`آیا از حذف صفحه «${p.title}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/pages/" + p.id, { method: "DELETE" });
+      showAdminToast("صفحه حذف شد ✓");
+      await load();
+    } catch (e) { showAdminToast(e.message, true); }
+  }
+
+  $("addPageBtn").addEventListener("click", () => openModal(null));
+  $("cancelPageBtn").addEventListener("click", modal.close);
+  $("closePageBtn").addEventListener("click", modal.close);
+
+  $("pageForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: $("p_title").value.trim(),
+      icon: $("p_icon").value.trim(),
+      subtitle: $("p_subtitle").value.trim(),
+      bannerImage: bannerField.get() || null,
+      content: $("p_content").value,
+      active: $("p_active").checked
+    };
+    const btn = $("savePageBtn");
+    btn.disabled = true;
+    try {
+      if (editing) {
+        await adminApi("/pages/" + editing.id, { method: "PUT", body: payload });
+        showAdminToast("صفحه ذخیره شد ✓");
+      } else {
+        payload.slug = $("p_slug").value.trim().toLowerCase();
+        await adminApi("/pages", { method: "POST", body: payload });
+        showAdminToast("صفحه جدید ساخته شد ✓");
+      }
+      modal.close();
+      await load();
+    } catch (err) {
+      showAdminToast(err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  try { await load(); } catch (e) { showAdminToast(e.message, true); }
+})();
+</script>
+</body>
+</html>

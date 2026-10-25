@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دسته‌بندی‌ها | پنل ادمین دانش بوک</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>درس، پایه و رشته | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/admin.css">
@@ -14,46 +15,67 @@
   <aside class="sidebar" id="admin-sidebar"></aside>
   <div class="main-area">
     <div class="topbar" id="admin-topbar"></div>
-    <div class="content">
+    <div class="content" id="taxonomyRoot">
+
+      <div class="tabs">
+        <button data-tab="categories">📚 درس‌ها (دسته‌بندی)</button>
+        <button data-tab="grades">🎓 پایه‌های تحصیلی</button>
+        <button data-tab="tracks">🧭 رشته‌ها</button>
+      </div>
 
       <div class="panel">
         <div class="toolbar">
-          <span style="color:var(--color-text-light); font-size:13.5px;">دسته‌بندی کتاب‌ها برای فیلتر فروشگاه و منوی سایت استفاده می‌شود.</span>
-          <button class="btn btn-primary" id="addCatBtn">➕ افزودن دسته‌بندی</button>
+          <span class="muted" id="taxDesc"></span>
+          <button class="btn btn-primary" id="addBtn">➕ افزودن</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>آیکون</th><th>عنوان</th><th>شناسه</th><th>تعداد کتاب</th><th>عملیات</th></tr></thead>
-            <tbody id="catsBody"></tbody>
+            <thead id="taxHead"></thead>
+            <tbody id="taxBody"></tbody>
           </table>
         </div>
+        <small class="field-hint">با دکمه‌های ▲ و ▼ ترتیب نمایش در سایت (منوها، فیلترها و صفحه اصلی) را تغییر دهید.</small>
       </div>
 
+      <span data-panel="categories" hidden></span>
+      <span data-panel="grades" hidden></span>
+      <span data-panel="tracks" hidden></span>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="catModal">
-  <div class="modal-box" style="max-width:420px;">
-    <h2 id="catModalTitle">افزودن دسته‌بندی</h2>
-    <form id="catForm">
+<div class="modal-overlay" id="taxModal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-head">
+      <h2 id="taxModalTitle">افزودن</h2>
+      <button type="button" class="icon-btn" id="closeTaxBtn" aria-label="بستن">✕</button>
+    </div>
+    <form id="taxForm">
       <div class="form-grid" style="grid-template-columns:1fr;">
         <div>
-          <label>شناسه یکتا (انگلیسی، بدون فاصله) *</label>
-          <input type="text" id="c_id" required placeholder="مثلاً: cooking">
+          <label for="t_title">عنوان *</label>
+          <input type="text" id="t_title" required maxlength="80">
         </div>
-        <div>
-          <label>عنوان فارسی *</label>
-          <input type="text" id="c_title" required placeholder="مثلاً: آشپزی">
+        <div class="media-only">
+          <label for="t_icon">آیکون (یک ایموجی)</label>
+          <input type="text" id="t_icon" maxlength="16" placeholder="📚">
         </div>
-        <div>
-          <label>آیکون (یک ایموجی)</label>
-          <input type="text" id="c_icon" placeholder="📚">
+        <div class="media-only">
+          <label>تصویر دسته‌بندی (اختیاری — در صفحه اصلی به‌جای آیکون نمایش داده می‌شود)</label>
+          <div id="t_image"></div>
         </div>
+        <details id="advancedBox">
+          <summary class="muted" style="cursor:pointer;">تنظیمات پیشرفته: شناسه انگلیسی</summary>
+          <div style="margin-top:10px;">
+            <label for="t_id">شناسه یکتا (اختیاری)</label>
+            <input type="text" id="t_id" dir="ltr" maxlength="40" placeholder="مثلاً: honar">
+            <small class="field-hint">در آدرس صفحات استفاده می‌شود؛ اگر خالی بماند خودکار ساخته می‌شود. بعداً قابل تغییر نیست.</small>
+          </div>
+        </details>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-outline" id="cancelCatBtn">انصراف</button>
-        <button type="submit" class="btn btn-primary">ذخیره</button>
+        <button type="button" class="btn btn-outline" id="cancelTaxBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary" id="saveTaxBtn">ذخیره</button>
       </div>
     </form>
   </div>
@@ -62,97 +84,143 @@
 <script src="../js/data.js"></script>
 <script src="../js/api.js"></script>
 <script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
 <script>
 (async () => {
-  renderAdminShell("categories", "دسته‌بندی‌ها");
+  renderAdminShell("categories", "درس، پایه و رشته");
 
-  let categories = [];
-  let products = [];
-  const modal = document.getElementById("catModal");
-  const form = document.getElementById("catForm");
+  const TYPES = {
+    categories: {
+      api: "/categories", noun: "درس", media: true,
+      desc: "درس‌ها برای منوی سایت، فیلتر فروشگاه و صفحه اصلی استفاده می‌شوند."
+    },
+    grades: {
+      api: "/grades", noun: "پایه", media: false,
+      desc: "پایه‌های تحصیلی برای فیلتر فروشگاه و مشخصات کتاب استفاده می‌شوند."
+    },
+    tracks: {
+      api: "/tracks", noun: "رشته", media: false,
+      desc: "رشته‌ها برای فیلتر فروشگاه استفاده می‌شوند. «مشترک همه رشته‌ها» در فیلتر همه رشته‌ها نمایش داده می‌شود."
+    }
+  };
+
+  let current = "categories";
+  let rows = [];
   let editingId = null;
+  const modal = setupModal(document.getElementById("taxModal"));
+  const imageField = createImageField(document.getElementById("t_image"), {
+    hint: "تصویر مربعی (مثلاً ۳۰۰ × ۳۰۰ پیکسل)؛ به شکل آیکون گرد نمایش داده می‌شود.", resize: { maxWidth: 400, maxHeight: 400 }
+  });
 
-  function countForCat(id) {
-    return products.filter(p => p.category === id).length;
-  }
-
-  function renderTable() {
-    document.getElementById("catsBody").innerHTML = categories.length
-      ? categories.map(c => `
+  function render() {
+    const t = TYPES[current];
+    document.getElementById("taxDesc").textContent = t.desc;
+    document.getElementById("addBtn").textContent = `➕ افزودن ${t.noun} جدید`;
+    document.getElementById("taxHead").innerHTML = `<tr><th>ترتیب</th>${t.media ? "<th>آیکون / تصویر</th>" : ""}<th>عنوان</th><th>شناسه</th><th>تعداد کتاب</th><th>عملیات</th></tr>`;
+    const cols = t.media ? 6 : 5;
+    document.getElementById("taxBody").innerHTML = rows.length
+      ? rows.map((r, i) => `
         <tr>
-          <td style="font-size:20px;">${c.icon || "📚"}</td>
-          <td>${c.title}</td>
-          <td><code>${c.id}</code></td>
-          <td>${countForCat(c.id)} کتاب</td>
-          <td>
-            <button class="icon-btn" data-act="edit" data-id="${c.id}" title="ویرایش">✏️</button>
-            <button class="icon-btn" data-act="delete" data-id="${c.id}" title="حذف">🗑️</button>
+          <td class="cell-actions">
+            <button class="icon-btn" data-move="${i}" data-dir="-1" title="بالاتر" ${i === 0 ? "disabled" : ""}>▲</button>
+            <button class="icon-btn" data-move="${i}" data-dir="1" title="پایین‌تر" ${i === rows.length - 1 ? "disabled" : ""}>▼</button>
+          </td>
+          ${t.media ? `<td>${safeImageUrl(r.imageUrl) ? `<img class="row-thumb" src="${esc(r.imageUrl)}" alt="">` : `<span style="font-size:22px;">${esc(r.icon || "📚")}</span>`}</td>` : ""}
+          <td><b>${esc(r.title)}</b></td>
+          <td><code>${esc(r.id)}</code></td>
+          <td>${Number(r.productCount || 0).toLocaleString("fa-IR")} کتاب</td>
+          <td class="cell-actions">
+            ${current === "categories" ? `<a class="icon-btn" href="../shop.html?cat=${encodeURIComponent(r.id)}" target="_blank" rel="noopener" title="مشاهده در سایت">👁</a>` : ""}
+            <button class="icon-btn" data-act="edit" data-i="${i}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-act="delete" data-i="${i}" title="حذف">🗑️</button>
           </td>
         </tr>`).join("")
-      : `<tr class="empty-row"><td colspan="5">دسته‌بندی‌ای ثبت نشده.</td></tr>`;
+      : `<tr class="empty-row"><td colspan="${cols}">موردی ثبت نشده است.</td></tr>`;
 
-    document.querySelectorAll('[data-act="edit"]').forEach(b =>
-      b.addEventListener("click", () => openModal(b.dataset.id)));
-    document.querySelectorAll('[data-act="delete"]').forEach(b =>
-      b.addEventListener("click", () => deleteCat(b.dataset.id)));
+    document.querySelectorAll("[data-move]").forEach(b => b.addEventListener("click", () => reorder(Number(b.dataset.move), Number(b.dataset.dir))));
+    document.querySelectorAll('[data-act="edit"]').forEach(b => b.addEventListener("click", () => openModal(rows[Number(b.dataset.i)])));
+    document.querySelectorAll('[data-act="delete"]').forEach(b => b.addEventListener("click", () => remove(rows[Number(b.dataset.i)])));
   }
 
-  async function loadAll() {
-    [categories, products] = await Promise.all([fetchCategories(), fetchProducts()]);
-    renderTable();
+  async function load() {
+    rows = await adminApi(TYPES[current].api);
+    render();
   }
 
-  function openModal(id) {
-    editingId = id || null;
-    const c = id ? categories.find(x => x.id === id) : null;
-    document.getElementById("catModalTitle").textContent = c ? "ویرایش دسته‌بندی" : "افزودن دسته‌بندی";
-    document.getElementById("c_id").value = c ? c.id : "";
-    document.getElementById("c_id").disabled = !!c;
-    document.getElementById("c_title").value = c ? c.title : "";
-    document.getElementById("c_icon").value = c ? (c.icon || "") : "";
-    modal.classList.add("open");
-  }
-  function closeModal() { modal.classList.remove("open"); }
-
-  async function deleteCat(id) {
-    const c = categories.find(x => x.id === id);
-    if (!confirm(`آیا از حذف دسته‌بندی «${c.title}» مطمئن هستید؟`)) return;
+  async function reorder(i, dir) {
+    if (!moveItem(rows, i, dir)) return;
+    render();
     try {
-      await adminApi("/categories/" + id, { method: "DELETE" });
-      showAdminToast("دسته‌بندی حذف شد ✓");
-      await loadAll();
+      rows = await adminApi(TYPES[current].api + "/reorder", { method: "PUT", body: { ids: rows.map(r => r.id) } });
+      render();
+    } catch (e) {
+      showAdminToast(e.message, true);
+      await load();
+    }
+  }
+
+  function openModal(row) {
+    const t = TYPES[current];
+    editingId = row ? row.id : null;
+    document.getElementById("taxModalTitle").textContent = row ? `ویرایش ${t.noun}` : `افزودن ${t.noun} جدید`;
+    document.getElementById("t_title").value = row ? row.title : "";
+    document.getElementById("t_icon").value = row ? (row.icon || "") : "";
+    document.getElementById("t_id").value = row ? row.id : "";
+    document.getElementById("t_id").disabled = !!row;
+    document.getElementById("advancedBox").open = false;
+    imageField.set(row ? row.imageUrl || "" : "");
+    document.querySelectorAll(".media-only").forEach(el => { el.hidden = !t.media; });
+    modal.open();
+    setTimeout(() => document.getElementById("t_title").focus(), 50);
+  }
+
+  async function remove(row) {
+    if (!confirm(`آیا از حذف «${row.title}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi(`${TYPES[current].api}/${encodeURIComponent(row.id)}`, { method: "DELETE" });
+      showAdminToast("حذف شد ✓");
+      await load();
     } catch (e) {
       showAdminToast(e.message, true);
     }
   }
 
-  document.getElementById("addCatBtn").addEventListener("click", () => openModal(null));
-  document.getElementById("cancelCatBtn").addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.getElementById("addBtn").addEventListener("click", () => openModal(null));
+  document.getElementById("cancelTaxBtn").addEventListener("click", modal.close);
+  document.getElementById("closeTaxBtn").addEventListener("click", modal.close);
 
-  form.addEventListener("submit", async (e) => {
+  document.getElementById("taxForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const payload = {
-      id: document.getElementById("c_id").value.trim(),
-      title: document.getElementById("c_title").value.trim(),
-      icon: document.getElementById("c_icon").value.trim() || "📚"
-    };
+    const t = TYPES[current];
+    const payload = { title: document.getElementById("t_title").value.trim() };
+    if (t.media) {
+      payload.icon = document.getElementById("t_icon").value.trim() || "📚";
+      payload.imageUrl = imageField.get() || null;
+    }
+    const btn = document.getElementById("saveTaxBtn");
+    btn.disabled = true;
     try {
       if (editingId) {
-        await adminApi("/categories/" + editingId, { method: "PUT", body: payload });
-        showAdminToast("دسته‌بندی به‌روزرسانی شد ✓");
+        await adminApi(`${t.api}/${encodeURIComponent(editingId)}`, { method: "PUT", body: payload });
+        showAdminToast("ذخیره شد ✓");
       } else {
-        await adminApi("/categories", { method: "POST", body: payload });
-        showAdminToast("دسته‌بندی جدید اضافه شد ✓");
+        payload.id = document.getElementById("t_id").value.trim();
+        await adminApi(t.api, { method: "POST", body: payload });
+        showAdminToast(`${t.noun} جدید اضافه شد ✓`);
       }
-      closeModal();
-      await loadAll();
-    } catch (e) {
-      showAdminToast(e.message, true);
+      modal.close();
+      await load();
+    } catch (err) {
+      showAdminToast(err.message, true);
+    } finally {
+      btn.disabled = false;
     }
   });
 
-  await loadAll();
+  initTabs(document.getElementById("taxonomyRoot"), (name) => {
+    current = name;
+    load().catch(e => showAdminToast(e.message, true));
+  });
 })();
 </script>
 </body>

@@ -1,6 +1,7 @@
 const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 const bcrypt = require("bcryptjs");
+const defaults = require("./defaults");
 
 const DB_PATH = path.join(__dirname, "daneshbook.db");
 const db = new DatabaseSync(DB_PATH);
@@ -140,6 +141,86 @@ db.exec(`
     message    TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS grades (
+    id         TEXT PRIMARY KEY,
+    title      TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS tracks (
+    id         TEXT PRIMARY KEY,
+    title      TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS slides (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    title            TEXT,
+    subtitle         TEXT,
+    badge            TEXT,
+    button_text      TEXT,
+    button_link      TEXT,
+    image_url        TEXT,
+    mobile_image_url TEXT,
+    side_image_url   TEXT,
+    emoji            TEXT,
+    color_start      TEXT DEFAULT '#9ad4f5',
+    color_end        TEXT DEFAULT '#6fb3e6',
+    overlay_opacity  REAL DEFAULT 0.78,
+    blur             INTEGER DEFAULT 7,
+    text_theme       TEXT DEFAULT 'dark',
+    sort_order       INTEGER NOT NULL DEFAULT 0,
+    active           INTEGER NOT NULL DEFAULT 1,
+    created_at       TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS menu_items (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    location   TEXT NOT NULL,
+    label      TEXT NOT NULL,
+    url        TEXT,
+    icon       TEXT,
+    type       TEXT NOT NULL DEFAULT 'link',
+    new_tab    INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active     INTEGER NOT NULL DEFAULT 1
+  );
+
+  CREATE TABLE IF NOT EXISTS pages (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug         TEXT UNIQUE NOT NULL,
+    title        TEXT NOT NULL,
+    icon         TEXT,
+    subtitle     TEXT,
+    banner_image TEXT,
+    content      TEXT,
+    is_system    INTEGER NOT NULL DEFAULT 0,
+    active       INTEGER NOT NULL DEFAULT 1,
+    updated_at   TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS contact_messages (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL,
+    email      TEXT,
+    phone      TEXT,
+    subject    TEXT,
+    message    TEXT NOT NULL,
+    is_read    INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    email      TEXT UNIQUE NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS app_secrets (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
 
 /* برای دیتابیس‌های قدیمی‌تر که این ستون‌ها را ندارند، ستون‌های جدید را اضافه می‌کند */
@@ -159,6 +240,12 @@ ensureColumn("orders", "payment_status", "TEXT NOT NULL DEFAULT 'unpaid'");
 ensureColumn("orders", "payment_ref", "TEXT");
 ensureColumn("orders", "payment_authority", "TEXT");
 ensureColumn("order_items", "bundle_id", "INTEGER");
+ensureColumn("products", "image_url", "TEXT");
+ensureColumn("products", "gallery", "TEXT");
+ensureColumn("bundles", "image_url", "TEXT");
+ensureColumn("posts", "cover_image", "TEXT");
+ensureColumn("categories", "image_url", "TEXT");
+ensureColumn("categories", "sort_order", "INTEGER NOT NULL DEFAULT 0");
 
 function seedIfEmpty() {
   const catCount = db.prepare("SELECT COUNT(*) AS n FROM categories").get().n;
@@ -173,8 +260,8 @@ function seedIfEmpty() {
       ["arabi", "عربی", "📗"],
       ["konkur", "کنکور و تست جامع", "🎯"]
     ];
-    const insertCat = db.prepare("INSERT INTO categories (id, title, icon) VALUES (?, ?, ?)");
-    for (const c of categories) insertCat.run(...c);
+    const insertCat = db.prepare("INSERT INTO categories (id, title, icon, sort_order) VALUES (?, ?, ?, ?)");
+    categories.forEach((c, i) => insertCat.run(...c, i));
   }
 
   const prodCount = db.prepare("SELECT COUNT(*) AS n FROM products").get().n;
@@ -215,15 +302,39 @@ function seedIfEmpty() {
     console.log(`[seed] حساب ادمین پیش‌فرض ساخته شد → ایمیل: ${email} | رمز عبور: ${password}`);
   }
 
-  const settingsCount = db.prepare("SELECT COUNT(*) AS n FROM settings").get().n;
-  if (settingsCount === 0) {
-    const defaults = [
-      ["konkur_exam_date", "2027-07-02"],
-      ["site_announcement", "ارسال رایگان برای خریدهای بالای ۵۰۰ هزار تومان"]
-    ];
-    const insertSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
-    for (const s of defaults) insertSetting.run(...s);
+  // تنظیمات جدید به دیتابیس‌های قبلی هم اضافه می‌شوند، بدون اینکه مقادیر ذخیره‌شده تغییر کنند
+  const insertSetting = db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)");
+  for (const [key, value] of Object.entries(defaults.SETTINGS)) insertSetting.run(key, value);
+
+  if (db.prepare("SELECT COUNT(*) AS n FROM grades").get().n === 0) {
+    const insertGrade = db.prepare("INSERT INTO grades (id, title, sort_order) VALUES (?, ?, ?)");
+    defaults.GRADES.forEach(([id, title], i) => insertGrade.run(id, title, i));
   }
+
+  if (db.prepare("SELECT COUNT(*) AS n FROM tracks").get().n === 0) {
+    const insertTrack = db.prepare("INSERT INTO tracks (id, title, sort_order) VALUES (?, ?, ?)");
+    defaults.TRACKS.forEach(([id, title], i) => insertTrack.run(id, title, i));
+  }
+
+  if (db.prepare("SELECT COUNT(*) AS n FROM slides").get().n === 0) {
+    const insertSlide = db.prepare(`
+      INSERT INTO slides (badge, title, subtitle, button_text, button_link, image_url, color_start, color_end, overlay_opacity, emoji, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    defaults.SLIDES.forEach((s, i) => insertSlide.run(
+      s.badge, s.title, s.subtitle, s.button_text, s.button_link, s.image_url, s.color_start, s.color_end, s.overlay_opacity, s.emoji, i
+    ));
+  }
+
+  if (db.prepare("SELECT COUNT(*) AS n FROM menu_items").get().n === 0) {
+    const insertMenu = db.prepare("INSERT INTO menu_items (location, label, url, icon, type, sort_order) VALUES (?, ?, ?, ?, ?, ?)");
+    defaults.MENU_ITEMS.forEach(([location, label, url, icon, type], i) => insertMenu.run(location, label, url, icon, type, i));
+  }
+
+  const insertPage = db.prepare(`
+    INSERT OR IGNORE INTO pages (slug, title, icon, subtitle, banner_image, content, is_system) VALUES (?, ?, ?, ?, ?, ?, 1)
+  `);
+  for (const p of defaults.PAGES) insertPage.run(p.slug, p.title, p.icon, p.subtitle, p.banner_image, p.content);
 
   const bundleCount = db.prepare("SELECT COUNT(*) AS n FROM bundles").get().n;
   if (bundleCount === 0) {

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>مدیریت کتاب‌ها | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -18,8 +19,8 @@
 
       <div class="panel">
         <div class="toolbar">
-          <input type="text" id="searchBox" placeholder="جست‌وجو در عنوان یا مؤلف...">
-          <div style="display:flex; gap:10px;">
+          <input type="search" id="searchBox" placeholder="جست‌وجو در عنوان، مؤلف یا ناشر...">
+          <div class="toolbar-group">
             <select id="catFilterBox"><option value="">همه دسته‌بندی‌ها</option></select>
             <button class="btn btn-primary" id="addProductBtn">➕ افزودن کتاب جدید</button>
           </div>
@@ -39,81 +40,103 @@
 </div>
 
 <div class="modal-overlay" id="productModal">
-  <div class="modal-box">
-    <h2 id="modalTitle">افزودن کتاب جدید</h2>
+  <div class="modal-box modal-wide">
+    <div class="modal-head">
+      <h2 id="modalTitle">افزودن کتاب جدید</h2>
+      <button type="button" class="icon-btn" id="closeModalBtn" aria-label="بستن">✕</button>
+    </div>
     <form id="productForm">
       <input type="hidden" id="productId">
       <div class="form-grid">
+        <div class="form-section-title">🖼 تصاویر</div>
         <div class="full">
-          <label>عنوان کتاب *</label>
-          <input type="text" id="f_title" required>
+          <label>عکس جلد کتاب</label>
+          <div id="imageField" class="tall"></div>
+        </div>
+        <div class="full">
+          <label>تصاویر بیشتر (پشت جلد، صفحات نمونه و ...)</label>
+          <div id="galleryField"></div>
+        </div>
+
+        <div class="form-section-title">📘 مشخصات اصلی</div>
+        <div class="full">
+          <label for="f_title">عنوان کتاب *</label>
+          <input type="text" id="f_title" required maxlength="200">
         </div>
         <div>
-          <label>مؤلف *</label>
-          <input type="text" id="f_author" required>
+          <label for="f_author">مؤلف *</label>
+          <input type="text" id="f_author" required maxlength="150">
         </div>
         <div>
-          <label>مترجم (در صورت وجود)</label>
-          <input type="text" id="f_translator">
+          <label for="f_translator">مترجم (در صورت وجود)</label>
+          <input type="text" id="f_translator" maxlength="150">
         </div>
         <div>
-          <label>درس (دسته‌بندی) *</label>
+          <label for="f_category">درس (دسته‌بندی) *</label>
           <select id="f_category" required></select>
         </div>
         <div>
-          <label>پایه تحصیلی</label>
+          <label for="f_publisher">ناشر</label>
+          <input type="text" id="f_publisher" maxlength="120" list="publisherList">
+          <datalist id="publisherList"></datalist>
+        </div>
+        <div>
+          <label for="f_grade">پایه تحصیلی</label>
           <select id="f_grade"><option value="">—</option></select>
         </div>
         <div>
-          <label>رشته</label>
+          <label for="f_track">رشته</label>
           <select id="f_track"><option value="">—</option></select>
         </div>
+        <div class="full"><small class="field-hint">درس، پایه یا رشته جدید را از منوی «درس، پایه و رشته» اضافه کنید.</small></div>
+
+        <div class="form-section-title">💰 قیمت و انبار</div>
         <div>
-          <label>ناشر</label>
-          <input type="text" id="f_publisher">
+          <label for="f_price">قیمت (تومان) *</label>
+          <input type="number" id="f_price" required min="0" inputmode="numeric">
         </div>
         <div>
-          <label>قیمت (تومان) *</label>
-          <input type="number" id="f_price" required min="0">
+          <label for="f_oldPrice">قیمت قبل از تخفیف</label>
+          <input type="number" id="f_oldPrice" min="0" inputmode="numeric">
         </div>
         <div>
-          <label>قیمت قبل از تخفیف</label>
-          <input type="number" id="f_oldPrice" min="0">
+          <label for="f_stock">موجودی انبار *</label>
+          <input type="number" id="f_stock" required min="0" inputmode="numeric">
         </div>
         <div>
-          <label>موجودی انبار *</label>
-          <input type="number" id="f_stock" required min="0">
+          <label for="f_badge">برچسب روی جلد</label>
+          <input type="text" id="f_badge" maxlength="40" list="badgeList" placeholder="مثلاً: پرفروش، جدید">
+          <datalist id="badgeList"><option value="پرفروش"><option value="جدید"><option value="ویژه کنکور"><option value="تخفیف"></datalist>
+          <small class="field-hint">کتاب‌های «پرفروش» و «جدید» در بخش‌های صفحه اصلی نمایش داده می‌شوند.</small>
+        </div>
+
+        <div class="form-section-title">📄 جزئیات</div>
+        <div>
+          <label for="f_pages">تعداد صفحات</label>
+          <input type="number" id="f_pages" min="0" inputmode="numeric">
         </div>
         <div>
-          <label>برچسب (مثلاً پرفروش، جدید)</label>
-          <input type="text" id="f_badge">
+          <label for="f_year">سال انتشار</label>
+          <input type="number" id="f_year" min="1300" max="1500" inputmode="numeric">
         </div>
         <div>
-          <label>تعداد صفحات</label>
-          <input type="number" id="f_pages" min="0">
-        </div>
-        <div>
-          <label>سال انتشار</label>
-          <input type="number" id="f_year" min="1300" max="1500">
-        </div>
-        <div>
-          <label>امتیاز (از ۵)</label>
+          <label for="f_rating">امتیاز (از ۵)</label>
           <input type="number" id="f_rating" min="0" max="5" step="0.1">
         </div>
         <div>
-          <label>رنگ جلد</label>
+          <label for="f_color">رنگ جلد پیش‌فرض (اگر عکس ندارد)</label>
           <input type="color" id="f_color" value="#6d93ac">
         </div>
         <div class="full">
-          <label>لینک نمونه سوال رایگان (PDF، اختیاری)</label>
-          <input type="text" id="f_samplePdfUrl" placeholder="sample-pdfs/example.pdf">
+          <label for="f_samplePdfUrl">لینک نمونه سوال رایگان (PDF، اختیاری)</label>
+          <input type="text" id="f_samplePdfUrl" dir="ltr" placeholder="sample-pdfs/example.pdf">
         </div>
         <div class="full">
-          <label>توضیحات</label>
-          <textarea id="f_desc"></textarea>
+          <label for="f_desc">توضیحات</label>
+          <textarea id="f_desc" maxlength="20000"></textarea>
         </div>
       </div>
-      <div class="modal-actions">
+      <div class="modal-actions sticky-actions">
         <button type="button" class="btn btn-outline" id="cancelModalBtn">انصراف</button>
         <button type="submit" class="btn btn-primary" id="saveProductBtn">ذخیره کتاب</button>
       </div>
@@ -124,20 +147,25 @@
 <script src="../js/data.js"></script>
 <script src="../js/api.js"></script>
 <script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
 <script>
 (async () => {
   renderAdminShell("products", "مدیریت کتاب‌ها");
 
-  let categories = [];
   let products = [];
 
-  const modal = document.getElementById("productModal");
+  const modalEl = document.getElementById("productModal");
+  const modal = setupModal(modalEl);
   const form = document.getElementById("productForm");
+  const imageField = createImageField(document.getElementById("imageField"), {
+    hint: "عکس واضح از جلد کتاب (ترجیحاً عمودی با نسبت ۳ به ۴). تصویر به‌صورت خودکار فشرده می‌شود.",
+    resize: { maxWidth: 1000, maxHeight: 1400 }
+  });
+  const galleryField = createGalleryField(document.getElementById("galleryField"), { max: 8, resize: { maxWidth: 1200, maxHeight: 1600 } });
+  const descEditor = createRichEditor(document.getElementById("f_desc"));
 
-  function statusBadge(stock) {
-    return stock <= 5
-      ? `<span class="badge stock-low">${stock} عدد</span>`
-      : `<span class="badge stock-ok">${stock} عدد</span>`;
+  function stockBadge(stock) {
+    return `<span class="badge ${stock <= 5 ? "stock-low" : "stock-ok"}">${Number(stock).toLocaleString("fa-IR")} عدد</span>`;
   }
 
   function renderTable() {
@@ -146,7 +174,7 @@
 
     const filtered = products.filter(p => {
       if (catFilter && p.category !== catFilter) return false;
-      if (q && !(p.title + p.author).toLowerCase().includes(q)) return false;
+      if (q && !`${p.title} ${p.author} ${p.publisher || ""}`.toLowerCase().includes(q)) return false;
       return true;
     });
 
@@ -155,17 +183,18 @@
         <tr>
           <td>
             <div class="row-flex">
-              <img class="row-cover" src="${bookCoverDataUrl(p)}" alt="">
-              <span>${p.title}</span>
+              <img class="row-cover" src="${esc(productImage(p))}" alt="">
+              <span>${esc(p.title)}${p.imageUrl ? "" : ` <span class="badge muted-badge">بدون عکس</span>`}</span>
             </div>
           </td>
-          <td>${getCategoryTitle(p.category)}</td>
-          <td>${p.grade ? getGradeTitle(p.grade) : "—"}</td>
+          <td>${esc(getCategoryTitle(p.category))}</td>
+          <td>${p.grade ? esc(getGradeTitle(p.grade)) : "—"}</td>
           <td>${formatPrice(p.price)}</td>
-          <td>${statusBadge(p.stock)}</td>
-          <td>
-            <button class="icon-btn" data-act="edit" data-id="${p.id}" title="ویرایش">✏️</button>
-            <button class="icon-btn" data-act="delete" data-id="${p.id}" title="حذف">🗑️</button>
+          <td>${stockBadge(p.stock)}</td>
+          <td class="cell-actions">
+            <a class="icon-btn" href="../product.html?id=${Number(p.id)}" target="_blank" rel="noopener" title="مشاهده در سایت">👁</a>
+            <button class="icon-btn" data-act="edit" data-id="${Number(p.id)}" title="ویرایش">✏️</button>
+            <button class="icon-btn" data-act="delete" data-id="${Number(p.id)}" title="حذف">🗑️</button>
           </td>
         </tr>`).join("")
       : `<tr class="empty-row"><td colspan="6">کتابی پیدا نشد.</td></tr>`;
@@ -177,46 +206,54 @@
   }
 
   async function loadAll() {
-    [categories, products] = await Promise.all([fetchCategories(), fetchProducts()]);
+    let categories;
+    [categories, products, GRADES, TRACKS] = await Promise.all([
+      fetchCategories(), fetchProducts(), apiRequest("/grades"), apiRequest("/tracks")
+    ]);
     CATEGORIES = categories; // برای getCategoryTitle در data.js
 
-    document.getElementById("f_category").innerHTML = categories.map(c =>
-      `<option value="${c.id}">${c.icon} ${c.title}</option>`).join("");
-    document.getElementById("catFilterBox").innerHTML = `<option value="">همه دسته‌بندی‌ها</option>` +
-      categories.map(c => `<option value="${c.id}">${c.icon} ${c.title}</option>`).join("");
+    const catOptions = categories.map(c => `<option value="${esc(c.id)}">${esc(c.icon || "")} ${esc(c.title)}</option>`).join("");
+    document.getElementById("f_category").innerHTML = catOptions;
+    const currentFilter = document.getElementById("catFilterBox").value;
+    document.getElementById("catFilterBox").innerHTML = `<option value="">همه دسته‌بندی‌ها</option>` + catOptions;
+    document.getElementById("catFilterBox").value = currentFilter;
     document.getElementById("f_grade").innerHTML = `<option value="">—</option>` +
-      GRADES.map(g => `<option value="${g.id}">${g.title}</option>`).join("");
+      GRADES.map(g => `<option value="${esc(g.id)}">${esc(g.title)}</option>`).join("");
     document.getElementById("f_track").innerHTML = `<option value="">—</option>` +
-      TRACKS.map(t => `<option value="${t.id}">${t.title}</option>`).join("");
+      TRACKS.map(t => `<option value="${esc(t.id)}">${esc(t.title)}</option>`).join("");
+    const publishers = [...new Set(products.map(p => p.publisher).filter(Boolean))].sort();
+    document.getElementById("publisherList").innerHTML = publishers.map(p => `<option value="${esc(p)}">`).join("");
 
     renderTable();
   }
 
   function openModal(id) {
     const p = id ? products.find(x => x.id === id) : null;
+    const val = (v) => (v === null || v === undefined ? "" : v);
     document.getElementById("modalTitle").textContent = p ? "ویرایش کتاب" : "افزودن کتاب جدید";
     document.getElementById("productId").value = p ? p.id : "";
     document.getElementById("f_title").value = p ? p.title : "";
     document.getElementById("f_author").value = p ? p.author : "";
-    document.getElementById("f_translator").value = p ? (p.translator || "") : "";
-    document.getElementById("f_category").value = p ? p.category : categories[0]?.id || "";
-    document.getElementById("f_grade").value = p ? (p.grade || "") : "";
-    document.getElementById("f_track").value = p ? (p.track || "") : "";
-    document.getElementById("f_publisher").value = p ? (p.publisher || "") : "";
+    document.getElementById("f_translator").value = p ? val(p.translator) : "";
+    document.getElementById("f_category").value = p ? p.category : (CATEGORIES[0] ? CATEGORIES[0].id : "");
+    document.getElementById("f_grade").value = p ? val(p.grade) : "";
+    document.getElementById("f_track").value = p ? val(p.track) : "";
+    document.getElementById("f_publisher").value = p ? val(p.publisher) : "";
     document.getElementById("f_price").value = p ? p.price : "";
-    document.getElementById("f_oldPrice").value = p && p.oldPrice ? p.oldPrice : "";
+    document.getElementById("f_oldPrice").value = p ? val(p.oldPrice) : "";
     document.getElementById("f_stock").value = p ? p.stock : 0;
-    document.getElementById("f_badge").value = p ? (p.badge || "") : "";
-    document.getElementById("f_pages").value = p ? (p.pages || "") : "";
-    document.getElementById("f_year").value = p ? (p.year || "") : "";
-    document.getElementById("f_rating").value = p ? (p.rating || 4.5) : 4.5;
-    document.getElementById("f_color").value = p ? (p.color || "#6d93ac") : "#6d93ac";
-    document.getElementById("f_samplePdfUrl").value = p ? (p.samplePdfUrl || "") : "";
-    document.getElementById("f_desc").value = p ? (p.desc || "") : "";
-    modal.classList.add("open");
+    document.getElementById("f_badge").value = p ? val(p.badge) : "";
+    document.getElementById("f_pages").value = p ? val(p.pages) : "";
+    document.getElementById("f_year").value = p ? val(p.year) : "";
+    document.getElementById("f_rating").value = p ? val(p.rating) : 4.5;
+    document.getElementById("f_color").value = p && p.color ? p.color : "#6d93ac";
+    document.getElementById("f_samplePdfUrl").value = p ? val(p.samplePdfUrl) : "";
+    document.getElementById("f_desc").value = p ? val(p.desc) : "";
+    imageField.set(p ? p.imageUrl || "" : "");
+    galleryField.set(p ? p.gallery || [] : []);
+    descEditor.reset();
+    modal.open();
   }
-
-  function closeModal() { modal.classList.remove("open"); }
 
   async function deleteProduct(id) {
     const p = products.find(x => x.id === id);
@@ -231,15 +268,18 @@
   }
 
   document.getElementById("addProductBtn").addEventListener("click", () => openModal(null));
-  document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
-
+  document.getElementById("cancelModalBtn").addEventListener("click", modal.close);
+  document.getElementById("closeModalBtn").addEventListener("click", modal.close);
   document.getElementById("searchBox").addEventListener("input", renderTable);
   document.getElementById("catFilterBox").addEventListener("change", renderTable);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const id = document.getElementById("productId").value;
+    const num = (elId) => {
+      const v = document.getElementById(elId).value;
+      return v === "" ? null : Number(v);
+    };
     const payload = {
       title: document.getElementById("f_title").value.trim(),
       author: document.getElementById("f_author").value.trim(),
@@ -248,16 +288,18 @@
       grade: document.getElementById("f_grade").value || null,
       track: document.getElementById("f_track").value || null,
       publisher: document.getElementById("f_publisher").value.trim(),
-      price: Number(document.getElementById("f_price").value),
-      oldPrice: document.getElementById("f_oldPrice").value ? Number(document.getElementById("f_oldPrice").value) : null,
-      stock: Number(document.getElementById("f_stock").value),
+      price: num("f_price"),
+      oldPrice: num("f_oldPrice"),
+      stock: num("f_stock") || 0,
       badge: document.getElementById("f_badge").value.trim() || null,
-      pages: document.getElementById("f_pages").value ? Number(document.getElementById("f_pages").value) : null,
-      year: document.getElementById("f_year").value ? Number(document.getElementById("f_year").value) : null,
-      rating: Number(document.getElementById("f_rating").value || 4.5),
+      pages: num("f_pages"),
+      year: num("f_year"),
+      rating: num("f_rating") ?? 4.5,
       color: document.getElementById("f_color").value,
       samplePdfUrl: document.getElementById("f_samplePdfUrl").value.trim() || null,
-      desc: document.getElementById("f_desc").value.trim()
+      desc: document.getElementById("f_desc").value.trim(),
+      imageUrl: imageField.get() || null,
+      gallery: galleryField.get()
     };
 
     const saveBtn = document.getElementById("saveProductBtn");
@@ -270,7 +312,7 @@
         await adminApi("/products", { method: "POST", body: payload });
         showAdminToast("کتاب جدید با موفقیت اضافه شد ✓");
       }
-      closeModal();
+      modal.close();
       await loadAll();
     } catch (e) {
       showAdminToast(e.message, true);
@@ -279,7 +321,11 @@
     }
   });
 
-  await loadAll();
+  try {
+    await loadAll();
+  } catch (e) {
+    showAdminToast(e.message, true);
+  }
 })();
 </script>
 </body>

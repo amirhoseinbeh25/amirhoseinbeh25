@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>اسلایدر صفحه اصلی | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span class="muted">اسلایدهای بالای صفحه اصلی. می‌توانید یک بنر تصویری کامل یا متن روی عکس بسازید.</span>
+          <button class="btn btn-primary" id="addSlideBtn">➕ افزودن اسلاید</button>
+        </div>
+        <div class="sort-list" id="slidesList"></div>
+        <small class="field-hint">اسلایدر را می‌توانید از «تنظیمات و ظاهر سایت ← صفحه اصلی» کلاً پنهان کنید یا جای آن را تغییر دهید.</small>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="slideModal">
+  <div class="modal-box modal-wide">
+    <div class="modal-head">
+      <h2 id="slideModalTitle">افزودن اسلاید</h2>
+      <button type="button" class="icon-btn" id="closeSlideBtn" aria-label="بستن">✕</button>
+    </div>
+
+    <div class="slide-preview" id="slidePreview" aria-hidden="true">
+      <div class="sp-bg"></div>
+      <div class="sp-overlay"></div>
+      <div class="sp-text">
+        <span class="sp-badge"></span>
+        <h3 class="sp-title"></h3>
+        <p class="sp-sub"></p>
+        <span class="sp-btn"></span>
+      </div>
+      <div class="sp-side"></div>
+    </div>
+    <small class="field-hint" style="margin-bottom:14px;">پیش‌نمایش تقریبی اسلاید</small>
+
+    <form id="slideForm">
+      <div class="form-grid">
+        <div class="full">
+          <label>نوع اسلاید</label>
+          <div class="radio-cards">
+            <label><input type="radio" name="s_mode" value="text" checked><span><b>متن روی تصویر</b><small>عنوان، توضیح و دکمه روی عکس محو با رنگ دلخواه</small></span></label>
+            <label><input type="radio" name="s_mode" value="banner"><span><b>بنر تصویری کامل</b><small>فقط عکس (مثلاً بنری که در فتوشاپ طراحی کرده‌اید)</small></span></label>
+          </div>
+        </div>
+
+        <div class="form-section-title">🖼 تصاویر</div>
+        <div class="full">
+          <label>تصویر اسلاید (دسکتاپ)</label>
+          <div id="s_image" class="wide"></div>
+        </div>
+        <div class="full">
+          <label>تصویر مخصوص موبایل (اختیاری)</label>
+          <div id="s_mobileImage" class="wide"></div>
+        </div>
+
+        <div class="form-section-title text-only">✍️ متن اسلاید</div>
+        <div class="text-only">
+          <label for="s_badge">برچسب کوچک بالای عنوان</label>
+          <input type="text" id="s_badge" maxlength="60" placeholder="مثلاً: پیشنهاد ویژه هفته">
+        </div>
+        <div class="text-only">
+          <label for="s_buttonText">متن دکمه</label>
+          <input type="text" id="s_buttonText" maxlength="60" placeholder="مثلاً: مشاهده کتاب‌ها">
+        </div>
+        <div class="full text-only">
+          <label for="s_title">عنوان اصلی</label>
+          <input type="text" id="s_title" maxlength="200">
+        </div>
+        <div class="full text-only">
+          <label for="s_subtitle">توضیح</label>
+          <textarea id="s_subtitle" maxlength="500" style="min-height:60px;"></textarea>
+        </div>
+        <div class="full">
+          <label for="s_buttonLink">لینک (مقصد دکمه یا کلیک روی بنر)</label>
+          <input type="text" id="s_buttonLink" dir="ltr" placeholder="shop.html?cat=konkur">
+          <small class="field-hint">مثال‌ها: <code>shop.html</code>، <code>shop.html?cat=riazi</code>، <code>bundles.html</code>، <code>product.html?id=5</code> یا آدرس کامل https://...</small>
+        </div>
+
+        <div class="form-section-title text-only">🎨 ظاهر</div>
+        <div class="text-only">
+          <label for="s_colorStart">رنگ پوشش (شروع)</label>
+          <input type="color" id="s_colorStart" value="#9ad4f5">
+        </div>
+        <div class="text-only">
+          <label for="s_colorEnd">رنگ پوشش (پایان)</label>
+          <input type="color" id="s_colorEnd" value="#6fb3e6">
+        </div>
+        <div class="text-only">
+          <label for="s_opacity">غلظت رنگ روی عکس: <b id="s_opacityLabel"></b></label>
+          <input type="range" id="s_opacity" min="0" max="1" step="0.05" value="0.78">
+        </div>
+        <div class="text-only">
+          <label for="s_blur">میزان محو بودن عکس: <b id="s_blurLabel"></b></label>
+          <input type="range" id="s_blur" min="0" max="20" step="1" value="7">
+        </div>
+        <div class="text-only">
+          <label for="s_textTheme">رنگ متن</label>
+          <select id="s_textTheme">
+            <option value="dark">تیره (برای پس‌زمینه روشن)</option>
+            <option value="light">سفید (برای پس‌زمینه تیره)</option>
+          </select>
+        </div>
+        <div class="text-only">
+          <label for="s_emoji">ایموجی کنار متن</label>
+          <input type="text" id="s_emoji" maxlength="16" placeholder="📖">
+        </div>
+        <div class="full text-only">
+          <label>تصویر کنار متن (به‌جای ایموجی، مثلاً عکس کتاب با پس‌زمینه شفاف)</label>
+          <div id="s_sideImage"></div>
+        </div>
+        <div class="full">
+          <label class="switch"><input type="checkbox" id="s_active" checked> نمایش این اسلاید در سایت</label>
+        </div>
+      </div>
+      <div class="modal-actions sticky-actions">
+        <button type="button" class="btn btn-outline" id="cancelSlideBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary" id="saveSlideBtn">ذخیره اسلاید</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
+<script>
+(async () => {
+  renderAdminShell("slides", "اسلایدر صفحه اصلی");
+
+  let slides = [];
+  let editingId = null;
+  const modal = setupModal(document.getElementById("slideModal"));
+  const $ = (id) => document.getElementById(id);
+
+  const imageField = createImageField($("s_image"), {
+    hint: "اندازه پیشنهادی: ۱۲۴۰ × ۴۲۰ پیکسل.", resize: { maxWidth: 1920, maxHeight: 1200 }, onChange: updatePreview
+  });
+  const mobileImageField = createImageField($("s_mobileImage"), {
+    hint: "اگر خالی بماند، همان تصویر دسکتاپ در موبایل نمایش داده می‌شود. اندازه پیشنهادی: ۸۰۰ × ۴۵۰.", resize: { maxWidth: 1000, maxHeight: 1000 }
+  });
+  const sideImageField = createImageField($("s_sideImage"), { resize: { maxWidth: 700, maxHeight: 700 }, onChange: updatePreview });
+
+  function mode() {
+    return document.querySelector('input[name="s_mode"]:checked').value;
+  }
+
+  function updateModeVisibility() {
+    const isBanner = mode() === "banner";
+    document.querySelectorAll(".text-only").forEach(el => { el.hidden = isBanner; });
+    updatePreview();
+  }
+
+  function updatePreview() {
+    const isBanner = mode() === "banner";
+    const opacity = isBanner ? 0 : Number($("s_opacity").value);
+    const blur = isBanner ? 0 : Number($("s_blur").value);
+    $("s_opacityLabel").textContent = Math.round(Number($("s_opacity").value) * 100) + "٪";
+    $("s_blurLabel").textContent = $("s_blur").value;
+    const preview = $("slidePreview");
+    const img = safeImageUrl(imageField.get());
+    preview.querySelector(".sp-bg").style.backgroundImage = img ? `url('${img}')` : "none";
+    preview.querySelector(".sp-bg").style.filter = `blur(${blur}px)`;
+    preview.querySelector(".sp-overlay").style.background =
+      `linear-gradient(120deg, ${hexToRgba($("s_colorStart").value, opacity)}, ${hexToRgba($("s_colorEnd").value, opacity)})`;
+    preview.classList.toggle("light", $("s_textTheme").value === "light");
+    preview.classList.toggle("banner", isBanner);
+    preview.querySelector(".sp-badge").textContent = $("s_badge").value;
+    preview.querySelector(".sp-badge").hidden = !$("s_badge").value;
+    preview.querySelector(".sp-title").textContent = $("s_title").value || (isBanner ? "" : "عنوان اسلاید");
+    preview.querySelector(".sp-sub").textContent = $("s_subtitle").value;
+    preview.querySelector(".sp-btn").textContent = $("s_buttonText").value;
+    preview.querySelector(".sp-btn").hidden = !$("s_buttonText").value;
+    const side = safeImageUrl(sideImageField.get());
+    preview.querySelector(".sp-side").innerHTML = side ? `<img src="${esc(side)}" alt="">` : esc($("s_emoji").value);
+  }
+
+  ["s_badge", "s_title", "s_subtitle", "s_buttonText", "s_colorStart", "s_colorEnd", "s_opacity", "s_blur", "s_textTheme", "s_emoji"]
+    .forEach(id => $(id).addEventListener("input", updatePreview));
+  document.querySelectorAll('input[name="s_mode"]').forEach(r => r.addEventListener("change", updateModeVisibility));
+
+  function renderList() {
+    $("slidesList").innerHTML = slides.length
+      ? slides.map((s, i) => {
+        const img = safeImageUrl(s.imageUrl);
+        const isBanner = !(s.title || s.subtitle || s.badge || s.buttonText);
+        const thumbStyle = img
+          ? `background-image:url('${img}')`
+          : `background:linear-gradient(120deg, ${hexToRgba(s.colorStart, 1)}, ${hexToRgba(s.colorEnd, 1)})`;
+        return `
+          <div class="sort-row ${s.active ? "" : "disabled"}">
+            <div class="sort-arrows">
+              <button class="icon-btn" data-move="${i}" data-dir="-1" title="بالاتر" ${i === 0 ? "disabled" : ""}>▲</button>
+              <button class="icon-btn" data-move="${i}" data-dir="1" title="پایین‌تر" ${i === slides.length - 1 ? "disabled" : ""}>▼</button>
+            </div>
+            <div class="row-thumb slide-thumb" style="${esc(thumbStyle)}"></div>
+            <div class="sort-main">
+              <b>${esc(s.title || "(بنر تصویری بدون متن)")}</b>
+              <small>${isBanner ? "بنر تصویری" : "متن روی تصویر"}${s.buttonLink ? " · " + esc(s.buttonLink) : ""}</small>
+            </div>
+            <label class="switch" title="نمایش در سایت"><input type="checkbox" data-toggle="${Number(s.id)}" ${s.active ? "checked" : ""}> ${s.active ? "فعال" : "غیرفعال"}</label>
+            <div class="cell-actions">
+              <button class="icon-btn" data-edit="${Number(s.id)}" title="ویرایش">✏️</button>
+              <button class="icon-btn" data-delete="${Number(s.id)}" title="حذف">🗑️</button>
+            </div>
+          </div>`;
+      }).join("")
+      : `<div class="muted" style="padding:30px; text-align:center;">هنوز اسلایدی ساخته نشده است.</div>`;
+
+    document.querySelectorAll("[data-move]").forEach(b => b.addEventListener("click", () => reorder(Number(b.dataset.move), Number(b.dataset.dir))));
+    document.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openModal(slides.find(s => s.id === Number(b.dataset.edit)))));
+    document.querySelectorAll("[data-delete]").forEach(b => b.addEventListener("click", () => removeSlide(Number(b.dataset.delete))));
+    document.querySelectorAll("[data-toggle]").forEach(cb => cb.addEventListener("change", async () => {
+      try {
+        await adminApi("/slides/" + cb.dataset.toggle, { method: "PUT", body: { active: cb.checked } });
+        showAdminToast(cb.checked ? "اسلاید فعال شد ✓" : "اسلاید غیرفعال شد");
+        await load();
+      } catch (e) { showAdminToast(e.message, true); cb.checked = !cb.checked; }
+    }));
+  }
+
+  async function load() {
+    slides = await adminApi("/slides/admin/all");
+    renderList();
+  }
+
+  async function reorder(i, dir) {
+    if (!moveItem(slides, i, dir)) return;
+    renderList();
+    try {
+      slides = await adminApi("/slides/reorder", { method: "PUT", body: { ids: slides.map(s => s.id) } });
+      renderList();
+    } catch (e) { showAdminToast(e.message, true); await load(); }
+  }
+
+  function openModal(s) {
+    editingId = s ? s.id : null;
+    $("slideModalTitle").textContent = s ? "ویرایش اسلاید" : "افزودن اسلاید";
+    const isBanner = s ? !(s.title || s.subtitle || s.badge || s.buttonText) : false;
+    document.querySelector(`input[name="s_mode"][value="${isBanner ? "banner" : "text"}"]`).checked = true;
+    $("s_badge").value = s ? s.badge || "" : "";
+    $("s_title").value = s ? s.title || "" : "";
+    $("s_subtitle").value = s ? s.subtitle || "" : "";
+    $("s_buttonText").value = s ? s.buttonText || "" : "";
+    $("s_buttonLink").value = s ? s.buttonLink || "" : "shop.html";
+    $("s_colorStart").value = s && s.colorStart ? s.colorStart : "#9ad4f5";
+    $("s_colorEnd").value = s && s.colorEnd ? s.colorEnd : "#6fb3e6";
+    $("s_opacity").value = s && s.overlayOpacity !== null && s.overlayOpacity !== undefined ? s.overlayOpacity : 0.78;
+    $("s_blur").value = s && s.blur !== null && s.blur !== undefined ? s.blur : 7;
+    $("s_textTheme").value = s && s.textTheme === "light" ? "light" : "dark";
+    $("s_emoji").value = s ? s.emoji || "" : "";
+    $("s_active").checked = s ? s.active : true;
+    imageField.set(s ? s.imageUrl || "" : "");
+    mobileImageField.set(s ? s.mobileImageUrl || "" : "");
+    sideImageField.set(s ? s.sideImageUrl || "" : "");
+    updateModeVisibility();
+    modal.open();
+  }
+
+  async function removeSlide(id) {
+    const s = slides.find(x => x.id === id);
+    if (!confirm(`آیا از حذف اسلاید «${s.title || "بنر تصویری"}» مطمئن هستید؟`)) return;
+    try {
+      await adminApi("/slides/" + id, { method: "DELETE" });
+      showAdminToast("اسلاید حذف شد ✓");
+      await load();
+    } catch (e) { showAdminToast(e.message, true); }
+  }
+
+  $("addSlideBtn").addEventListener("click", () => openModal(null));
+  $("cancelSlideBtn").addEventListener("click", modal.close);
+  $("closeSlideBtn").addEventListener("click", modal.close);
+
+  $("slideForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const isBanner = mode() === "banner";
+    if (isBanner && !imageField.get()) { showAdminToast("برای بنر تصویری یک تصویر انتخاب کنید", true); return; }
+    if (!isBanner && !$("s_title").value.trim()) { showAdminToast("عنوان اسلاید را وارد کنید", true); return; }
+    const payload = {
+      imageUrl: imageField.get() || null,
+      mobileImageUrl: mobileImageField.get() || null,
+      buttonLink: $("s_buttonLink").value.trim(),
+      active: $("s_active").checked,
+      // در حالت بنر، متن‌ها خالی و عکس بدون محو و پوشش رنگی نمایش داده می‌شود
+      badge: isBanner ? "" : $("s_badge").value.trim(),
+      title: isBanner ? "" : $("s_title").value.trim(),
+      subtitle: isBanner ? "" : $("s_subtitle").value.trim(),
+      buttonText: isBanner ? "" : $("s_buttonText").value.trim(),
+      emoji: isBanner ? "" : $("s_emoji").value.trim(),
+      sideImageUrl: isBanner ? null : (sideImageField.get() || null),
+      colorStart: $("s_colorStart").value,
+      colorEnd: $("s_colorEnd").value,
+      overlayOpacity: isBanner ? 0 : Number($("s_opacity").value),
+      blur: isBanner ? 0 : Number($("s_blur").value),
+      textTheme: $("s_textTheme").value
+    };
+    const btn = $("saveSlideBtn");
+    btn.disabled = true;
+    try {
+      if (editingId) {
+        await adminApi("/slides/" + editingId, { method: "PUT", body: payload });
+        showAdminToast("اسلاید ذخیره شد ✓");
+      } else {
+        await adminApi("/slides", { method: "POST", body: payload });
+        showAdminToast("اسلاید جدید اضافه شد ✓");
+      }
+      modal.close();
+      await load();
+    } catch (err) {
+      showAdminToast(err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  try { await load(); } catch (e) { showAdminToast(e.message, true); }
+})();
+</script>
+</body>
+</html>

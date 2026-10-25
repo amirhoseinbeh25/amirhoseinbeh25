@@ -1,3 +1,10 @@
+const path = require("node:path");
+
+// اگر فایل .env کنار سرور وجود داشته باشد، متغیرهای آن خوانده می‌شوند (بدون نیاز به پکیج اضافه)
+try {
+  process.loadEnvFile(path.join(__dirname, ".env"));
+} catch (e) { /* فایل .env اختیاری است */ }
+
 const app = require("./app");
 
 const PORT = process.env.PORT || 4000;

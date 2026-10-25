@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>داشبورد | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -16,8 +17,24 @@
     <div class="topbar" id="admin-topbar"></div>
     <div class="content">
 
+      <div id="alerts"></div>
+
       <div class="stat-grid" id="statGrid"></div>
-      <div class="stat-grid" id="statGrid2" style="margin-top:-10px;"></div>
+
+      <div class="panel">
+        <h2>⚡ دسترسی سریع به ظاهر سایت</h2>
+        <div class="quick-links">
+          <a href="products.html">📚 افزودن / ویرایش کتاب و عکس‌ها</a>
+          <a href="slides.html">🖼️ اسلایدر صفحه اصلی</a>
+          <a href="settings.html#home">🏠 چیدمان صفحه اصلی</a>
+          <a href="settings.html#header">🔝 لوگو و هدر</a>
+          <a href="menus.html">🧭 منوها و لینک‌ها</a>
+          <a href="settings.html#footer">⬇️ فوتر و اطلاعات تماس</a>
+          <a href="settings.html#theme">🎨 رنگ‌بندی سایت</a>
+          <a href="categories.html">🏷️ درس‌ها، پایه‌ها و رشته‌ها</a>
+          <a href="pages.html">📄 صفحات (درباره ما، قوانین...)</a>
+        </div>
+      </div>
 
       <div class="panel">
         <h2>⚠️ کتاب‌های رو به اتمام (موجودی ۵ یا کمتر)</h2>
@@ -54,37 +71,49 @@
     pending: "در انتظار بررسی", processing: "در حال پردازش",
     shipped: "ارسال‌شده", delivered: "تحویل‌شده", cancelled: "لغو‌شده"
   };
+  const fa = (n) => Number(n || 0).toLocaleString("fa-IR");
 
   try {
     const stats = await adminApi("/dashboard/stats");
 
-    document.getElementById("statGrid").innerHTML = `
-      <div class="stat-card"><div class="ico">📚</div><div><b>${stats.totalProducts}</b><span>تعداد کتاب‌ها</span></div></div>
-      <div class="stat-card"><div class="ico">🏷️</div><div><b>${stats.totalCategories}</b><span>دسته‌بندی‌ها</span></div></div>
-      <div class="stat-card"><div class="ico">🧾</div><div><b>${stats.totalOrders}</b><span>تعداد سفارش‌ها (${stats.pendingOrders} در انتظار)</span></div></div>
-      <div class="stat-card"><div class="ico">💰</div><div><b>${formatPrice(stats.totalRevenue)}</b><span>مجموع فروش (پرداخت‌شده)</span></div></div>`;
+    const alerts = [];
+    if (stats.usingDefaultPassword) {
+      alerts.push(`<div class="alert alert-warning">🔐 <span>رمز عبور پنل هنوز رمز پیش‌فرض (admin123) است و هر کسی می‌تواند وارد شود. همین حالا آن را تغییر دهید.</span> <a class="btn btn-primary btn-sm" href="settings.html#account">تغییر رمز عبور</a></div>`);
+    }
+    if (stats.unreadMessages) {
+      alerts.push(`<div class="alert alert-info">✉️ <span>${fa(stats.unreadMessages)} پیام خوانده‌نشده از فرم تماس دارید.</span> <a class="btn btn-outline btn-sm" href="messages.html">مشاهده پیام‌ها</a></div>`);
+    }
+    document.getElementById("alerts").innerHTML = alerts.join("");
 
-    document.getElementById("statGrid2").innerHTML = `
-      <div class="stat-card"><div class="ico">👥</div><div><b>${stats.totalCustomers}</b><span>مشتریان ثبت‌نام‌شده</span></div></div>
-      <div class="stat-card"><div class="ico">🏫</div><div><b>${stats.pendingBulkOrders}</b><span>سفارش عمده در انتظار</span></div></div>
-      <div class="stat-card"><div class="ico">↩️</div><div><b>${stats.pendingReturns}</b><span>درخواست مرجوعی در انتظار</span></div></div>`;
+    const cards = [
+      ["💰", formatPrice(stats.totalRevenue), "مجموع فروش (پرداخت‌شده)", "orders.html"],
+      ["🧾", fa(stats.totalOrders), `سفارش (${fa(stats.pendingOrders)} در انتظار)`, "orders.html"],
+      ["📚", fa(stats.totalProducts), "کتاب در فروشگاه", "products.html"],
+      ["👥", fa(stats.totalCustomers), "مشتری ثبت‌نام‌شده", "customers.html"],
+      ["🏷️", fa(stats.totalCategories), "درس (دسته‌بندی)", "categories.html"],
+      ["🏫", fa(stats.pendingBulkOrders), "سفارش عمده در انتظار", "bulk-orders.html"],
+      ["↩️", fa(stats.pendingReturns), "درخواست مرجوعی در انتظار", "returns.html"],
+      ["📬", fa(stats.newsletterCount), "عضو خبرنامه", "newsletter.html"]
+    ];
+    document.getElementById("statGrid").innerHTML = cards.map(([ico, value, label, href]) =>
+      `<a class="stat-card" href="${href}"><div class="ico">${ico}</div><div><b>${value}</b><span>${label}</span></div></a>`).join("");
 
     document.getElementById("lowStockBody").innerHTML = stats.lowStock.length
       ? stats.lowStock.map(p => `
           <tr>
-            <td><a href="products.html">${p.title}</a></td>
-            <td><span class="badge ${p.stock === 0 ? "stock-low" : "stock-low"}">${p.stock} عدد</span></td>
+            <td><a href="products.html">${esc(p.title)}</a></td>
+            <td><span class="badge stock-low">${fa(p.stock)} عدد</span></td>
           </tr>`).join("")
       : `<tr class="empty-row"><td colspan="2">موجودی همه کتاب‌ها مناسب است 👍</td></tr>`;
 
     document.getElementById("recentOrdersBody").innerHTML = stats.recentOrders.length
       ? stats.recentOrders.map(o => `
           <tr>
-            <td>#${o.id}</td>
-            <td>${o.customer_name}</td>
+            <td>#${Number(o.id)}</td>
+            <td>${esc(o.customer_name)}</td>
             <td>${formatPrice(o.total)}</td>
-            <td><span class="badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
-            <td>${o.created_at}</td>
+            <td><span class="badge ${esc(o.status)}">${STATUS_LABELS[o.status] || esc(o.status)}</span></td>
+            <td style="white-space:nowrap;">${esc(o.created_at)}</td>
           </tr>`).join("")
       : `<tr class="empty-row"><td colspan="5">هنوز سفارشی ثبت نشده است.</td></tr>`;
 

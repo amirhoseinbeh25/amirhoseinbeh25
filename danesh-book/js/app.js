@@ -1,4 +1,4 @@
-/* دانش بوک — منطق مشترک: سبد خرید، کارت محصول، مقایسه، نوتیفیکیشن */
+/* دانش بوک — منطق مشترک: سبد خرید، کارت محصول، مقایسه، اسلایدر، نوتیفیکیشن */
 
 const CART_KEY = "db_cart";
 const COMPARE_KEY = "db_compare";
@@ -22,8 +22,11 @@ function cartCount() {
 }
 
 function updateCartBadge() {
-  const badge = document.getElementById("cartBadge");
-  if (badge) badge.textContent = cartCount();
+  const count = cartCount();
+  document.querySelectorAll("[data-cart-count]").forEach(b => {
+    b.textContent = count;
+    b.classList.toggle("is-empty", count === 0);
+  });
 }
 
 function addToCart(id, qty = 1, type = "product") {
@@ -51,6 +54,13 @@ function setCartQty(id, qty, type = "product") {
   }
 }
 
+/* هزینه ارسال طبق تنظیمات پنل ادمین */
+function shippingCost(subtotal) {
+  const cost = Number(setting("shipping_cost", 35000)) || 0;
+  const freeThreshold = Number(setting("free_shipping_threshold", 500000)) || 0;
+  return subtotal === 0 || subtotal >= freeThreshold ? 0 : cost;
+}
+
 /* ===== مقایسه کتاب‌ها ===== */
 function getCompareList() {
   try { return JSON.parse(localStorage.getItem(COMPARE_KEY)) || []; } catch (e) { return []; }
@@ -60,8 +70,11 @@ function saveCompareList(list) {
   updateCompareBadge();
 }
 function updateCompareBadge() {
-  const badge = document.getElementById("compareBadge");
-  if (badge) badge.textContent = getCompareList().length;
+  const count = getCompareList().length;
+  document.querySelectorAll("[data-compare-count]").forEach(b => {
+    b.textContent = count;
+    b.classList.toggle("is-empty", count === 0);
+  });
 }
 function toggleCompare(id) {
   let list = getCompareList();
@@ -84,6 +97,7 @@ function showToast(msg, isError = false) {
   if (!toast) {
     toast = document.createElement("div");
     toast.id = "toast";
+    toast.setAttribute("role", "status");
     document.body.appendChild(toast);
   }
   toast.textContent = msg;
@@ -93,37 +107,41 @@ function showToast(msg, isError = false) {
 }
 
 function starString(rating) {
-  const full = Math.round(rating);
-  return "★".repeat(full) + "☆".repeat(5 - full) + ` (${rating})`;
+  const r = Number(rating) || 0;
+  const full = Math.round(r);
+  return "★".repeat(full) + "☆".repeat(Math.max(0, 5 - full)) + ` (${faNum(r)})`;
 }
 
 function productCardHTML(book) {
   const discount = book.oldPrice ? Math.round(100 - (book.price / book.oldPrice) * 100) : 0;
   const badge = discount > 0
-    ? `<span class="product-badge discount">٪${discount} تخفیف</span>`
-    : (book.badge ? `<span class="product-badge">${book.badge}</span>` : "");
+    ? `<span class="product-badge discount">٪${faNum(discount)} تخفیف</span>`
+    : (book.badge ? `<span class="product-badge">${esc(book.badge)}</span>` : "");
   const isComparing = getCompareList().includes(book.id);
+  const id = Number(book.id);
 
   return `
   <div class="product-card">
-    <a href="product.html?id=${book.id}" class="cover-wrap">
+    <a href="product.html?id=${id}" class="cover-wrap">
       ${badge}
-      ${book.year ? `<span class="edition-badge">چاپ ${book.year}</span>` : ""}
-      <button class="wish-btn" title="افزودن به علاقه‌مندی" onclick="event.preventDefault();showToast('به علاقه‌مندی‌ها اضافه شد')">♡</button>
-      <img src="${bookCoverDataUrl(book)}" alt="${book.title}">
+      ${book.year ? `<span class="edition-badge">چاپ ${faNum(book.year)}</span>` : ""}
+      <button class="wish-btn" title="افزودن به علاقه‌مندی" aria-label="افزودن به علاقه‌مندی" onclick="event.preventDefault();showToast('به علاقه‌مندی‌ها اضافه شد')">♡</button>
+      <img src="${esc(productImage(book))}" alt="${esc(book.title)}" loading="lazy">
     </a>
     <div class="product-info">
-      <span class="product-cat">${getCategoryTitle(book.category)}${book.grade ? " | پایه " + getGradeTitle(book.grade) : ""}</span>
-      <a href="product.html?id=${book.id}"><h3 class="product-title">${book.title}</h3></a>
-      <span class="product-author">مؤلف: ${book.author}${book.publisher ? " | ناشر: " + book.publisher : ""}</span>
+      <span class="product-cat">${esc(getCategoryTitle(book.category))}${book.grade ? " | پایه " + esc(getGradeTitle(book.grade)) : ""}</span>
+      <a href="product.html?id=${id}"><h3 class="product-title">${esc(book.title)}</h3></a>
+      <span class="product-author">مؤلف: ${esc(book.author)}${book.publisher ? " | ناشر: " + esc(book.publisher) : ""}</span>
       <span class="product-rating">${starString(book.rating)}</span>
       <div class="product-price-row">
         <span class="price-now">${formatPrice(book.price)}</span>
         ${book.oldPrice ? `<span class="price-old">${formatPrice(book.oldPrice)}</span>` : ""}
       </div>
-      <div style="display:flex; gap:6px;">
-        <button class="add-cart-btn" style="flex:1;" onclick="addToCart(${book.id})">🛒 افزودن به سبد</button>
-        <button class="compare-btn ${isComparing ? "active" : ""}" title="افزودن به مقایسه" onclick="toggleCompare(${book.id}); this.classList.toggle('active');">⇄</button>
+      <div class="product-actions">
+        ${book.stock > 0
+          ? `<button class="add-cart-btn" onclick="addToCart(${id})">🛒 <span>افزودن به سبد</span></button>`
+          : `<button class="add-cart-btn" disabled>ناموجود</button>`}
+        <button class="compare-btn ${isComparing ? "active" : ""}" title="افزودن به مقایسه" aria-label="افزودن به مقایسه" onclick="toggleCompare(${id}); this.classList.toggle('active');">⇄</button>
       </div>
     </div>
   </div>`;
@@ -131,25 +149,43 @@ function productCardHTML(book) {
 
 function bundleCardHTML(bundle) {
   const discount = bundle.oldPrice ? Math.round(100 - (bundle.price / bundle.oldPrice) * 100) : 0;
+  const img = safeImageUrl(bundle.imageUrl);
+  const head = img
+    ? `<div class="bundle-head has-image" style="background-image:${esc(cssUrl(img))};">`
+    : `<div class="bundle-head" style="background:linear-gradient(135deg, ${esc(hexToRgba(bundle.color, 1))}, #16222b);"><span class="bundle-ico">🎁</span>`;
   return `
   <div class="bundle-card">
-    <div class="bundle-head" style="background:linear-gradient(135deg, ${bundle.color}, #16222b);">
-      <span class="bundle-ico">🎁</span>
-      ${discount > 0 ? `<span class="product-badge discount">٪${discount} تخفیف</span>` : ""}
+    ${head}
+      ${discount > 0 ? `<span class="product-badge discount">٪${faNum(discount)} تخفیف</span>` : ""}
     </div>
     <div class="bundle-body">
-      <h3>${bundle.title}</h3>
-      <p class="bundle-desc">${bundle.description || ""}</p>
+      <h3>${esc(bundle.title)}</h3>
+      <p class="bundle-desc">${esc(bundle.description || "")}</p>
       <ul class="bundle-items">
-        ${bundle.items.map(it => `<li>📘 ${it.title}</li>`).join("")}
+        ${bundle.items.map(it => `<li><a href="product.html?id=${Number(it.id)}">📘 ${esc(it.title)}</a></li>`).join("")}
       </ul>
       <div class="product-price-row">
         <span class="price-now">${formatPrice(bundle.price)}</span>
         ${bundle.oldPrice ? `<span class="price-old">${formatPrice(bundle.oldPrice)}</span>` : ""}
       </div>
-      <button class="add-cart-btn btn-block" onclick="addToCart(${bundle.id}, 1, 'bundle')">🎁 افزودن پک به سبد خرید</button>
+      <button class="add-cart-btn btn-block" onclick="addToCart(${Number(bundle.id)}, 1, 'bundle')">🎁 افزودن پک به سبد خرید</button>
     </div>
   </div>`;
+}
+
+function postCardHTML(p) {
+  const img = safeImageUrl(p.cover_image);
+  const cover = img
+    ? `background-image:${cssUrl(img)}`
+    : `background:linear-gradient(135deg, ${hexToRgba(p.cover_color, 1)}, #16222b)`;
+  return `
+    <a href="blog-post.html?slug=${encodeURIComponent(p.slug)}" class="post-card">
+      <div class="post-cover" style="${esc(cover)}">${img ? "" : "✍️"}</div>
+      <div class="post-body">
+        <h3>${esc(p.title)}</h3>
+        <p>${esc(p.excerpt || "")}</p>
+      </div>
+    </a>`;
 }
 
 function renderProductGrid(containerId, books) {
@@ -177,7 +213,7 @@ function startCountdown(elId, hours = 8) {
   if (!el) return;
   let deadline = localStorage.getItem("db_flash_deadline");
   const now = Date.now();
-  if (!deadline || Number(deadline) < now) {
+  if (!deadline || Number(deadline) < now || Number(deadline) - now > hours * 3600 * 1000) {
     deadline = now + hours * 3600 * 1000;
     localStorage.setItem("db_flash_deadline", String(deadline));
   }
@@ -214,35 +250,111 @@ function startExamCountdown(elId, targetDateStr) {
   setInterval(tick, 60000);
 }
 
+/* ===== اسلایدر صفحه اصلی (اسلایدها از پنل ادمین) ===== */
+function slideHTML(s, i) {
+  const opacity = s.overlayOpacity === null || s.overlayOpacity === undefined ? 0.78 : Number(s.overlayOpacity);
+  const blur = s.blur === null || s.blur === undefined ? 7 : Number(s.blur);
+  const img = safeImageUrl(s.imageUrl);
+  const mobileImg = safeImageUrl(s.mobileImageUrl);
+  const sideImg = safeImageUrl(s.sideImageUrl);
+  const hasText = !!(s.title || s.subtitle || s.badge || s.buttonText);
+  const link = s.buttonLink ? safeUrl(s.buttonLink) : "";
+
+  const vars = [
+    `--overlay: linear-gradient(120deg, ${hexToRgba(s.colorStart, opacity)}, ${hexToRgba(s.colorEnd, opacity)})`,
+    `--slide-blur: ${Math.max(0, Math.min(20, blur))}px`,
+    img ? `--bg: ${cssUrl(img)}` : "",
+    mobileImg ? `--bg-m: ${cssUrl(mobileImg)}` : ""
+  ].filter(Boolean).join("; ");
+
+  const classes = ["hero-slide", i === 0 ? "active" : "", hasText ? "" : "image-only", mobileImg ? "has-mobile-img" : "",
+    s.textTheme === "light" ? "text-light" : "", img ? "" : "no-image"].filter(Boolean).join(" ");
+
+  return `
+    <div class="${classes}" aria-roledescription="اسلاید" aria-label="${i + 1}">
+      <div class="photo-layer" style="${esc(vars)}"></div>
+      ${!hasText && link ? `<a class="slide-link" href="${esc(link)}" aria-label="مشاهده"></a>` : ""}
+      ${hasText ? `
+        <div class="hero-text">
+          ${s.badge ? `<span class="hero-badge">${esc(s.badge)}</span>` : ""}
+          ${s.title ? `<h2>${esc(s.title)}</h2>` : ""}
+          ${s.subtitle ? `<p>${esc(s.subtitle)}</p>` : ""}
+          ${s.buttonText && link ? `<a href="${esc(link)}" class="btn btn-accent">${esc(s.buttonText)}</a>` : ""}
+        </div>
+        ${sideImg ? `<img class="hero-side-img" src="${esc(sideImg)}" alt="">` : (s.emoji ? `<div class="hero-emoji">${esc(s.emoji)}</div>` : "")}` : ""}
+    </div>`;
+}
+
+function heroSliderHTML(slides) {
+  if (!slides.length) return "";
+  return `
+    <div class="hero" id="heroSlider">
+      ${slides.map(slideHTML).join("")}
+      ${slides.length > 1 ? `
+        <button class="hero-arrow prev" aria-label="اسلاید قبلی">›</button>
+        <button class="hero-arrow next" aria-label="اسلاید بعدی">‹</button>
+        <div class="hero-dots" id="heroDots"></div>` : ""}
+    </div>`;
+}
+
 function initHeroSlider() {
-  const slides = document.querySelectorAll(".hero-slide");
+  const hero = document.getElementById("heroSlider");
+  if (!hero) return;
+  const slides = hero.querySelectorAll(".hero-slide");
   const dotsWrap = document.getElementById("heroDots");
-  if (!slides.length) return;
+  if (slides.length < 2) return;
   let idx = 0;
-  if (dotsWrap) {
-    dotsWrap.innerHTML = Array.from(slides).map((_, i) =>
-      `<button class="${i === 0 ? "active" : ""}" data-i="${i}"></button>`).join("");
-  }
+  let timer = null;
+
+  dotsWrap.innerHTML = Array.from(slides).map((_, i) =>
+    `<button class="${i === 0 ? "active" : ""}" data-i="${i}" aria-label="اسلاید ${i + 1}"></button>`).join("");
+
   function show(i) {
-    slides.forEach((s, j) => s.classList.toggle("active", j === i));
-    if (dotsWrap) {
-      dotsWrap.querySelectorAll("button").forEach((b, j) => b.classList.toggle("active", j === i));
-    }
-    idx = i;
+    idx = (i + slides.length) % slides.length;
+    slides.forEach((s, j) => s.classList.toggle("active", j === idx));
+    dotsWrap.querySelectorAll("button").forEach((b, j) => b.classList.toggle("active", j === idx));
   }
-  if (dotsWrap) {
-    dotsWrap.querySelectorAll("button").forEach(b =>
-      b.addEventListener("click", () => show(Number(b.dataset.i))));
+  function restart() {
+    clearInterval(timer);
+    timer = setInterval(() => show(idx + 1), 5500);
   }
-  setInterval(() => show((idx + 1) % slides.length), 5000);
+
+  dotsWrap.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { show(Number(b.dataset.i)); restart(); }));
+  // در چیدمان راست‌به‌چپ، دکمه سمت راست اسلاید قبلی است
+  hero.querySelector(".hero-arrow.prev").addEventListener("click", () => { show(idx - 1); restart(); });
+  hero.querySelector(".hero-arrow.next").addEventListener("click", () => { show(idx + 1); restart(); });
+  hero.addEventListener("mouseenter", () => clearInterval(timer));
+  hero.addEventListener("mouseleave", restart);
+
+  // کشیدن انگشت روی موبایل
+  let startX = null;
+  hero.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
+  hero.addEventListener("touchend", (e) => {
+    if (startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) { show(dx > 0 ? idx + 1 : idx - 1); restart(); }
+    startX = null;
+  });
+
+  restart();
 }
 
 function initNewsletterForm(formId) {
   const form = document.getElementById(formId);
   if (!form) return;
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    showToast("با تشکر! شما در خبرنامه دانش بوک عضو شدید 🎉");
-    form.reset();
+    const input = form.querySelector("input[type=email]");
+    const btn = form.querySelector("button");
+    btn.disabled = true;
+    try {
+      await subscribeNewsletter(input.value.trim());
+      showToast("با تشکر! شما در خبرنامه عضو شدید 🎉");
+      form.reset();
+    } catch (err) {
+      showToast(err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
   });
 }

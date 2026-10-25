@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>مشتریان | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <input type="search" id="searchBox" placeholder="جست‌وجو در نام، موبایل یا ایمیل...">
+          <span class="muted" id="custCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>نام</th><th>موبایل</th><th>ایمیل</th><th>تعداد سفارش</th><th>مجموع خرید</th><th>امتیاز</th><th>تاریخ عضویت</th></tr></thead>
+            <tbody id="custBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
+<script>
+(async () => {
+  renderAdminShell("customers", "مشتریان");
+  let customers = [];
+
+  function render() {
+    const q = document.getElementById("searchBox").value.trim().toLowerCase();
+    const list = customers.filter(c => !q || `${c.name} ${c.phone} ${c.email || ""}`.toLowerCase().includes(q));
+    document.getElementById("custCount").textContent = `${list.length.toLocaleString("fa-IR")} مشتری`;
+    document.getElementById("custBody").innerHTML = list.length
+      ? list.map(c => `
+        <tr>
+          <td><b>${esc(c.name)}</b></td>
+          <td><a href="${esc(telHref(c.phone))}">${esc(c.phone)}</a></td>
+          <td dir="ltr" style="text-align:right;">${esc(c.email || "—")}</td>
+          <td>${Number(c.order_count).toLocaleString("fa-IR")}</td>
+          <td>${formatPrice(c.total_paid)}</td>
+          <td>${Number(c.points).toLocaleString("fa-IR")}</td>
+          <td>${esc(c.created_at)}</td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="7">مشتری‌ای پیدا نشد.</td></tr>`;
+  }
+
+  document.getElementById("searchBox").addEventListener("input", render);
+  try {
+    customers = await adminApi("/customers");
+    render();
+  } catch (e) { showAdminToast(e.message, true); }
+})();
+</script>
+</body>
+</html>

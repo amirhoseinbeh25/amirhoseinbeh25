@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>دانش بوک | فروشگاه کتاب‌های کمک درسی و کنکور</title>
 <meta name="description" content="دانش بوک، فروشگاه اینترنتی تخصصی کتاب‌های کمک درسی و کنکور؛ خرید آنلاین کتاب‌های ریاضی، فیزیک، شیمی، زیست، ادبیات، زبان و عربی برای تمام پایه‌ها با ارسال سریع به سراسر ایران.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,144 +14,8 @@
 
 <div id="site-header"></div>
 
-<main>
-  <div class="container">
-    <div class="hero">
-      <div class="hero-slide active">
-        <div class="photo-layer" style="background-image:url('assets/images/study-corner.jpg'); --overlay: linear-gradient(120deg, rgba(154,212,245,.78), rgba(111,179,230,.78));"></div>
-        <div>
-          <span class="hero-badge">پیشنهاد ویژه هفته</span>
-          <h2>تا ۴۰٪ تخفیف روی کتاب‌های کمک درسی پرفروش</h2>
-          <p>مجموعه‌ای از بهترین کتاب‌های کمک آموزشی و تست کنکور را با بهترین قیمت از دانش بوک تهیه کنید.</p>
-          <a href="shop.html?cat=konkur" class="btn btn-accent">مشاهده کتاب‌های کنکور</a>
-        </div>
-        <div class="hero-emoji">📖</div>
-      </div>
-      <div class="hero-slide">
-        <div class="photo-layer" style="background-image:url('assets/images/pink-desk.jpg'); --overlay: linear-gradient(120deg, rgba(250,195,210,.78), rgba(244,151,174,.78));"></div>
-        <div>
-          <span class="hero-badge">تازه منتشر شده</span>
-          <h2>تازه‌های کمک درسی سال تحصیلی جدید</h2>
-          <p>جدیدترین ویرایش کتاب‌های کمک درسی برای تمام پایه‌ها همین امروز در دانش بوک موجود است.</p>
-          <a href="shop.html" class="btn btn-accent">مشاهده همه کتاب‌ها</a>
-        </div>
-        <div class="hero-emoji">🆕</div>
-      </div>
-      <div class="hero-slide">
-        <div class="photo-layer" style="background-image:url('assets/images/hero-desk.jpg'); --overlay: linear-gradient(120deg, rgba(166,220,247,.75), rgba(251,198,212,.75));"></div>
-        <div>
-          <span class="hero-badge">ارسال رایگان</span>
-          <h2>ارسال رایگان برای خریدهای بالای ۵۰۰ هزار تومان</h2>
-          <p>با خرید از دانش بوک، کتاب‌های کمک درسی و کنکورتان را سریع و رایگان تحویل بگیرید.</p>
-          <a href="shop.html" class="btn btn-accent">شروع خرید</a>
-        </div>
-        <div class="hero-emoji">🚚</div>
-      </div>
-      <div class="hero-dots" id="heroDots"></div>
-    </div>
-  </div>
-
-  <div class="container">
-    <div class="flash-sale" id="konkurCountdownBox" style="display:none;">
-      <div>
-        <h3>🎓 شمارش معکوس تا کنکور سراسری</h3>
-        <p>از همین حالا با بهترین منابع کمک درسی آماده شوید.</p>
-      </div>
-      <div class="countdown" id="konkurCountdown"></div>
-    </div>
-  </div>
-
-  <section class="block">
-    <div class="container">
-      <div class="section-title">
-        <div>
-          <h2>دسته‌بندی کتاب‌ها</h2>
-          <p>آنچه به دنبالش هستید را سریع‌تر پیدا کنید</p>
-        </div>
-      </div>
-      <div class="cat-grid" id="catGrid"></div>
-    </div>
-  </section>
-
-  <section class="block alt">
-    <div class="container">
-      <div class="section-title">
-        <div>
-          <h2>پرفروش‌ترین کتاب‌های کمک درسی</h2>
-          <p>انتخاب دانش‌آموزان و داوطلبان کنکور در این ماه</p>
-        </div>
-        <a href="shop.html">مشاهده همه →</a>
-      </div>
-      <div class="product-grid" id="bestSellers"></div>
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="container">
-      <div class="flash-sale">
-        <div>
-          <h3>⚡ پیشنهاد لحظه‌ای — فقط امروز</h3>
-          <p>قبل از پایان زمان، کتاب‌های کمک درسی تخفیف‌دار را از دست ندهید.</p>
-        </div>
-        <div class="countdown" id="flashCountdown"></div>
-      </div>
-      <div class="product-grid" id="flashProducts"></div>
-    </div>
-  </section>
-
-  <section class="block alt">
-    <div class="container">
-      <div class="section-title">
-        <div>
-          <h2>تازه‌های نشر</h2>
-          <p>جدیدترین کتاب‌های اضافه‌شده به فروشگاه</p>
-        </div>
-        <a href="shop.html">مشاهده همه →</a>
-      </div>
-      <div class="product-grid" id="newArrivals"></div>
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="container">
-      <div class="section-title">
-        <div>
-          <h2>🎁 پک‌های آموزشی ویژه</h2>
-          <p>چند کتاب یک پایه را با تخفیف پکیج تهیه کنید</p>
-        </div>
-        <a href="bundles.html">مشاهده همه →</a>
-      </div>
-      <div class="bundle-grid" id="bundleGrid"></div>
-    </div>
-  </section>
-
-  <section class="block alt has-photo-bg">
-    <div class="photo-layer" style="background-image:url('assets/images/bookshelf.jpg'); --overlay: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.7));"></div>
-    <div class="container">
-      <div class="glass-panel">
-        <div class="trust-grid">
-          <div class="trust-item"><div class="ico">🚚</div><b>ارسال سریع</b><span>تحویل به سراسر ایران تا ۴۸ ساعت</span></div>
-          <div class="trust-item"><div class="ico">🛡</div><b>ضمانت اصالت</b><span>تمامی کتاب‌ها اورجینال و تضمینی</span></div>
-          <div class="trust-item"><div class="ico">↩</div><b>بازگشت کالا</b><span>۷ روز ضمانت بازگشت وجه</span></div>
-          <div class="trust-item"><div class="ico">💬</div><b>پشتیبانی آنلاین</b><span>پاسخ‌گویی هر روز هفته</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="block has-photo-bg">
-    <div class="photo-layer" style="background-image:url('assets/images/hero-desk.jpg'); --overlay: linear-gradient(135deg, rgba(var(--rgb-primary),.5), rgba(var(--rgb-accent),.5));"></div>
-    <div class="container">
-      <div class="newsletter">
-        <h3>📬 عضویت در خبرنامه دانش بوک</h3>
-        <p>از تخفیف‌ها و تازه‌ترین کتاب‌ها باخبر شوید</p>
-        <form id="newsletterForm">
-          <input type="email" required placeholder="آدرس ایمیل شما">
-          <button type="submit">عضویت</button>
-        </form>
-      </div>
-    </div>
-  </section>
+<main id="homeRoot">
+  <div class="container"><div class="page-loading">در حال بارگذاری...</div></div>
 </main>
 
 <div id="site-footer"></div>
@@ -161,42 +26,195 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  let settings = {};
-  let bundles = [];
+  await initPage("index");
+
+  const root = document.getElementById("homeRoot");
+  const sections = (HOME.sections || []).filter(s => s.enabled);
+  const has = (key) => sections.some(s => s.key === key);
+
+  if (setting("site_name")) {
+    document.title = `${setting("site_name")} | فروشگاه کتاب‌های کمک درسی و کنکور`;
+  }
+  if (setting("seo_description")) {
+    document.querySelector('meta[name="description"]').setAttribute("content", setting("seo_description"));
+  }
+
+  let slides = [], bundles = [], posts = [];
   try {
-    [CATEGORIES, BOOKS] = await Promise.all([fetchCategories(), fetchProducts()]);
-    [settings, bundles] = await Promise.all([fetchSettings().catch(() => ({})), fetchBundles().catch(() => [])]);
+    [BOOKS, slides, bundles, posts] = await Promise.all([
+      fetchProducts(),
+      has("slider") ? fetchSlides().catch(() => []) : [],
+      has("bundles") ? fetchBundles().catch(() => []) : [],
+      has("blog") ? fetchPosts().catch(() => []) : []
+    ]);
   } catch (e) {
-    document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
+    root.innerHTML = `<div class="container"><div class="empty-state"><div class="ico">⚠️</div><p>${esc(e.message)}</p></div></div>`;
     return;
   }
 
-  renderLayout("index");
-  initHeroSlider();
+  const sectionTitle = (s, link) => `
+    <div class="section-title">
+      <div>
+        <h2>${esc(s.title || "")}</h2>
+        ${s.subtitle ? `<p>${esc(s.subtitle)}</p>` : ""}
+      </div>
+      ${link ? `<a href="${link}">مشاهده همه ←</a>` : ""}
+    </div>`;
 
-  if (settings.konkur_exam_date) {
-    document.getElementById("konkurCountdownBox").style.display = "flex";
-    startExamCountdown("konkurCountdown", settings.konkur_exam_date);
+  const bestSellers = () => {
+    const list = BOOKS.filter(b => b.badge === "پرفروش");
+    return (list.length ? list : BOOKS);
+  };
+  const newArrivals = () => {
+    const seen = new Set();
+    return BOOKS.filter(b => b.badge === "جدید").concat(BOOKS).filter(b => !seen.has(b.id) && seen.add(b.id));
+  };
+
+  // هر بخش: html و (در صورت نیاز) کاری که بعد از قرار گرفتن در صفحه انجام می‌شود
+  const RENDERERS = {
+    slider: () => slides.length ? { html: `<div class="container">${heroSliderHTML(slides)}</div>`, after: initHeroSlider } : null,
+
+    konkur_countdown: (s) => setting("konkur_exam_date") ? {
+      html: `
+        <div class="container">
+          <div class="flash-sale konkur-box">
+            <div><h3>${esc(s.title)}</h3>${s.subtitle ? `<p>${esc(s.subtitle)}</p>` : ""}</div>
+            <div class="countdown" id="konkurCountdown"></div>
+          </div>
+        </div>`,
+      after: () => startExamCountdown("konkurCountdown", setting("konkur_exam_date"))
+    } : null,
+
+    categories: (s) => CATEGORIES.length ? {
+      block: true,
+      html: `${sectionTitle(s)}
+        <div class="cat-grid">
+          ${CATEGORIES.map(c => {
+            const img = safeImageUrl(c.imageUrl);
+            return `
+            <a class="cat-card ${img ? "has-image" : ""}" href="shop.html?cat=${encodeURIComponent(c.id)}">
+              ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<div class="ico">${esc(c.icon || "📚")}</div>`}
+              <div class="ttl">${esc(c.title)}</div>
+              ${c.productCount ? `<div class="cnt">${Number(c.productCount).toLocaleString("fa-IR")} کتاب</div>` : ""}
+            </a>`;
+          }).join("")}
+        </div>`
+    } : null,
+
+    bestsellers: (s) => ({
+      block: true,
+      html: `${sectionTitle(s, "shop.html")}<div class="product-grid" id="bestSellers"></div>`,
+      after: () => renderProductGrid("bestSellers", bestSellers().slice(0, s.limit || 4))
+    }),
+
+    flash: (s) => {
+      const list = BOOKS.filter(b => b.oldPrice).slice(0, s.limit || 4);
+      if (!list.length) return null;
+      return {
+        block: true,
+        html: `
+          <div class="flash-sale">
+            <div><h3>${esc(s.title)}</h3>${s.subtitle ? `<p>${esc(s.subtitle)}</p>` : ""}</div>
+            <div class="countdown" id="flashCountdown"></div>
+          </div>
+          <div class="product-grid" id="flashProducts"></div>`,
+        after: () => {
+          renderProductGrid("flashProducts", list);
+          startCountdown("flashCountdown", Number(setting("flash_hours", 8)) || 8);
+        }
+      };
+    },
+
+    new_arrivals: (s) => ({
+      block: true,
+      html: `${sectionTitle(s, "shop.html?sort=newest")}<div class="product-grid" id="newArrivals"></div>`,
+      after: () => renderProductGrid("newArrivals", newArrivals().slice(0, s.limit || 4))
+    }),
+
+    bundles: (s) => bundles.length ? {
+      block: true,
+      html: `${sectionTitle(s, "bundles.html")}<div class="bundle-grid" id="bundleGrid"></div>`,
+      after: () => renderBundleGrid("bundleGrid", bundles.slice(0, s.limit || 2))
+    } : null,
+
+    blog: (s) => posts.length ? {
+      block: true,
+      html: `${sectionTitle(s, "blog.html")}<div class="post-grid">${posts.slice(0, s.limit || 3).map(postCardHTML).join("")}</div>`
+    } : null,
+
+    banners: () => {
+      const banners = (HOME.banners || []).filter(b => safeImageUrl(b.image));
+      if (!banners.length) return null;
+      return {
+        html: `
+          <div class="container">
+            <div class="promo-banners count-${Math.min(banners.length, 3)}">
+              ${banners.map(b => {
+                const img = `<img src="${esc(safeImageUrl(b.image))}" alt="${esc(b.alt || "")}" loading="lazy">`;
+                return b.link ? `<a class="promo-banner" href="${esc(safeUrl(b.link))}">${img}</a>` : `<div class="promo-banner">${img}</div>`;
+              }).join("")}
+            </div>
+          </div>`
+      };
+    },
+
+    trust: () => {
+      const items = HOME.trustItems || [];
+      if (!items.length) return null;
+      const bg = safeImageUrl(setting("trust_bg_image"));
+      return {
+        html: `
+          <section class="block alt has-photo-bg">
+            ${bg ? `<div class="photo-layer" style="background-image:${esc(cssUrl(bg))}; --overlay: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.7));"></div>` : ""}
+            <div class="container">
+              <div class="glass-panel">
+                <div class="trust-grid">
+                  ${items.map(it => `<div class="trust-item"><div class="ico">${esc(it.icon)}</div><b>${esc(it.title)}</b><span>${esc(it.text)}</span></div>`).join("")}
+                </div>
+              </div>
+            </div>
+          </section>`
+      };
+    },
+
+    newsletter: () => {
+      const bg = safeImageUrl(setting("newsletter_bg_image"));
+      return {
+        html: `
+          <section class="block has-photo-bg">
+            ${bg ? `<div class="photo-layer" style="background-image:${esc(cssUrl(bg))}; --overlay: linear-gradient(135deg, rgba(var(--rgb-primary),.5), rgba(var(--rgb-accent),.5));"></div>` : ""}
+            <div class="container">
+              <div class="newsletter">
+                <h3>${esc(setting("newsletter_title", "📬 عضویت در خبرنامه"))}</h3>
+                <p>${esc(setting("newsletter_text"))}</p>
+                <form id="newsletterForm">
+                  <input type="email" required placeholder="آدرس ایمیل شما" aria-label="ایمیل">
+                  <button type="submit">${esc(setting("newsletter_button", "عضویت"))}</button>
+                </form>
+              </div>
+            </div>
+          </section>`,
+        after: () => initNewsletterForm("newsletterForm")
+      };
+    }
+  };
+
+  const rendered = [];
+  let blockIndex = 0;
+  for (const s of sections) {
+    const r = RENDERERS[s.key] && RENDERERS[s.key](s);
+    if (!r) continue;
+    // بخش‌های معمولی یک‌درمیان پس‌زمینه شیشه‌ای می‌گیرند
+    const html = r.block
+      ? `<section class="block ${blockIndex++ % 2 ? "alt" : ""}"><div class="container">${r.html}</div></section>`
+      : r.html;
+    rendered.push({ html, after: r.after });
   }
-  renderBundleGrid("bundleGrid", bundles.slice(0, 2));
 
-  document.getElementById("catGrid").innerHTML = CATEGORIES.map(c => `
-    <a class="cat-card" href="shop.html?cat=${c.id}">
-      <div class="ico">${c.icon}</div>
-      <div class="ttl">${c.title}</div>
-    </a>`).join("");
-
-  const bestSellers = BOOKS.filter(b => b.badge === "پرفروش").slice(0, 4);
-  renderProductGrid("bestSellers", bestSellers.length ? bestSellers : BOOKS.slice(0, 4));
-
-  const flashProducts = BOOKS.filter(b => b.oldPrice).slice(0, 4);
-  renderProductGrid("flashProducts", flashProducts);
-  startCountdown("flashCountdown", 8);
-
-  const newArrivals = BOOKS.filter(b => b.badge === "جدید").concat(BOOKS.slice(-4)).slice(0, 4);
-  renderProductGrid("newArrivals", newArrivals);
-
-  initNewsletterForm("newsletterForm");
+  root.innerHTML = rendered.length
+    ? rendered.map(r => r.html).join("")
+    : `<div class="container"><div class="empty-state"><div class="ico">🏗</div><p>هیچ بخشی برای صفحه اصلی فعال نیست.</p></div></div>`;
+  rendered.forEach(r => r.after && r.after());
 })();
 </script>
 </body>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>درخواست‌های مرجوعی | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -44,10 +45,10 @@
       ? rows.map(r => `
         <tr>
           <td>#${r.order_id}</td>
-          <td>${r.customer_name}</td>
-          <td>${r.phone}</td>
+          <td>${esc(r.customer_name)}</td>
+          <td><a href="${esc(telHref(r.phone))}">${esc(r.phone)}</a></td>
           <td>${formatPrice(r.total)}</td>
-          <td style="max-width:240px; white-space:normal;">${r.reason}</td>
+          <td style="max-width:240px; white-space:normal;">${esc(r.reason)}</td>
           <td>
             <select data-id="${r.id}" class="statusSelect">
               <option value="pending" ${r.status === "pending" ? "selected" : ""}>در انتظار بررسی</option>
@@ -55,7 +56,7 @@
               <option value="rejected" ${r.status === "rejected" ? "selected" : ""}>ردشده</option>
             </select>
           </td>
-          <td>${r.created_at}</td>
+          <td style="white-space:nowrap;">${esc(r.created_at)}</td>
         </tr>`).join("")
       : `<tr class="empty-row"><td colspan="7">درخواست مرجوعی ثبت نشده است.</td></tr>`;
 
@@ -64,6 +65,7 @@
         try {
           await adminApi(`/returns/${sel.dataset.id}/status`, { method: "PUT", body: { status: sel.value } });
           showAdminToast("وضعیت به‌روزرسانی شد ✓");
+          refreshAdminBadges();
         } catch (e) { showAdminToast(e.message, true); }
       });
     });

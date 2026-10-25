@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تنظیمات سایت | پنل ادمین دانش بوک</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>تنظیمات و ظاهر سایت | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/admin.css">
@@ -14,22 +15,260 @@
   <aside class="sidebar" id="admin-sidebar"></aside>
   <div class="main-area">
     <div class="topbar" id="admin-topbar"></div>
-    <div class="content">
+    <div class="content" id="settingsRoot">
 
-      <div class="panel" style="max-width:560px;">
-        <h2>⚙️ تنظیمات عمومی سایت</h2>
-        <form id="settingsForm" style="display:flex; flex-direction:column; gap:16px;">
-          <div>
-            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">تاریخ کنکور سراسری (برای شمارش معکوس صفحه اصلی)</label>
-            <input type="date" id="konkurDate" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--color-border); font-family:inherit;">
-          </div>
-          <div>
-            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">متن اعلان بالای سایت</label>
-            <input type="text" id="announcement" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--color-border); font-family:inherit;">
-          </div>
-          <button type="submit" class="btn btn-primary" style="align-self:flex-start;">ذخیره تنظیمات</button>
-        </form>
+      <div class="tabs">
+        <button data-tab="header">🔝 هدر و عمومی</button>
+        <button data-tab="home">🏠 صفحه اصلی</button>
+        <button data-tab="footer">⬇️ فوتر و تماس</button>
+        <button data-tab="theme">🎨 رنگ‌بندی</button>
+        <button data-tab="shop">🛒 فروشگاه</button>
+        <button data-tab="account">🔐 حساب مدیر</button>
       </div>
+
+      <!-- ===== هدر ===== -->
+      <form class="panel settings-form" data-panel="header">
+        <h2>🔝 هدر سایت و اطلاعات عمومی</h2>
+        <div class="form-grid">
+          <div class="form-section-title">نام و لوگو</div>
+          <div>
+            <label for="site_name">نام سایت (در عنوان صفحات مرورگر)</label>
+            <input type="text" id="site_name" maxlength="60">
+          </div>
+          <div>
+            <label for="logo_icon">آیکون لوگو (ایموجی)</label>
+            <input type="text" id="logo_icon" maxlength="16">
+          </div>
+          <div>
+            <label for="logo_text_1">بخش اول نام در لوگو (رنگ آبی)</label>
+            <input type="text" id="logo_text_1" maxlength="40">
+          </div>
+          <div>
+            <label for="logo_text_2">بخش دوم نام در لوگو (رنگ صورتی)</label>
+            <input type="text" id="logo_text_2" maxlength="40">
+          </div>
+          <div class="full">
+            <label>تصویر لوگو (اختیاری — اگر انتخاب شود به‌جای لوگوی متنی نمایش داده می‌شود)</label>
+            <div id="logo_image_field" class="wide"></div>
+          </div>
+          <div class="full">
+            <label>آیکون تب مرورگر / Favicon (اختیاری)</label>
+            <div id="favicon_image_field"></div>
+          </div>
+
+          <div class="form-section-title">نوار بالای هدر</div>
+          <div class="full">
+            <label class="switch"><input type="checkbox" id="topbar_enabled"> نمایش نوار باریک بالای هدر</label>
+          </div>
+          <div>
+            <label for="topbar_text">متن سمت راست (مثلاً شماره پشتیبانی)</label>
+            <input type="text" id="topbar_text" maxlength="300">
+          </div>
+          <div>
+            <label for="site_announcement">متن اعلان (در موبایل هم نمایش داده می‌شود)</label>
+            <input type="text" id="site_announcement" maxlength="300">
+          </div>
+          <div class="full"><small class="field-hint">لینک‌های شبکه‌های اجتماعی سمت چپ این نوار از «منوها و لینک‌ها ← شبکه‌های اجتماعی» ویرایش می‌شوند و لینک‌های نوار منوی آبی از «منوها و لینک‌ها ← منوی اصلی».</small></div>
+
+          <div class="form-section-title">جست‌وجو و سئو</div>
+          <div class="full">
+            <label for="search_placeholder">متن راهنمای کادر جست‌وجو</label>
+            <input type="text" id="search_placeholder" maxlength="300">
+          </div>
+          <div class="full">
+            <label for="seo_description">توضیح سایت برای گوگل (متای صفحه اصلی)</label>
+            <textarea id="seo_description" maxlength="2000"></textarea>
+          </div>
+        </div>
+        <div class="modal-actions"><button type="submit" class="btn btn-primary">ذخیره تنظیمات هدر</button></div>
+      </form>
+
+      <!-- ===== صفحه اصلی ===== -->
+      <form class="panel settings-form" data-panel="home">
+        <h2>🏠 چیدمان صفحه اصلی</h2>
+        <p class="panel-desc">بخش‌ها را با ▲ ▼ جابه‌جا کنید، با کلید کنار هرکدام نمایش آن را روشن/خاموش کنید و عنوان‌ها را تغییر دهید.</p>
+        <div class="sort-list" id="sectionsList"></div>
+
+        <h3>⏱ شمارش معکوس‌ها</h3>
+        <div class="form-grid">
+          <div>
+            <label for="konkur_exam_date">تاریخ کنکور سراسری (میلادی)</label>
+            <input type="date" id="konkur_exam_date">
+            <small class="field-hint">اگر خالی باشد، بخش شمارش معکوس کنکور نمایش داده نمی‌شود.</small>
+          </div>
+          <div>
+            <label for="flash_hours">مدت پیشنهاد لحظه‌ای (ساعت)</label>
+            <input type="number" id="flash_hours" min="1" max="168">
+          </div>
+        </div>
+
+        <h3>🖼 بنرهای تبلیغاتی</h3>
+        <p class="panel-desc">تا ۶ بنر تصویری با لینک دلخواه (بخش «بنرهای تبلیغاتی» را در فهرست بالا فعال کنید). اندازه پیشنهادی هر بنر: ۸۰۰ × ۳۵۰ پیکسل.</p>
+        <div id="bannersList" class="sort-list"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="addBannerBtn" style="margin-top:10px;">➕ افزودن بنر</button>
+
+        <h3>✅ مزایای خرید (بخش اعتماد)</h3>
+        <div id="trustList" class="sort-list"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="addTrustBtn" style="margin-top:10px;">➕ افزودن مزیت</button>
+        <div class="form-grid" style="margin-top:14px;">
+          <div class="full">
+            <label>عکس پس‌زمینه بخش مزایا</label>
+            <div id="trust_bg_image_field" class="wide"></div>
+          </div>
+        </div>
+
+        <h3>📬 خبرنامه</h3>
+        <div class="form-grid">
+          <div>
+            <label for="newsletter_title">عنوان</label>
+            <input type="text" id="newsletter_title" maxlength="300">
+          </div>
+          <div>
+            <label for="newsletter_button">متن دکمه</label>
+            <input type="text" id="newsletter_button" maxlength="300">
+          </div>
+          <div class="full">
+            <label for="newsletter_text">توضیح</label>
+            <input type="text" id="newsletter_text" maxlength="300">
+          </div>
+          <div class="full">
+            <label>عکس پس‌زمینه بخش خبرنامه</label>
+            <div id="newsletter_bg_image_field" class="wide"></div>
+          </div>
+        </div>
+        <div class="modal-actions sticky-actions"><button type="submit" class="btn btn-primary">ذخیره چیدمان صفحه اصلی</button></div>
+      </form>
+
+      <!-- ===== فوتر ===== -->
+      <form class="panel settings-form" data-panel="footer">
+        <h2>⬇️ فوتر و اطلاعات تماس</h2>
+        <div class="form-grid">
+          <div class="form-section-title">ستون معرفی</div>
+          <div class="full">
+            <label for="footer_about_title">عنوان</label>
+            <input type="text" id="footer_about_title" maxlength="300">
+          </div>
+          <div class="full">
+            <label for="footer_about_text">متن معرفی فروشگاه</label>
+            <textarea id="footer_about_text" maxlength="2000"></textarea>
+          </div>
+
+          <div class="form-section-title">اطلاعات تماس (در فوتر، صفحه تماس و منوی موبایل)</div>
+          <div>
+            <label for="footer_contact_title">عنوان ستون تماس</label>
+            <input type="text" id="footer_contact_title" maxlength="300">
+          </div>
+          <div>
+            <label for="contact_phone">شماره تلفن</label>
+            <input type="text" id="contact_phone" maxlength="300">
+          </div>
+          <div>
+            <label for="contact_email">ایمیل</label>
+            <input type="text" id="contact_email" dir="ltr" maxlength="300">
+          </div>
+          <div>
+            <label for="contact_address">آدرس</label>
+            <input type="text" id="contact_address" maxlength="300">
+          </div>
+
+          <div class="form-section-title">ستون‌های لینک</div>
+          <div>
+            <label for="footer_col1_title">عنوان ستون اول</label>
+            <input type="text" id="footer_col1_title" maxlength="300">
+          </div>
+          <div>
+            <label for="footer_col2_title">عنوان ستون دوم</label>
+            <input type="text" id="footer_col2_title" maxlength="300">
+          </div>
+          <div class="full"><small class="field-hint">لینک‌های این دو ستون و آیکون‌های شبکه‌های اجتماعی از «<a href="menus.html" style="color:var(--color-primary-dark)">منوها و لینک‌ها</a>» ویرایش می‌شوند.</small></div>
+
+          <div class="form-section-title">نماد اعتماد الکترونیکی (اینماد)</div>
+          <div>
+            <label for="enamad_id">شناسه (id)</label>
+            <input type="text" id="enamad_id" dir="ltr" maxlength="40">
+          </div>
+          <div>
+            <label for="enamad_code">کد (Code)</label>
+            <input type="text" id="enamad_code" dir="ltr" maxlength="40">
+          </div>
+          <div class="full"><small class="field-hint">این دو مقدار را از کد نماد اعتماد خود در سایت enamad.ir بردارید (…?id=<b>12345</b>&amp;Code=<b>AbCd</b>). لوگوی اینماد در فوتر نمایش داده می‌شود.</small></div>
+
+          <div class="form-section-title">پایین‌ترین نوار فوتر</div>
+          <div>
+            <label for="footer_copyright">متن کپی‌رایت</label>
+            <input type="text" id="footer_copyright" maxlength="300">
+          </div>
+          <div>
+            <label for="footer_credit">متن کناری</label>
+            <input type="text" id="footer_credit" maxlength="300">
+          </div>
+        </div>
+        <div class="modal-actions"><button type="submit" class="btn btn-primary">ذخیره تنظیمات فوتر</button></div>
+      </form>
+
+      <!-- ===== رنگ‌ها ===== -->
+      <form class="panel settings-form" data-panel="theme">
+        <h2>🎨 رنگ‌بندی سایت</h2>
+        <p class="panel-desc">رنگ‌ها روی کل سایت (دکمه‌ها، منو، فوتر، حباب‌های پس‌زمینه) اعمال می‌شوند.</p>
+        <div class="color-grid" id="colorGrid"></div>
+        <div class="theme-preview" id="themePreview">
+          <div class="tp-top">نوار بالای هدر</div>
+          <div class="tp-head"><b class="tp-logo">📚 <span class="l1">دانش</span><span class="l2">بوک</span></b><span class="tp-search">🔍 جست‌وجو...</span></div>
+          <div class="tp-nav"><span>خانه</span><span>همه کتاب‌ها</span><span>وبلاگ</span></div>
+          <div class="tp-body"><span class="tp-btn tp-primary">دکمه اصلی</span><span class="tp-btn tp-accent">دکمه فرعی</span><span class="tp-text">متن نمونه سایت</span></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="resetColorsBtn">بازگشت به رنگ‌های پیش‌فرض</button>
+          <button type="submit" class="btn btn-primary">ذخیره رنگ‌ها</button>
+        </div>
+      </form>
+
+      <!-- ===== فروشگاه ===== -->
+      <form class="panel settings-form" data-panel="shop">
+        <h2>🛒 تنظیمات فروشگاه</h2>
+        <div class="form-grid">
+          <div>
+            <label for="shipping_cost">هزینه ارسال (تومان)</label>
+            <input type="number" id="shipping_cost" min="0" inputmode="numeric">
+          </div>
+          <div>
+            <label for="free_shipping_threshold">ارسال رایگان برای خریدهای بالای (تومان)</label>
+            <input type="number" id="free_shipping_threshold" min="0" inputmode="numeric">
+            <small class="field-hint">عدد ۰ یعنی ارسال همیشه رایگان است.</small>
+          </div>
+          <div class="full"><small class="field-hint">بعد از تغییر این مقادیر، متن اعلان بالای سایت و صفحه «شرایط ارسال» را هم به‌روز کنید.</small></div>
+        </div>
+        <div class="modal-actions"><button type="submit" class="btn btn-primary">ذخیره تنظیمات فروشگاه</button></div>
+      </form>
+
+      <!-- ===== حساب مدیر ===== -->
+      <form class="panel" id="accountForm" data-panel="account" autocomplete="off">
+        <h2>🔐 حساب مدیر</h2>
+        <p class="panel-desc">برای امنیت سایت، رمز عبور پیش‌فرض را حتماً تغییر دهید.</p>
+        <div class="form-grid">
+          <div>
+            <label for="acc_name">نام نمایشی</label>
+            <input type="text" id="acc_name" maxlength="80">
+          </div>
+          <div>
+            <label for="acc_email">ایمیل ورود</label>
+            <input type="email" id="acc_email" dir="ltr" maxlength="120">
+          </div>
+          <div>
+            <label for="acc_new">رمز عبور جدید (اختیاری، حداقل ۸ کاراکتر)</label>
+            <input type="password" id="acc_new" autocomplete="new-password" minlength="8">
+          </div>
+          <div>
+            <label for="acc_new2">تکرار رمز عبور جدید</label>
+            <input type="password" id="acc_new2" autocomplete="new-password">
+          </div>
+          <div class="full">
+            <label for="acc_current">رمز عبور فعلی (برای تایید تغییرات) *</label>
+            <input type="password" id="acc_current" autocomplete="current-password" required>
+          </div>
+        </div>
+        <div class="modal-actions"><button type="submit" class="btn btn-primary">ذخیره حساب</button></div>
+      </form>
 
     </div>
   </div>
@@ -38,27 +277,280 @@
 <script src="../js/data.js"></script>
 <script src="../js/api.js"></script>
 <script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
 <script>
 (async () => {
-  renderAdminShell("settings", "تنظیمات سایت");
+  renderAdminShell("settings", "تنظیمات و ظاهر سایت");
+  const $ = (id) => document.getElementById(id);
 
-  const settings = await fetchSettings();
-  document.getElementById("konkurDate").value = settings.konkur_exam_date || "";
-  document.getElementById("announcement").value = settings.site_announcement || "";
+  const TEXT_KEYS = ["site_name", "logo_icon", "logo_text_1", "logo_text_2", "topbar_text", "site_announcement", "search_placeholder",
+    "seo_description", "konkur_exam_date", "flash_hours", "newsletter_title", "newsletter_button", "newsletter_text",
+    "footer_about_title", "footer_about_text", "footer_contact_title", "contact_phone", "contact_email", "contact_address",
+    "footer_col1_title", "footer_col2_title", "enamad_id", "enamad_code", "footer_copyright", "footer_credit",
+    "shipping_cost", "free_shipping_threshold"];
+  const COLORS = [
+    ["theme_primary", "رنگ اصلی (آبی)", "دکمه‌ها، منوها و قیمت‌ها", "#8fc1e8"],
+    ["theme_primary_dark", "رنگ اصلی تیره", "نوار منو، فوتر و لینک‌ها", "#5fa0d4"],
+    ["theme_accent", "رنگ تاکید (صورتی)", "برچسب‌ها و منوی فعال", "#f8b8c8"],
+    ["theme_accent_dark", "رنگ تاکید تیره", "ستاره‌ها و جزئیات", "#f295ac"],
+    ["theme_text", "رنگ متن", "متن‌های اصلی سایت", "#35505f"],
+    ["theme_page_bg", "رنگ پس‌زمینه صفحه", "زیر حباب‌های رنگی", "#fdf2f6"]
+  ];
 
-  document.getElementById("settingsForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  let settings = {};
+  let sections = [];
+  let trustItems = [];
+  let banners = [];
+  const imageFields = {
+    logo_image: createImageField($("logo_image_field"), { hint: "ترجیحاً PNG با پس‌زمینه شفاف و ارتفاع حدود ۱۰۰ پیکسل.", resize: { maxWidth: 600, maxHeight: 200 } }),
+    favicon_image: createImageField($("favicon_image_field"), { hint: "تصویر مربعی، مثلاً ۲۵۶ × ۲۵۶. اگر خالی باشد از آیکون لوگو استفاده می‌شود.", resize: { maxWidth: 256, maxHeight: 256 } }),
+    trust_bg_image: createImageField($("trust_bg_image_field"), { resize: { maxWidth: 1920, maxHeight: 1080 } }),
+    newsletter_bg_image: createImageField($("newsletter_bg_image_field"), { resize: { maxWidth: 1920, maxHeight: 1080 } })
+  };
+
+  async function save(updates, message) {
     try {
-      await adminApi("/settings", {
+      settings = await adminApi("/settings", { method: "PUT", body: updates });
+      showAdminToast(message || "تنظیمات ذخیره شد ✓");
+      return true;
+    } catch (e) {
+      showAdminToast(e.message, true);
+      return false;
+    }
+  }
+
+  function collect(panel) {
+    const out = {};
+    panel.querySelectorAll("input[id], textarea[id], select[id]").forEach(el => {
+      if (!TEXT_KEYS.includes(el.id)) return;
+      out[el.id] = el.value.trim();
+    });
+    return out;
+  }
+
+  /* ----- بخش‌های صفحه اصلی ----- */
+  function renderSections() {
+    $("sectionsList").innerHTML = sections.map((s, i) => `
+      <div class="sort-row ${s.enabled ? "" : "disabled"}">
+        <div class="sort-arrows">
+          <button type="button" class="icon-btn" data-smove="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button type="button" class="icon-btn" data-smove="${i}" data-dir="1" ${i === sections.length - 1 ? "disabled" : ""}>▼</button>
+        </div>
+        <div class="sort-main"><b>${esc(s.label)}</b>${s.key === "slider" ? `<small><a href="slides.html" style="color:var(--color-primary-dark)">ویرایش اسلایدها ←</a></small>` : ""}</div>
+        <label class="switch"><input type="checkbox" data-senable="${i}" ${s.enabled ? "checked" : ""}> ${s.enabled ? "نمایش" : "پنهان"}</label>
+        ${s.title !== undefined ? `
+          <div class="section-fields">
+            <input type="text" data-sfield="title" data-i="${i}" value="${esc(s.title)}" placeholder="عنوان بخش" maxlength="150">
+            <input type="text" data-sfield="subtitle" data-i="${i}" value="${esc(s.subtitle || "")}" placeholder="زیرعنوان" maxlength="300">
+            ${s.limit !== undefined ? `<input type="number" data-sfield="limit" data-i="${i}" value="${Number(s.limit)}" min="1" max="24" title="تعداد آیتم">` : "<span></span>"}
+          </div>` : ""}
+      </div>`).join("");
+
+    document.querySelectorAll("[data-smove]").forEach(b => b.addEventListener("click", () => {
+      if (moveItem(sections, Number(b.dataset.smove), Number(b.dataset.dir))) renderSections();
+    }));
+    document.querySelectorAll("[data-senable]").forEach(cb => cb.addEventListener("change", () => {
+      sections[Number(cb.dataset.senable)].enabled = cb.checked;
+      renderSections();
+    }));
+    document.querySelectorAll("[data-sfield]").forEach(inp => inp.addEventListener("input", () => {
+      const s = sections[Number(inp.dataset.i)];
+      s[inp.dataset.sfield] = inp.dataset.sfield === "limit" ? Number(inp.value) : inp.value;
+    }));
+  }
+
+  /* ----- مزایا ----- */
+  function renderTrust() {
+    $("trustList").innerHTML = trustItems.map((t, i) => `
+      <div class="sort-row">
+        <div class="sort-arrows">
+          <button type="button" class="icon-btn" data-tmove="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button type="button" class="icon-btn" data-tmove="${i}" data-dir="1" ${i === trustItems.length - 1 ? "disabled" : ""}>▼</button>
+        </div>
+        <div class="section-fields trust-fields">
+          <input type="text" data-tfield="icon" data-i="${i}" value="${esc(t.icon)}" placeholder="آیکون" maxlength="16">
+          <input type="text" data-tfield="title" data-i="${i}" value="${esc(t.title)}" placeholder="عنوان" maxlength="60">
+          <input type="text" data-tfield="text" data-i="${i}" value="${esc(t.text)}" placeholder="توضیح" maxlength="160">
+        </div>
+        <button type="button" class="icon-btn" data-tremove="${i}" title="حذف">🗑️</button>
+      </div>`).join("") || `<div class="muted">موردی ثبت نشده است.</div>`;
+    document.querySelectorAll("[data-tmove]").forEach(b => b.addEventListener("click", () => {
+      if (moveItem(trustItems, Number(b.dataset.tmove), Number(b.dataset.dir))) renderTrust();
+    }));
+    document.querySelectorAll("[data-tfield]").forEach(inp => inp.addEventListener("input", () => {
+      trustItems[Number(inp.dataset.i)][inp.dataset.tfield] = inp.value;
+    }));
+    document.querySelectorAll("[data-tremove]").forEach(b => b.addEventListener("click", () => {
+      trustItems.splice(Number(b.dataset.tremove), 1);
+      renderTrust();
+    }));
+    $("addTrustBtn").disabled = trustItems.length >= 8;
+  }
+
+  /* ----- بنرها ----- */
+  function renderBanners() {
+    $("bannersList").innerHTML = banners.map((b, i) => `
+      <div class="sort-row">
+        <div class="sort-arrows">
+          <button type="button" class="icon-btn" data-bmove="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button type="button" class="icon-btn" data-bmove="${i}" data-dir="1" ${i === banners.length - 1 ? "disabled" : ""}>▼</button>
+        </div>
+        <div class="banner-image" data-bimage="${i}" style="flex:1; min-width:240px;"></div>
+        <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+          <input type="text" class="form-control" data-bfield="link" data-i="${i}" value="${esc(b.link)}" placeholder="لینک (مثلاً shop.html?cat=riazi)" dir="ltr">
+          <input type="text" class="form-control" data-bfield="alt" data-i="${i}" value="${esc(b.alt)}" placeholder="توضیح تصویر (برای سئو)" maxlength="120">
+        </div>
+        <button type="button" class="icon-btn" data-bremove="${i}" title="حذف">🗑️</button>
+      </div>`).join("") || `<div class="muted">بنری اضافه نشده است.</div>`;
+    document.querySelectorAll("[data-bimage]").forEach(el => {
+      const i = Number(el.dataset.bimage);
+      createImageField(el, { value: banners[i].image, resize: { maxWidth: 1600, maxHeight: 900 }, onChange: (url) => { banners[i].image = url; } });
+      el.classList.add("wide");
+    });
+    document.querySelectorAll("[data-bmove]").forEach(b => b.addEventListener("click", () => {
+      if (moveItem(banners, Number(b.dataset.bmove), Number(b.dataset.dir))) renderBanners();
+    }));
+    document.querySelectorAll("[data-bfield]").forEach(inp => inp.addEventListener("input", () => {
+      banners[Number(inp.dataset.i)][inp.dataset.bfield] = inp.value;
+    }));
+    document.querySelectorAll("[data-bremove]").forEach(b => b.addEventListener("click", () => {
+      banners.splice(Number(b.dataset.bremove), 1);
+      renderBanners();
+    }));
+    $("addBannerBtn").disabled = banners.length >= 6;
+  }
+
+  /* ----- رنگ‌ها ----- */
+  function renderColors() {
+    $("colorGrid").innerHTML = COLORS.map(([key, label, hint, def]) => `
+      <label class="color-field">
+        <input type="color" id="${key}" value="${esc(settings[key] || def)}">
+        <span><b>${label}</b><small>${hint}</small></span>
+      </label>`).join("");
+    COLORS.forEach(([key]) => $(key).addEventListener("input", updateThemePreview));
+    updateThemePreview();
+  }
+
+  function updateThemePreview() {
+    const c = (key) => $(key).value;
+    const p = $("themePreview");
+    p.querySelector(".tp-top").style.background = c("theme_primary_dark");
+    p.querySelector(".tp-nav").style.background = c("theme_primary_dark");
+    p.querySelector(".tp-body").style.background = c("theme_page_bg");
+    p.querySelector(".tp-body").style.color = c("theme_text");
+    p.querySelector(".tp-head").style.color = c("theme_text");
+    p.querySelector(".l1").style.color = c("theme_primary_dark");
+    p.querySelector(".l2").style.color = c("theme_accent_dark");
+    p.querySelector(".tp-primary").style.background = `linear-gradient(135deg, ${c("theme_primary")}, ${c("theme_primary_dark")})`;
+    p.querySelector(".tp-accent").style.background = `linear-gradient(135deg, ${c("theme_accent")}, ${c("theme_accent_dark")})`;
+    p.querySelector(".tp-accent").style.color = c("theme_text");
+  }
+
+  function fillForms() {
+    TEXT_KEYS.forEach(key => { if ($(key)) $(key).value = settings[key] || ""; });
+    $("topbar_enabled").checked = settings.topbar_enabled !== "0";
+    Object.entries(imageFields).forEach(([key, field]) => field.set(settings[key] || ""));
+    renderColors();
+  }
+
+  async function loadAll() {
+    const site = await fetchSite();
+    settings = site.settings;
+    sections = site.homeSections.map(s => ({ ...s }));
+    trustItems = (site.trustItems || []).map(t => ({ ...t }));
+    banners = (site.homeBanners || []).map(b => ({ ...b }));
+    const me = getAdminInfo() || {};
+    $("acc_name").value = me.name || "";
+    $("acc_email").value = me.email || "";
+    fillForms();
+    renderSections();
+    renderTrust();
+    renderBanners();
+  }
+
+  /* ----- ذخیره فرم‌ها ----- */
+  document.querySelector('[data-panel="header"]').addEventListener("submit", (e) => {
+    e.preventDefault();
+    save({
+      ...collect(e.target),
+      topbar_enabled: $("topbar_enabled").checked ? "1" : "0",
+      logo_image: imageFields.logo_image.get(),
+      favicon_image: imageFields.favicon_image.get()
+    }, "تنظیمات هدر ذخیره شد ✓");
+  });
+
+  document.querySelector('[data-panel="home"]').addEventListener("submit", (e) => {
+    e.preventDefault();
+    const missingImage = banners.findIndex(b => !b.image);
+    if (missingImage >= 0) { showAdminToast(`برای بنر شماره ${missingImage + 1} تصویر انتخاب کنید`, true); return; }
+    save({
+      ...collect(e.target),
+      home_sections: sections.map(({ key, enabled, title, subtitle, limit }) => ({ key, enabled, title, subtitle, limit })),
+      trust_items: trustItems.filter(t => t.title && t.title.trim()),
+      home_banners: banners,
+      trust_bg_image: imageFields.trust_bg_image.get(),
+      newsletter_bg_image: imageFields.newsletter_bg_image.get()
+    }, "چیدمان صفحه اصلی ذخیره شد ✓");
+  });
+
+  document.querySelector('[data-panel="footer"]').addEventListener("submit", (e) => {
+    e.preventDefault();
+    save(collect(e.target), "تنظیمات فوتر ذخیره شد ✓");
+  });
+
+  document.querySelector('[data-panel="theme"]').addEventListener("submit", (e) => {
+    e.preventDefault();
+    const updates = {};
+    COLORS.forEach(([key]) => { updates[key] = $(key).value; });
+    save(updates, "رنگ‌بندی ذخیره شد ✓");
+  });
+  $("resetColorsBtn").addEventListener("click", () => {
+    COLORS.forEach(([key, , , def]) => { $(key).value = def; });
+    updateThemePreview();
+    showAdminToast("رنگ‌های پیش‌فرض اعمال شد؛ برای ثبت، «ذخیره رنگ‌ها» را بزنید");
+  });
+
+  document.querySelector('[data-panel="shop"]').addEventListener("submit", (e) => {
+    e.preventDefault();
+    save(collect(e.target), "تنظیمات فروشگاه ذخیره شد ✓");
+  });
+
+  $("addTrustBtn").addEventListener("click", () => {
+    trustItems.push({ icon: "⭐", title: "", text: "" });
+    renderTrust();
+  });
+  $("addBannerBtn").addEventListener("click", () => {
+    banners.push({ image: "", link: "", alt: "" });
+    renderBanners();
+  });
+
+  $("accountForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if ($("acc_new").value && $("acc_new").value !== $("acc_new2").value) {
+      showAdminToast("رمز عبور جدید و تکرار آن یکسان نیستند", true);
+      return;
+    }
+    try {
+      const data = await adminApi("/auth/account", {
         method: "PUT",
         body: {
-          konkur_exam_date: document.getElementById("konkurDate").value,
-          site_announcement: document.getElementById("announcement").value
+          currentPassword: $("acc_current").value,
+          name: $("acc_name").value.trim(),
+          email: $("acc_email").value.trim(),
+          newPassword: $("acc_new").value || undefined
         }
       });
-      showAdminToast("تنظیمات ذخیره شد ✓");
-    } catch (e) { showAdminToast(e.message, true); }
+      setAdminSession(data.token, data.admin);
+      ["acc_current", "acc_new", "acc_new2"].forEach(id => { $(id).value = ""; });
+      showAdminToast("حساب مدیر به‌روزرسانی شد ✓");
+      document.querySelector(".admin-name").textContent = "👤 " + (data.admin.name || data.admin.email);
+    } catch (err) {
+      showAdminToast(err.message, true);
+    }
   });
+
+  initTabs($("settingsRoot"));
+  try { await loadAll(); } catch (e) { showAdminToast(e.message, true); }
 })();
 </script>
 </body>

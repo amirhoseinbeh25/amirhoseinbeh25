@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>سبد خرید | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -14,7 +15,7 @@
 
 <main class="container page-content">
   <div class="breadcrumb"><a href="index.html">خانه</a> / سبد خرید</div>
-  <h1 style="margin-bottom:20px;">🛒 سبد خرید</h1>
+  <h1 style="margin:0 0 20px;">🛒 سبد خرید</h1>
   <div id="cartRoot"></div>
 </main>
 
@@ -26,14 +27,7 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try {
-    CATEGORIES = await fetchCategories();
-  } catch (e) { /* قابل چشم‌پوشی برای صفحه سبد خرید */ }
-  renderLayout();
-
-  function shippingCost(subtotal) {
-    return subtotal === 0 || subtotal >= 500000 ? 0 : 35000;
-  }
+  await initPage("cart");
 
   let itemsData = {};
 
@@ -52,9 +46,12 @@
 
   function coverHTML(item, data) {
     if (item.type === "bundle") {
-      return `<div style="width:56px; height:76px; border-radius:6px; background:linear-gradient(135deg, ${data.color}, #16222b); display:flex; align-items:center; justify-content:center; font-size:22px;">🎁</div>`;
+      const img = safeImageUrl(data.imageUrl);
+      return img
+        ? `<img src="${esc(img)}" alt="${esc(data.title)}">`
+        : `<div class="cart-thumb" style="background:linear-gradient(135deg, ${esc(hexToRgba(data.color, 1))}, #16222b);">🎁</div>`;
     }
-    return `<img src="${bookCoverDataUrl(data)}" alt="${data.title}">`;
+    return `<img src="${esc(productImage(data))}" alt="${esc(data.title)}">`;
   }
 
   async function renderCart() {
@@ -74,41 +71,49 @@
     root.innerHTML = `<div class="empty-state"><p>در حال بارگذاری سبد خرید...</p></div>`;
     await loadItemsData();
 
-    const rows = cart.map(item => {
+    // کالاهایی که دیگر در فروشگاه نیستند از سبد حذف می‌شوند
+    const validCart = cart.filter(item => itemsData[keyOf(item)]);
+    if (validCart.length !== cart.length) {
+      saveCart(validCart);
+      showToast("برخی کالاها دیگر موجود نبودند و از سبد حذف شدند", true);
+      if (!validCart.length) return renderCart();
+    }
+
+    const rows = validCart.map(item => {
       const data = itemsData[keyOf(item)];
-      if (!data) return "";
+      const type = item.type === "bundle" ? "bundle" : "product";
       const lineTotal = data.price * item.qty;
-      const link = item.type === "bundle" ? `bundles.html` : `product.html?id=${data.id}`;
+      const link = type === "bundle" ? "bundles.html" : `product.html?id=${Number(data.id)}`;
+      const id = Number(item.id);
       return `
         <tr>
-          <td>
+          <td class="cart-cell-item">
             <div class="cart-item-info">
               ${coverHTML(item, data)}
               <div>
-                <a href="${link}"><b>${data.title}</b></a><br>
-                <small style="color:var(--color-text-light)">${item.type === "bundle" ? "پک آموزشی" : data.author}</small>
+                <a href="${link}"><b>${esc(data.title)}</b></a><br>
+                <small style="color:var(--color-text-light)">${type === "bundle" ? "پک آموزشی" : esc(data.author)}</small>
               </div>
             </div>
           </td>
-          <td>${formatPrice(data.price)}</td>
-          <td>
+          <td data-label="قیمت واحد">${formatPrice(data.price)}</td>
+          <td data-label="تعداد">
             <div class="qty-control" style="margin:0 auto;">
-              <button data-act="dec" data-id="${item.id}" data-type="${item.type || "product"}" data-qty="${item.qty}">−</button>
-              <span>${item.qty}</span>
-              <button data-act="inc" data-id="${item.id}" data-type="${item.type || "product"}" data-qty="${item.qty}">+</button>
+              <button data-act="inc" data-id="${id}" data-type="${type}" data-qty="${Number(item.qty)}" aria-label="افزایش">+</button>
+              <span>${Number(item.qty)}</span>
+              <button data-act="dec" data-id="${id}" data-type="${type}" data-qty="${Number(item.qty)}" aria-label="کاهش">−</button>
             </div>
           </td>
-          <td><b>${formatPrice(lineTotal)}</b></td>
-          <td><button class="cart-remove" data-act="remove" data-id="${item.id}" data-type="${item.type || "product"}" title="حذف">🗑</button></td>
+          <td data-label="جمع"><b>${formatPrice(lineTotal)}</b></td>
+          <td class="cart-cell-remove"><button class="cart-remove" data-act="remove" data-id="${id}" data-type="${type}" title="حذف" aria-label="حذف از سبد">🗑</button></td>
         </tr>`;
     }).join("");
 
-    const subtotal = cart.reduce((sum, item) => {
-      const data = itemsData[keyOf(item)];
-      return sum + (data ? data.price * item.qty : 0);
-    }, 0);
+    const subtotal = validCart.reduce((sum, item) => sum + itemsData[keyOf(item)].price * item.qty, 0);
     const shipping = shippingCost(subtotal);
     const total = subtotal + shipping;
+    const freeThreshold = Number(setting("free_shipping_threshold", 0)) || 0;
+    const remaining = freeThreshold - subtotal;
     const customer = getCustomerInfo();
 
     root.innerHTML = `
@@ -120,18 +125,19 @@
             </thead>
             <tbody>${rows}</tbody>
           </table>
-          <a href="shop.html" class="btn btn-outline" style="margin-top:16px;">← ادامه خرید</a>
+          <a href="shop.html" class="btn btn-outline" style="margin-top:16px;">→ ادامه خرید</a>
         </div>
         <div class="cart-summary">
           <h3>خلاصه سفارش</h3>
           <div class="row"><span>جمع کل کالاها</span><span>${formatPrice(subtotal)}</span></div>
           <div class="row"><span>هزینه ارسال</span><span>${shipping === 0 ? "رایگان" : formatPrice(shipping)}</span></div>
           <div class="row total"><span>مبلغ قابل پرداخت</span><span>${formatPrice(total)}</span></div>
+          ${shipping > 0 && remaining > 0 ? `<div class="free-ship-hint">🚚 با ${formatPrice(remaining)} خرید بیشتر، ارسال رایگان می‌شود.</div>` : ""}
 
           <form id="checkoutForm" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
-            <input type="text" id="custName" required placeholder="نام و نام خانوادگی" value="${customer ? customer.name : ""}">
-            <input type="tel" id="custPhone" required placeholder="شماره تماس" value="${customer ? customer.phone : ""}">
-            <input type="text" id="custAddress" placeholder="آدرس (اختیاری)">
+            <input type="text" id="custName" required maxlength="80" placeholder="نام و نام خانوادگی" aria-label="نام و نام خانوادگی" value="${customer ? esc(customer.name) : ""}">
+            <input type="tel" id="custPhone" required maxlength="20" placeholder="شماره تماس" aria-label="شماره تماس" value="${customer ? esc(customer.phone) : ""}">
+            <input type="text" id="custAddress" maxlength="500" placeholder="آدرس (اختیاری)" aria-label="آدرس">
             <button type="submit" class="btn btn-primary btn-block">پرداخت و ثبت سفارش</button>
           </form>
         </div>

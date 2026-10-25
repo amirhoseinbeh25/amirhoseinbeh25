@@ -1,6 +1,23 @@
+const crypto = require("node:crypto");
 const jwt = require("jsonwebtoken");
+const db = require("../db");
 
-const JWT_SECRET = process.env.JWT_SECRET || "daneshbook-dev-secret-change-me";
+/*
+ * اگر JWT_SECRET در متغیرهای محیطی تنظیم نشده باشد، یک کلید تصادفی یک‌بار ساخته و در دیتابیس
+ * (جدول app_secrets که هیچ‌وقت از طریق API خوانده نمی‌شود) نگه داشته می‌شود تا توکن‌ها قابل جعل نباشند.
+ */
+function loadJwtSecret() {
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET !== "change-this-to-a-long-random-string") {
+    return process.env.JWT_SECRET;
+  }
+  const row = db.prepare("SELECT value FROM app_secrets WHERE key = 'jwt_secret'").get();
+  if (row) return row.value;
+  const secret = crypto.randomBytes(48).toString("hex");
+  db.prepare("INSERT INTO app_secrets (key, value) VALUES ('jwt_secret', ?)").run(secret);
+  return secret;
+}
+
+const JWT_SECRET = loadJwtSecret();
 
 function signToken(admin) {
   return jwt.sign({ sub: admin.id, email: admin.email, name: admin.name, type: "admin" }, JWT_SECRET, { expiresIn: "7d" });

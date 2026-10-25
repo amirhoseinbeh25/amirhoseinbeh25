@@ -2,12 +2,12 @@ const express = require("express");
 const db = require("../db");
 const { requireAdmin, requireCustomer, optionalCustomer } = require("../middleware/auth");
 const { notifyOrderCreated, notifyOrderStatusChanged } = require("../services/notify");
+const { shippingRules } = require("../lib/settings");
+const v = require("../lib/validate");
 
 const router = express.Router();
 
 const VALID_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"];
-const FREE_SHIPPING_THRESHOLD = 500000;
-const SHIPPING_COST = 35000;
 
 function orderWithItems(orderId) {
   const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId);
@@ -25,12 +25,15 @@ router.post("/", optionalCustomer, (req, res) => {
   if (!customer || !customer.name || !customer.phone) {
     return res.status(400).json({ error: "نام و شماره تماس الزامی است." });
   }
+  customer.name = v.text(customer.name, { required: true, max: 80, label: "نام" });
+  customer.phone = v.text(customer.phone, { required: true, max: 20, label: "شماره تماس" });
+  customer.address = v.text(customer.address, { max: 500, label: "آدرس" });
 
   const resolvedProducts = [];
   const resolvedBundles = [];
 
   for (const it of items) {
-    const qty = Math.max(1, Number(it.qty) || 1);
+    const qty = Math.min(99, Math.max(1, Math.floor(Number(it.qty)) || 1));
     if (it.type === "bundle") {
       const bundle = db.prepare("SELECT * FROM bundles WHERE id = ? AND active = 1").get(it.id);
       if (!bundle) return res.status(400).json({ error: `پک آموزشی با شناسه ${it.id} پیدا نشد.` });
@@ -56,7 +59,8 @@ router.post("/", optionalCustomer, (req, res) => {
   const subtotal =
     resolvedProducts.reduce((sum, r) => sum + r.product.price * r.qty, 0) +
     resolvedBundles.reduce((sum, r) => sum + r.bundle.price * r.qty, 0);
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const rules = shippingRules();
+  const shipping = subtotal >= rules.freeThreshold ? 0 : rules.cost;
   const total = subtotal + shipping;
 
   const orderInfo = db.prepare(`

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>خبرنامه | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span class="muted" id="subCount"></span>
+          <div class="toolbar-group">
+            <button class="btn btn-outline" id="copyBtn">📋 کپی همه ایمیل‌ها</button>
+            <button class="btn btn-primary" id="exportBtn">⬇️ دریافت فایل اکسل (CSV)</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ایمیل</th><th>تاریخ عضویت</th><th>عملیات</th></tr></thead>
+            <tbody id="subsBody"></tbody>
+          </table>
+        </div>
+        <small class="field-hint">متن و ظاهر بخش خبرنامه در صفحه اصلی از «تنظیمات و ظاهر سایت ← صفحه اصلی» قابل ویرایش است.</small>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
+<script>
+(async () => {
+  renderAdminShell("newsletter", "مشترکین خبرنامه");
+  let subs = [];
+
+  function render() {
+    document.getElementById("subCount").textContent = `${subs.length.toLocaleString("fa-IR")} مشترک`;
+    document.getElementById("subsBody").innerHTML = subs.length
+      ? subs.map(s => `
+        <tr>
+          <td dir="ltr" style="text-align:right;">${esc(s.email)}</td>
+          <td>${esc(s.created_at)}</td>
+          <td><button class="icon-btn" data-delete="${Number(s.id)}" title="حذف">🗑️</button></td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="3">هنوز کسی عضو خبرنامه نشده است.</td></tr>`;
+    document.querySelectorAll("[data-delete]").forEach(b => b.addEventListener("click", async () => {
+      if (!confirm("این ایمیل از خبرنامه حذف شود؟")) return;
+      try {
+        await adminApi("/newsletter/" + b.dataset.delete, { method: "DELETE" });
+        await load();
+      } catch (e) { showAdminToast(e.message, true); }
+    }));
+  }
+
+  async function load() {
+    subs = await adminApi("/newsletter");
+    render();
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(subs.map(s => s.email).join("\n"));
+      showAdminToast("ایمیل‌ها کپی شدند ✓");
+    } catch (e) { showAdminToast("کپی انجام نشد؛ از دکمه دریافت فایل استفاده کنید", true); }
+  });
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const rows = [["email", "subscribed_at"], ...subs.map(s => [s.email, s.created_at])];
+    const csv = "\ufeff" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = "newsletter-subscribers.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  try { await load(); } catch (e) { showAdminToast(e.message, true); }
+})();
+</script>
+</body>
+</html>

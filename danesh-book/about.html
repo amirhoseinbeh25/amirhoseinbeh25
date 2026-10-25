@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>درباره ما | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -12,49 +13,8 @@
 
 <div id="site-header"></div>
 
-<main class="container page-content">
-  <div class="breadcrumb"><a href="index.html">خانه</a> / درباره ما</div>
-
-  <div class="photo-banner">
-    <div class="photo-layer" style="background-image:url('assets/images/study-corner.jpg'); --overlay: linear-gradient(135deg, rgba(var(--rgb-primary-dark),.72), rgba(var(--rgb-accent-dark),.6));"></div>
-    <div>
-      <h1>درباره دانش بوک</h1>
-      <p>همراه شما در مسیر درس و کنکور</p>
-    </div>
-  </div>
-
-  <p style="max-width:760px;">
-    دانش بوک از سال ۱۳۹۸ با هدف تسهیل دسترسی دانش‌آموزان و داوطلبان کنکور ایرانی به بهترین کتاب‌های
-    کمک درسی و کمک آموزشی فعالیت خود را آغاز کرد. از کتاب‌های کار پایه‌های دبستان و متوسطه تا بسته‌های
-    جامع جمع‌بندی کنکور، برای هر درس بهترین منبع را گردآوری کرده‌ایم تا خرید کتاب درسی ساده،
-    سریع و مطمئن باشد.
-  </p>
-
-  <div class="info-grid">
-    <div class="info-card">
-      <div style="font-size:30px;">📚</div>
-      <h3>+۱۰,۰۰۰ عنوان</h3>
-      <p>کتاب کمک درسی در تمام دروس و پایه‌ها</p>
-    </div>
-    <div class="info-card">
-      <div style="font-size:30px;">🚚</div>
-      <h3>ارسال به سراسر ایران</h3>
-      <p>تحویل سریع و مطمئن</p>
-    </div>
-    <div class="info-card">
-      <div style="font-size:30px;">😊</div>
-      <h3>+۵۰,۰۰۰ مشتری راضی</h3>
-      <p>رضایت مشتریان، اولویت ماست</p>
-    </div>
-  </div>
-
-  <h2>چرا دانش بوک را انتخاب کنیم؟</h2>
-  <ul style="max-width:700px; padding-right:20px; list-style:disc;">
-    <li>قیمت رقابتی و تخفیف‌های منظم روی پرفروش‌ترین کتاب‌ها</li>
-    <li>ضمانت اصالت کالا و بسته‌بندی استاندارد برای حفظ کیفیت کتاب</li>
-    <li>پشتیبانی آنلاین و پاسخ‌گویی سریع به سوالات مشتریان</li>
-    <li>امکان بازگشت کالا تا ۷ روز پس از تحویل</li>
-  </ul>
+<main class="container page-content" id="pageRoot">
+  <div class="page-loading">در حال بارگذاری...</div>
 </main>
 
 <div id="site-footer"></div>
@@ -65,8 +25,10 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try { CATEGORIES = await fetchCategories(); } catch (e) { /* قابل چشم‌پوشی */ }
-  renderLayout("about");
+  // متن این صفحه از پنل ادمین ← صفحات سایت قابل ویرایش است
+  const page = fetchPage("about").catch(() => null);
+  await initPage("about");
+  await renderCmsPage("about", "pageRoot", page);
 })();
 </script>
 </body>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>مقایسه کتاب‌ها | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -14,8 +15,8 @@
 
 <main class="container page-content">
   <div class="breadcrumb"><a href="index.html">خانه</a> / مقایسه کتاب‌ها</div>
-  <h1 style="margin-bottom:18px;">⇄ مقایسه کتاب‌های کمک درسی</h1>
-  <div id="compareRoot" style="overflow-x:auto;"></div>
+  <h1 style="margin:0 0 18px;">⇄ مقایسه کتاب‌های کمک درسی</h1>
+  <div id="compareRoot" class="compare-wrap"></div>
 </main>
 
 <div id="site-footer"></div>
@@ -26,8 +27,7 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try { CATEGORIES = await fetchCategories(); } catch (e) { /* قابل چشم‌پوشی */ }
-  renderLayout();
+  await initPage("compare");
 
   const root = document.getElementById("compareRoot");
 
@@ -39,22 +39,24 @@
     }
     root.innerHTML = `<p>در حال بارگذاری...</p>`;
     const books = (await Promise.all(ids.map(id => fetchProduct(id).catch(() => null)))).filter(Boolean);
+    if (books.length !== ids.length) saveCompareList(books.map(b => b.id));
+    if (!books.length) return render();
 
     const rows = [
-      ["جلد", b => `<img src="${bookCoverDataUrl(b)}" alt="" style="width:70px; border-radius:6px; margin:0 auto;">`],
-      ["عنوان", b => `<a href="product.html?id=${b.id}"><b>${b.title}</b></a>`],
-      ["درس", b => getCategoryTitle(b.category)],
-      ["پایه", b => b.grade ? getGradeTitle(b.grade) : "—"],
-      ["رشته", b => b.track ? getTrackTitle(b.track) : "—"],
-      ["ناشر", b => b.publisher || "—"],
-      ["چاپ", b => b.year || "—"],
-      ["تعداد صفحات", b => b.pages || "—"],
-      ["امتیاز", b => `${b.rating} ★ (${b.reviews} نظر)`],
+      ["جلد", b => `<a href="product.html?id=${Number(b.id)}"><img src="${esc(productImage(b))}" alt="${esc(b.title)}"></a>`],
+      ["عنوان", b => `<a href="product.html?id=${Number(b.id)}"><b>${esc(b.title)}</b></a>`],
+      ["درس", b => esc(getCategoryTitle(b.category))],
+      ["پایه", b => b.grade ? esc(getGradeTitle(b.grade)) : "—"],
+      ["رشته", b => b.track ? esc(getTrackTitle(b.track)) : "—"],
+      ["ناشر", b => esc(b.publisher || "—")],
+      ["چاپ", b => esc(b.year || "—")],
+      ["تعداد صفحات", b => esc(b.pages || "—")],
+      ["امتیاز", b => `${Number(b.rating) || 0} ★ (${Number(b.reviews) || 0} نظر)`],
       ["قیمت", b => formatPrice(b.price)],
-      ["موجودی", b => b.stock > 0 ? `${b.stock} عدد` : "ناموجود"],
+      ["موجودی", b => b.stock > 0 ? `${Number(b.stock)} عدد` : "ناموجود"],
       ["", b => `
-        <button class="btn btn-primary btn-sm" onclick="addToCart(${b.id})">افزودن به سبد</button>
-        <button class="btn btn-outline btn-sm" onclick="toggleCompare(${b.id}); location.reload();">حذف از مقایسه</button>`]
+        ${b.stock > 0 ? `<button class="btn btn-primary btn-sm" onclick="addToCart(${Number(b.id)})">افزودن به سبد</button>` : ""}
+        <button class="btn btn-outline btn-sm" data-remove="${Number(b.id)}">حذف از مقایسه</button>`]
     ];
 
     root.innerHTML = `
@@ -63,6 +65,10 @@
           <tr><th>${label}</th>${books.map(b => `<td>${fn(b)}</td>`).join("")}</tr>
         `).join("")}
       </table>`;
+    root.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => {
+      toggleCompare(Number(btn.dataset.remove));
+      render();
+    }));
   }
 
   await render();

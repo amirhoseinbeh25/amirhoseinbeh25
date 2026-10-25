@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>سفارش عمده برای مدارس | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -24,7 +25,7 @@
     <input type="text" id="schoolName" required placeholder="نام مدرسه / آموزشگاه / کتاب‌فروشی">
     <input type="text" id="contactName" required placeholder="نام مسئول پیگیری">
     <input type="tel" id="phone" required placeholder="شماره تماس">
-    <select id="grade" style="padding:12px 14px; border-radius:8px; border:1px solid var(--color-border); font-family:inherit; background:rgba(255,255,255,.8);">
+    <select id="grade" aria-label="پایه تحصیلی">
       <option value="">پایه تحصیلی (اختیاری)</option>
     </select>
     <textarea id="itemsNote" placeholder="عناوین و تعداد نسخه مورد نیاز را بنویسید..."></textarea>
@@ -40,10 +41,9 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try { CATEGORIES = await fetchCategories(); } catch (e) { /* قابل چشم‌پوشی */ }
-  renderLayout();
+  await initPage("bulk-order");
 
-  document.getElementById("grade").innerHTML += GRADES.map(g => `<option value="${g.id}">${g.title}</option>`).join("");
+  document.getElementById("grade").innerHTML += GRADES.map(g => `<option value="${esc(g.id)}">${esc(g.title)}</option>`).join("");
 
   document.getElementById("bulkForm").addEventListener("submit", async (e) => {
     e.preventDefault();

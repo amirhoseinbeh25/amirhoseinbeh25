@@ -1,12 +1,13 @@
 const express = require("express");
 const db = require("../db");
 const { requireAdmin } = require("../middleware/auth");
+const v = require("../lib/validate");
 
 const router = express.Router();
 
 function mapBundle(row) {
   const items = db.prepare(`
-    SELECT bi.qty, p.id, p.title, p.price, p.color FROM bundle_items bi
+    SELECT bi.qty, p.id, p.title, p.price, p.color, p.image_url AS imageUrl FROM bundle_items bi
     JOIN products p ON p.id = bi.product_id WHERE bi.bundle_id = ?
   `).all(row.id);
   return {
@@ -16,6 +17,7 @@ function mapBundle(row) {
     price: row.price,
     oldPrice: row.old_price,
     color: row.color,
+    imageUrl: row.image_url,
     active: !!row.active,
     items
   };
@@ -42,8 +44,16 @@ router.post("/", requireAdmin, (req, res) => {
   if (!b.title || !b.price || !Array.isArray(b.productIds) || b.productIds.length === 0) {
     return res.status(400).json({ error: "عنوان، قیمت و حداقل یک کتاب برای پک الزامی است." });
   }
-  const info = db.prepare("INSERT INTO bundles (title, description, price, old_price, color) VALUES (?, ?, ?, ?, ?)")
-    .run(b.title, b.description || "", Number(b.price), b.oldPrice ? Number(b.oldPrice) : null, b.color || "#6d93ac");
+  const info = db.prepare("INSERT INTO bundles (title, description, price, old_price, color, image_url, active) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .run(
+      v.text(b.title, { required: true, max: 200, label: "عنوان پک" }),
+      v.text(b.description, { max: 2000, label: "توضیحات" }),
+      v.int(b.price, { min: 0, label: "قیمت" }),
+      b.oldPrice ? v.int(b.oldPrice, { min: 0, label: "قیمت قبلی" }) : null,
+      v.color(b.color, "#6d93ac"),
+      v.imageUrl(b.imageUrl, "تصویر پک"),
+      v.bool(b.active, true) ? 1 : 0
+    );
 
   const insertItem = db.prepare("INSERT INTO bundle_items (bundle_id, product_id, qty) VALUES (?, ?, 1)");
   for (const pid of b.productIds) insertItem.run(info.lastInsertRowid, pid);
@@ -56,13 +66,14 @@ router.put("/:id", requireAdmin, (req, res) => {
   if (!existing) return res.status(404).json({ error: "پک آموزشی پیدا نشد." });
   const b = req.body || {};
 
-  db.prepare("UPDATE bundles SET title = ?, description = ?, price = ?, old_price = ?, color = ?, active = ? WHERE id = ?")
+  db.prepare("UPDATE bundles SET title = ?, description = ?, price = ?, old_price = ?, color = ?, image_url = ?, active = ? WHERE id = ?")
     .run(
-      b.title ?? existing.title,
-      b.description ?? existing.description,
-      b.price != null ? Number(b.price) : existing.price,
-      b.oldPrice !== undefined ? (b.oldPrice ? Number(b.oldPrice) : null) : existing.old_price,
-      b.color ?? existing.color,
+      b.title !== undefined ? v.text(b.title, { required: true, max: 200, label: "عنوان پک" }) : existing.title,
+      b.description !== undefined ? v.text(b.description, { max: 2000, label: "توضیحات" }) : existing.description,
+      b.price != null ? v.int(b.price, { min: 0, label: "قیمت" }) : existing.price,
+      b.oldPrice !== undefined ? (b.oldPrice ? v.int(b.oldPrice, { min: 0, label: "قیمت قبلی" }) : null) : existing.old_price,
+      b.color !== undefined ? v.color(b.color, existing.color) : existing.color,
+      b.imageUrl !== undefined ? v.imageUrl(b.imageUrl, "تصویر پک") : existing.image_url,
       b.active != null ? (b.active ? 1 : 0) : existing.active,
       req.params.id
     );

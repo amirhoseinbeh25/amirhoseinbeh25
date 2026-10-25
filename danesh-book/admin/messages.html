@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<title>پیام‌های تماس | پنل ادمین دانش بوک</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar" id="admin-sidebar"></aside>
+  <div class="main-area">
+    <div class="topbar" id="admin-topbar"></div>
+    <div class="content">
+
+      <div class="panel">
+        <div class="toolbar">
+          <span class="muted">پیام‌هایی که از فرم «تماس با ما» ارسال شده‌اند.</span>
+          <select id="filterBox">
+            <option value="">همه پیام‌ها</option>
+            <option value="unread">فقط خوانده‌نشده‌ها</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>فرستنده</th><th>راه تماس</th><th>موضوع و پیام</th><th>تاریخ</th><th>عملیات</th></tr></thead>
+            <tbody id="messagesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/api.js"></script>
+<script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
+<script>
+(async () => {
+  renderAdminShell("messages", "پیام‌های تماس");
+  let messages = [];
+
+  function render() {
+    const onlyUnread = document.getElementById("filterBox").value === "unread";
+    const list = messages.filter(m => !onlyUnread || !m.is_read);
+    document.getElementById("messagesBody").innerHTML = list.length
+      ? list.map(m => `
+        <tr class="${m.is_read ? "" : "unread"}">
+          <td>${m.is_read ? "" : "🔵 "}${esc(m.name)}</td>
+          <td style="white-space:nowrap;">
+            ${m.phone ? `<a href="${esc(telHref(m.phone))}">${esc(m.phone)}</a><br>` : ""}
+            ${m.email ? `<a href="mailto:${esc(m.email)}" dir="ltr">${esc(m.email)}</a>` : ""}
+          </td>
+          <td style="max-width:420px; white-space:pre-wrap;">${m.subject ? `<b>${esc(m.subject)}</b>\n` : ""}${esc(m.message)}</td>
+          <td style="white-space:nowrap;">${esc(m.created_at)}</td>
+          <td class="cell-actions">
+            <button class="icon-btn" data-read="${Number(m.id)}" data-state="${m.is_read ? 0 : 1}" title="${m.is_read ? "علامت خوانده‌نشده" : "علامت خوانده‌شده"}">${m.is_read ? "↩️" : "✅"}</button>
+            <button class="icon-btn" data-delete="${Number(m.id)}" title="حذف">🗑️</button>
+          </td>
+        </tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">پیامی وجود ندارد.</td></tr>`;
+
+    document.querySelectorAll("[data-read]").forEach(b => b.addEventListener("click", async () => {
+      try {
+        await adminApi(`/contact/${b.dataset.read}/read`, { method: "PUT", body: { read: b.dataset.state === "1" } });
+        await load();
+        refreshAdminBadges();
+      } catch (e) { showAdminToast(e.message, true); }
+    }));
+    document.querySelectorAll("[data-delete]").forEach(b => b.addEventListener("click", async () => {
+      if (!confirm("این پیام حذف شود؟")) return;
+      try {
+        await adminApi("/contact/" + b.dataset.delete, { method: "DELETE" });
+        showAdminToast("پیام حذف شد ✓");
+        await load();
+        refreshAdminBadges();
+      } catch (e) { showAdminToast(e.message, true); }
+    }));
+  }
+
+  async function load() {
+    messages = await adminApi("/contact");
+    render();
+  }
+
+  document.getElementById("filterBox").addEventListener("change", render);
+  try { await load(); } catch (e) { showAdminToast(e.message, true); }
+})();
+</script>
+</body>
+</html>

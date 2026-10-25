@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>نتیجه پرداخت | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -24,11 +25,10 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try { CATEGORIES = await fetchCategories(); } catch (e) { /* قابل چشم‌پوشی */ }
-  renderLayout();
+  await initPage("payment-result");
 
   const params = new URLSearchParams(window.location.search);
-  const orderId = params.get("order");
+  const orderId = /^\d+$/.test(params.get("order") || "") ? params.get("order") : null;
   const status = params.get("status");
   const root = document.getElementById("resultRoot");
 
@@ -41,7 +41,7 @@
         <div class="ico">✅</div>
         <p>پرداخت سفارش <b>#${orderId}</b> با موفقیت انجام شد.${order ? ` مبلغ پرداخت‌شده: <b>${formatPrice(order.total)}</b>` : ""}</p>
         <p style="color:var(--color-text-light); font-size:13.5px;">سفارش شما در حال پردازش است و به‌زودی ارسال می‌شود.</p>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
           <a href="account.html" class="btn btn-primary">مشاهده سفارش‌های من</a>
           <a href="shop.html" class="btn btn-outline">ادامه خرید</a>
         </div>
@@ -51,7 +51,7 @@
       <div class="empty-state">
         <div class="ico">❌</div>
         <p>پرداخت سفارش ${orderId ? "#" + orderId : ""} انجام نشد یا لغو شد.</p>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
           <a href="cart.html" class="btn btn-primary">بازگشت به سبد خرید</a>
           <a href="shop.html" class="btn btn-outline">ادامه خرید</a>
         </div>

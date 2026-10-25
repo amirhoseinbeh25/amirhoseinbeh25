@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>سفارش‌ها | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -18,6 +19,7 @@
 
       <div class="panel">
         <div class="toolbar">
+          <input type="search" id="searchBox" placeholder="جست‌وجو: شماره سفارش، نام یا موبایل...">
           <select id="statusFilter">
             <option value="">همه وضعیت‌ها</option>
             <option value="pending">در انتظار بررسی</option>
@@ -50,10 +52,13 @@
       آدرس: <span id="om_address"></span><br>
       وضعیت پرداخت: <b id="om_payment"></b>
     </p>
-    <table class="data-table">
-      <thead><tr><th>کتاب</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead>
-      <tbody id="om_items"></tbody>
-    </table>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>کالا</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead>
+        <tbody id="om_items"></tbody>
+      </table>
+    </div>
+    <p id="om_totals" style="font-size:13.5px; margin:10px 0 0;"></p>
 
     <h3 style="font-size:14px; margin:16px 0 6px;">📨 اعلان‌های ارسال‌شده (شبیه‌سازی‌شده)</h3>
     <div id="om_notifications" style="font-size:12.5px; color:var(--color-text-light); max-height:120px; overflow-y:auto;"></div>
@@ -95,21 +100,24 @@
 
   function renderTable() {
     const statusFilter = document.getElementById("statusFilter").value;
-    const filtered = statusFilter ? orders.filter(o => o.status === statusFilter) : orders;
-    document.getElementById("orderCount").textContent = `${filtered.length} سفارش`;
+    const q = document.getElementById("searchBox").value.trim().replace(/^#/, "").toLowerCase();
+    const filtered = orders.filter(o =>
+      (!statusFilter || o.status === statusFilter) &&
+      (!q || String(o.id) === q || `${o.customer_name} ${o.phone}`.toLowerCase().includes(q)));
+    document.getElementById("orderCount").textContent = `${filtered.length.toLocaleString("fa-IR")} سفارش`;
 
     document.getElementById("ordersBody").innerHTML = filtered.length
       ? filtered.map(o => `
         <tr>
-          <td>#${o.id}</td>
-          <td>${o.customer_name}</td>
-          <td>${o.phone}</td>
-          <td>${o.itemCount}</td>
+          <td>#${Number(o.id)}</td>
+          <td>${esc(o.customer_name)}</td>
+          <td><a href="${esc(telHref(o.phone))}">${esc(o.phone)}</a></td>
+          <td>${Number(o.itemCount)}</td>
           <td>${formatPrice(o.total)}</td>
           <td><span class="badge ${o.payment_status === "paid" ? "stock-ok" : "stock-low"}">${o.payment_status === "paid" ? "پرداخت‌شده" : "پرداخت‌نشده"}</span></td>
-          <td><span class="badge ${o.status}">${STATUS_LABELS[o.status] || o.status}</span></td>
-          <td>${o.created_at}</td>
-          <td><button class="btn btn-outline btn-sm" data-act="view" data-id="${o.id}">جزئیات</button></td>
+          <td><span class="badge ${esc(o.status)}">${STATUS_LABELS[o.status] || esc(o.status)}</span></td>
+          <td style="white-space:nowrap;">${esc(o.created_at)}</td>
+          <td><button class="btn btn-outline btn-sm" data-act="view" data-id="${Number(o.id)}">جزئیات</button></td>
         </tr>`).join("")
       : `<tr class="empty-row"><td colspan="9">سفارشی پیدا نشد.</td></tr>`;
 
@@ -134,13 +142,15 @@
       document.getElementById("om_status").value = order.status;
       document.getElementById("om_items").innerHTML = order.items.map(it => `
         <tr>
-          <td>${it.title}</td>
+          <td>${esc(it.title)}</td>
           <td>${formatPrice(it.price)}</td>
-          <td>${it.qty}</td>
+          <td>${Number(it.qty)}</td>
           <td>${formatPrice(it.price * it.qty)}</td>
         </tr>`).join("");
+      document.getElementById("om_totals").innerHTML =
+        `جمع کالاها: <b>${formatPrice(order.subtotal)}</b> — ارسال: <b>${order.shipping ? formatPrice(order.shipping) : "رایگان"}</b> — مبلغ کل: <b>${formatPrice(order.total)}</b>`;
       document.getElementById("om_notifications").innerHTML = (order.notifications && order.notifications.length)
-        ? order.notifications.map(n => `<div>📨 [${n.channel === "sms" ? "پیامک" : "ایمیل"}] ${n.recipient} — ${n.message} <small>(${n.created_at})</small></div>`).join("")
+        ? order.notifications.map(n => `<div>📨 [${n.channel === "sms" ? "پیامک" : "ایمیل"}] ${esc(n.recipient)} — ${esc(n.message)} <small>(${esc(n.created_at)})</small></div>`).join("")
         : "هنوز اعلانی ارسال نشده.";
       modal.classList.add("open");
     } catch (e) {
@@ -149,6 +159,7 @@
   }
 
   document.getElementById("statusFilter").addEventListener("change", renderTable);
+  document.getElementById("searchBox").addEventListener("input", renderTable);
   document.getElementById("closeOrderModalBtn").addEventListener("click", () => modal.classList.remove("open"));
   modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("open"); });
 
@@ -159,6 +170,7 @@
       showAdminToast("وضعیت سفارش به‌روزرسانی شد ✓");
       modal.classList.remove("open");
       await loadAll();
+      refreshAdminBadges();
     } catch (e) {
       showAdminToast(e.message, true);
     }

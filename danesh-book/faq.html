@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>سوالات متداول | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -12,15 +13,8 @@
 
 <div id="site-header"></div>
 
-<main class="container page-content" style="max-width:800px;">
-  <div class="breadcrumb"><a href="index.html">خانه</a> / سوالات متداول</div>
-  <h1>❓ سوالات متداول</h1>
-
-  <div class="panel" style="margin-bottom:14px;"><h3>آیا کتاب‌ها اورجینال و از ناشر اصلی هستند؟</h3><p>بله، تمام کتاب‌ها مستقیم از ناشر یا نمایندگی رسمی آن تهیه می‌شوند.</p></div>
-  <div class="panel" style="margin-bottom:14px;"><h3>چطور بفهمم کدام پایه و رشته برای فرزندم مناسب است؟</h3><p>از فیلتر «پایه تحصیلی» و «رشته» در صفحه فروشگاه استفاده کنید، یا با پشتیبانی تماس بگیرید.</p></div>
-  <div class="panel" style="margin-bottom:14px;"><h3>آیا امکان خرید عمده برای مدارس وجود دارد؟</h3><p>بله، از صفحه «سفارش عمده برای مدارس» فرم درخواست را تکمیل کنید تا با تخفیف ویژه با شما تماس بگیریم.</p></div>
-  <div class="panel" style="margin-bottom:14px;"><h3>امتیاز باشگاه مشتریان چگونه محاسبه می‌شود؟</h3><p>به ازای هر ۱۰ هزار تومان خرید موفق، ۱ امتیاز به حساب شما اضافه می‌شود.</p></div>
-  <div class="panel"><h3>آیا نمونه سوال رایگان هم ارائه می‌دهید؟</h3><p>برای برخی از کتاب‌ها، دکمه «دانلود نمونه سوال رایگان» در صفحه محصول موجود است.</p></div>
+<main class="container page-content" id="pageRoot">
+  <div class="page-loading">در حال بارگذاری...</div>
 </main>
 
 <div id="site-footer"></div>
@@ -29,6 +23,13 @@
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/layout.js"></script>
-<script>(async()=>{try{CATEGORIES=await fetchCategories();}catch(e){} renderLayout();})();</script>
+<script>
+(async () => {
+  // متن این صفحه از پنل ادمین ← صفحات سایت قابل ویرایش است
+  const page = fetchPage("faq").catch(() => null);
+  await initPage("faq");
+  await renderCmsPage("faq", "pageRoot", page);
+})();
+</script>
 </body>
 </html>

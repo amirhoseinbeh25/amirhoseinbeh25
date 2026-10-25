@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>جزئیات کتاب | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -13,7 +14,7 @@
 <div id="site-header"></div>
 
 <main class="container page-content" id="productRoot">
-  <!-- با جاوااسکریپت پر می‌شود -->
+  <div class="page-loading">در حال بارگذاری...</div>
 </main>
 
 <div id="site-footer"></div>
@@ -24,145 +25,147 @@
 <script src="js/layout.js"></script>
 <script>
 (async () => {
-  try {
-    CATEGORIES = await fetchCategories();
-  } catch (e) {
-    document.querySelector("main").innerHTML = `<div class="empty-state"><div class="ico">⚠️</div><p>${e.message}</p></div>`;
-    return;
-  }
-  renderLayout("shop");
-
   const id = new URLSearchParams(window.location.search).get("id");
+  const bookPromise = id ? fetchProduct(id).catch(() => null) : Promise.resolve(null);
+  await initPage("shop");
+
   const root = document.getElementById("productRoot");
-  let book = null;
-  try {
-    book = await fetchProduct(id);
-  } catch (e) { /* کتاب پیدا نشد */ }
+  const book = await bookPromise;
 
   if (!book) {
     root.innerHTML = `<div class="empty-state"><div class="ico">❌</div><p>این کتاب پیدا نشد.</p><a href="shop.html" class="btn btn-primary">بازگشت به فروشگاه</a></div>`;
-  } else {
-    document.title = book.title + " | دانش بوک";
-    const discount = book.oldPrice ? Math.round(100 - (book.price / book.oldPrice) * 100) : 0;
-
-    root.innerHTML = `
-      <div class="breadcrumb">
-        <a href="index.html">خانه</a> / <a href="shop.html">فروشگاه</a> /
-        <a href="shop.html?cat=${book.category}">${getCategoryTitle(book.category)}</a> / ${book.title}
-      </div>
-
-      <div class="product-detail">
-        <div class="pd-gallery">
-          <img src="${bookCoverDataUrl(book)}" alt="${book.title}">
-        </div>
-        <div class="pd-info">
-          <h1 class="pd-title">${book.title}</h1>
-          <div class="pd-meta">مؤلف: ${book.author}</div>
-          <div class="pd-rating">${starString(book.rating)} — ${book.reviews} نظر</div>
-          <div class="pd-price-row">
-            <span class="price-now">${formatPrice(book.price)}</span>
-            ${book.oldPrice ? `<span class="price-old">${formatPrice(book.oldPrice)}</span><span class="product-badge discount">٪${discount} تخفیف</span>` : ""}
-            ${book.year ? `<span class="edition-badge" style="position:static;">چاپ ${book.year}</span>` : ""}
-          </div>
-          <div class="pd-stock">${book.stock > 0 ? `✓ ${book.stock} عدد در انبار موجود است` : "✖ موجود نیست"}</div>
-
-          <div class="qty-row">
-            <div class="qty-control">
-              <button id="qtyMinus">−</button>
-              <span id="qtyValue">1</span>
-              <button id="qtyPlus">+</button>
-            </div>
-            <button class="btn btn-primary" id="addToCartBtn" ${book.stock <= 0 ? "disabled" : ""}>🛒 افزودن به سبد خرید</button>
-          </div>
-
-          <div class="pd-actions">
-            <button class="btn btn-outline" onclick="showToast('به علاقه‌مندی‌ها اضافه شد')">♡ افزودن به علاقه‌مندی</button>
-            <button class="btn btn-outline" id="compareBtn">⇄ افزودن به مقایسه</button>
-            ${book.samplePdfUrl ? `<a class="btn btn-outline" href="${book.samplePdfUrl}" target="_blank">📄 دانلود نمونه سوال رایگان</a>` : ""}
-          </div>
-
-          <div class="pd-info-list">
-            <div><span>ناشر</span><span>${book.publisher}</span></div>
-            <div><span>پایه تحصیلی</span><span>${book.grade ? getGradeTitle(book.grade) : "—"}</span></div>
-            <div><span>رشته</span><span>${book.track ? getTrackTitle(book.track) : "—"}</span></div>
-            <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
-            <div><span>سال چاپ</span><span>${book.year}</span></div>
-            <div><span>درس</span><span>${getCategoryTitle(book.category)}</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tabs-nav">
-        <button class="active" data-tab="desc">توضیحات</button>
-        <button data-tab="spec">مشخصات</button>
-        <button data-tab="reviews">نظرات (${book.reviews})</button>
-      </div>
-      <div class="tab-panel active" id="tab-desc">${book.desc}</div>
-      <div class="tab-panel" id="tab-spec">
-        <div class="pd-info-list">
-          <div><span>مؤلف</span><span>${book.author}</span></div>
-          <div><span>نوع کتاب</span><span>کمک درسی</span></div>
-          <div><span>ناشر</span><span>${book.publisher}</span></div>
-          <div><span>پایه تحصیلی</span><span>${book.grade ? getGradeTitle(book.grade) : "—"}</span></div>
-          <div><span>رشته</span><span>${book.track ? getTrackTitle(book.track) : "—"}</span></div>
-          <div><span>تعداد صفحات</span><span>${book.pages}</span></div>
-          <div><span>سال چاپ</span><span>${book.year}</span></div>
-          <div><span>نوع جلد</span><span>شومیز</span></div>
-        </div>
-      </div>
-      <div class="tab-panel" id="tab-reviews">
-        <p>⭐ امتیاز کلی: ${book.rating} از ۵ (${book.reviews} نظر ثبت‌شده)</p>
-        <p>برای ثبت نظر، ابتدا باید این کتاب را خریداری کرده باشید.</p>
-      </div>
-
-      <section class="block">
-        <div class="section-title">
-          <div><h2>کتاب‌های مرتبط</h2></div>
-        </div>
-        <div class="product-grid" id="relatedGrid"></div>
-      </section>
-    `;
-
-    let qty = 1;
-    document.getElementById("qtyPlus").addEventListener("click", () => {
-      qty = Math.min(book.stock, qty + 1);
-      document.getElementById("qtyValue").textContent = qty;
-    });
-    document.getElementById("qtyMinus").addEventListener("click", () => {
-      qty = Math.max(1, qty - 1);
-      document.getElementById("qtyValue").textContent = qty;
-    });
-    document.getElementById("addToCartBtn").addEventListener("click", () => addToCart(book.id, qty));
-
-    const compareBtn = document.getElementById("compareBtn");
-    function refreshCompareBtn() {
-      const active = getCompareList().includes(book.id);
-      compareBtn.textContent = active ? "✓ در لیست مقایسه" : "⇄ افزودن به مقایسه";
-      compareBtn.classList.toggle("active", active);
-    }
-    refreshCompareBtn();
-    compareBtn.addEventListener("click", () => { toggleCompare(book.id); refreshCompareBtn(); });
-
-    document.querySelectorAll(".tabs-nav button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tabs-nav button").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
-      });
-    });
-
-    let related = [];
-    try {
-      related = await fetchProducts({ cat: book.category });
-      related = related.filter(b => b.id !== book.id).slice(0, 4);
-      if (!related.length) {
-        const all = await fetchProducts();
-        related = all.filter(b => b.id !== book.id).slice(0, 4);
-      }
-    } catch (e) { /* قابل چشم‌پوشی */ }
-    renderProductGrid("relatedGrid", related);
+    return;
   }
+
+  document.title = `${book.title} | ${setting("site_name", "دانش بوک")}`;
+  const discount = book.oldPrice ? Math.round(100 - (book.price / book.oldPrice) * 100) : 0;
+  const images = [productImage(book), ...(book.gallery || []).map(safeImageUrl).filter(Boolean)];
+  const dash = (v) => (v === null || v === undefined || v === "") ? "—" : esc(v);
+  const specRows = [
+    ["مؤلف", dash(book.author)],
+    book.translator ? ["مترجم", dash(book.translator)] : null,
+    ["ناشر", dash(book.publisher)],
+    ["درس", esc(getCategoryTitle(book.category))],
+    ["پایه تحصیلی", book.grade ? esc(getGradeTitle(book.grade)) : "—"],
+    ["رشته", book.track ? esc(getTrackTitle(book.track)) : "—"],
+    ["تعداد صفحات", book.pages ? faNum(book.pages) : "—"],
+    ["سال چاپ", book.year ? faNum(book.year) : "—"]
+  ].filter(Boolean);
+  const specHTML = specRows.map(([k, v]) => `<div><span>${k}</span><span>${v}</span></div>`).join("");
+  const pdf = book.samplePdfUrl ? safeUrl(book.samplePdfUrl) : "";
+
+  root.innerHTML = `
+    <div class="breadcrumb">
+      <a href="index.html">خانه</a> / <a href="shop.html">فروشگاه</a> /
+      <a href="shop.html?cat=${encodeURIComponent(book.category)}">${esc(getCategoryTitle(book.category))}</a> / ${esc(book.title)}
+    </div>
+
+    <div class="product-detail">
+      <div class="pd-gallery">
+        <img class="pd-main-img" id="pdMainImg" src="${esc(images[0])}" alt="${esc(book.title)}">
+        ${images.length > 1 ? `
+          <div class="pd-thumbs">
+            ${images.map((src, i) => `<button class="${i === 0 ? "active" : ""}" data-src="${esc(src)}" aria-label="تصویر ${i + 1}"><img src="${esc(src)}" alt="" loading="lazy"></button>`).join("")}
+          </div>` : ""}
+      </div>
+      <div class="pd-info">
+        <h1 class="pd-title">${esc(book.title)}</h1>
+        <div class="pd-meta">مؤلف: ${esc(book.author)}${book.publisher ? " | ناشر: " + esc(book.publisher) : ""}</div>
+        <div class="pd-rating">${starString(book.rating)} — ${faNum(Number(book.reviews) || 0)} نظر</div>
+        <div class="pd-price-row">
+          <span class="price-now">${formatPrice(book.price)}</span>
+          ${book.oldPrice ? `<span class="price-old">${formatPrice(book.oldPrice)}</span><span class="product-badge discount">٪${faNum(discount)} تخفیف</span>` : ""}
+          ${book.year ? `<span class="edition-badge" style="position:static;">چاپ ${faNum(book.year)}</span>` : ""}
+        </div>
+        <div class="pd-stock ${book.stock > 0 ? "" : "out"}">${book.stock > 0 ? `✓ ${faNum(book.stock)} عدد در انبار موجود است` : "✖ فعلاً موجود نیست"}</div>
+
+        <div class="qty-row">
+          <div class="qty-control">
+            <button id="qtyPlus" aria-label="افزایش">+</button>
+            <span id="qtyValue">1</span>
+            <button id="qtyMinus" aria-label="کاهش">−</button>
+          </div>
+          <button class="btn btn-primary" id="addToCartBtn" ${book.stock <= 0 ? "disabled" : ""}>🛒 افزودن به سبد خرید</button>
+        </div>
+
+        <div class="pd-actions">
+          <button class="btn btn-outline" onclick="showToast('به علاقه‌مندی‌ها اضافه شد')">♡ علاقه‌مندی</button>
+          <button class="btn btn-outline" id="compareBtn">⇄ افزودن به مقایسه</button>
+          ${pdf && pdf !== "#" ? `<a class="btn btn-outline" href="${esc(pdf)}" target="_blank" rel="noopener">📄 دانلود نمونه سوال رایگان</a>` : ""}
+        </div>
+
+        <div class="pd-info-list">${specHTML}</div>
+      </div>
+    </div>
+
+    <div class="tabs-nav">
+      <button class="active" data-tab="desc">توضیحات</button>
+      <button data-tab="spec">مشخصات</button>
+      <button data-tab="reviews">نظرات (${faNum(Number(book.reviews) || 0)})</button>
+    </div>
+    <div class="tab-panel active rich-text" id="tab-desc">${book.desc ? renderRichText(book.desc) : "<p>توضیحی برای این کتاب ثبت نشده است.</p>"}</div>
+    <div class="tab-panel" id="tab-spec">
+      <div class="pd-info-list">${specHTML}<div><span>نوع کتاب</span><span>کمک درسی</span></div></div>
+    </div>
+    <div class="tab-panel" id="tab-reviews">
+      <p>⭐ امتیاز کلی: ${faNum(Number(book.rating) || 0)} از ۵ (${faNum(Number(book.reviews) || 0)} نظر ثبت‌شده)</p>
+      <p>برای ثبت نظر، ابتدا باید این کتاب را خریداری کرده باشید.</p>
+    </div>
+
+    <section class="block">
+      <div class="section-title">
+        <div><h2>کتاب‌های مرتبط</h2></div>
+      </div>
+      <div class="product-grid" id="relatedGrid"></div>
+    </section>
+  `;
+
+  document.querySelectorAll(".pd-thumbs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("pdMainImg").src = btn.dataset.src;
+      document.querySelectorAll(".pd-thumbs button").forEach(b => b.classList.toggle("active", b === btn));
+    });
+  });
+
+  let qty = 1;
+  document.getElementById("qtyPlus").addEventListener("click", () => {
+    qty = Math.min(Math.max(1, book.stock), qty + 1);
+    document.getElementById("qtyValue").textContent = qty;
+  });
+  document.getElementById("qtyMinus").addEventListener("click", () => {
+    qty = Math.max(1, qty - 1);
+    document.getElementById("qtyValue").textContent = qty;
+  });
+  document.getElementById("addToCartBtn").addEventListener("click", () => addToCart(book.id, qty));
+
+  const compareBtn = document.getElementById("compareBtn");
+  function refreshCompareBtn() {
+    const active = getCompareList().includes(book.id);
+    compareBtn.textContent = active ? "✓ در لیست مقایسه" : "⇄ افزودن به مقایسه";
+    compareBtn.classList.toggle("active", active);
+  }
+  refreshCompareBtn();
+  compareBtn.addEventListener("click", () => { toggleCompare(book.id); refreshCompareBtn(); });
+
+  document.querySelectorAll(".tabs-nav button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tabs-nav button").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  let related = [];
+  try {
+    related = await fetchProducts({ cat: book.category });
+    related = related.filter(b => b.id !== book.id).slice(0, 4);
+    if (!related.length) {
+      const all = await fetchProducts();
+      related = all.filter(b => b.id !== book.id).slice(0, 4);
+    }
+  } catch (e) { /* قابل چشم‌پوشی */ }
+  renderProductGrid("relatedGrid", related);
 })();
 </script>
 </body>

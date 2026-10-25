@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
 <title>پک‌های آموزشی | پنل ادمین دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -34,11 +35,18 @@
 </div>
 
 <div class="modal-overlay" id="bundleModal">
-  <div class="modal-box">
-    <h2 id="modalTitle">افزودن پک جدید</h2>
+  <div class="modal-box modal-wide">
+    <div class="modal-head">
+      <h2 id="modalTitle">افزودن پک جدید</h2>
+      <button type="button" class="icon-btn" id="closeModalBtn" aria-label="بستن">✕</button>
+    </div>
     <form id="bundleForm">
       <input type="hidden" id="bundleId">
       <div class="form-grid">
+        <div class="full">
+          <label>تصویر پک (اختیاری — اگر خالی باشد از رنگ پک استفاده می‌شود)</label>
+          <div id="imageField" class="wide"></div>
+        </div>
         <div class="full">
           <label>عنوان پک *</label>
           <input type="text" id="f_title" required>
@@ -56,7 +64,7 @@
           <input type="number" id="f_oldPrice" min="0">
         </div>
         <div>
-          <label>رنگ</label>
+          <label>رنگ (وقتی تصویر ندارد)</label>
           <input type="color" id="f_color" value="#2c5f8a">
         </div>
         <div>
@@ -68,7 +76,9 @@
         </div>
         <div class="full">
           <label>کتاب‌های این پک *</label>
-          <div id="productChecklist" style="max-height:220px; overflow-y:auto; border:1px solid var(--color-border); border-radius:8px; padding:10px; background:rgba(255,255,255,.6);"></div>
+          <input type="search" id="checklistSearch" class="form-control" placeholder="جست‌وجوی کتاب..." style="margin-bottom:8px;">
+          <div id="productChecklist" style="max-height:240px; overflow-y:auto; border:1px solid var(--color-border); border-radius:8px; padding:10px; background:rgba(255,255,255,.6);"></div>
+          <small class="field-hint" id="checklistSum"></small>
         </div>
       </div>
       <div class="modal-actions">
@@ -82,20 +92,30 @@
 <script src="../js/data.js"></script>
 <script src="../js/api.js"></script>
 <script src="js/admin-auth.js"></script>
+<script src="js/admin-ui.js"></script>
 <script>
 (async () => {
   renderAdminShell("bundles", "پک‌های آموزشی");
 
   let bundles = [];
   let products = [];
-  const modal = document.getElementById("bundleModal");
+  const modalEl = document.getElementById("bundleModal");
+  const modalCtl = setupModal(modalEl);
   let editingId = null;
+  const imageField = createImageField(document.getElementById("imageField"), {
+    hint: "عکس عریض (مثلاً ۸۰۰ × ۴۰۰ پیکسل) از کتاب‌های این پک.", resize: { maxWidth: 1400, maxHeight: 900 }
+  });
 
   function renderTable() {
     document.getElementById("bundlesBody").innerHTML = bundles.length
       ? bundles.map(b => `
-        <tr>
-          <td>${b.title}</td>
+        <tr class="${b.active ? "" : "inactive"}">
+          <td>
+            <div class="row-flex">
+              ${safeImageUrl(b.imageUrl) ? `<img class="row-thumb" src="${esc(b.imageUrl)}" alt="">` : `<span class="row-thumb" style="display:inline-flex; align-items:center; justify-content:center; background:${esc(hexToRgba(b.color, 1))}; color:#fff;">🎁</span>`}
+              <span>${esc(b.title)}</span>
+            </div>
+          </td>
           <td>${b.items.length} کتاب</td>
           <td>${formatPrice(b.price)}</td>
           <td><span class="badge ${b.active ? "stock-ok" : "stock-low"}">${b.active ? "فعال" : "غیرفعال"}</span></td>
@@ -128,14 +148,30 @@
 
     const selectedIds = b ? b.items.map(it => it.id) : [];
     document.getElementById("productChecklist").innerHTML = products.map(p => `
-      <label style="display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13px;">
-        <input type="checkbox" value="${p.id}" ${selectedIds.includes(p.id) ? "checked" : ""}>
-        ${p.title} — ${formatPrice(p.price)}
+      <label class="check-row" data-title="${esc(p.title.toLowerCase())}" style="padding:6px 0;">
+        <input type="checkbox" value="${Number(p.id)}" data-price="${Number(p.price)}" ${selectedIds.includes(p.id) ? "checked" : ""}>
+        ${esc(p.title)} — ${formatPrice(p.price)}
       </label>`).join("");
-
-    modal.classList.add("open");
+    document.getElementById("checklistSearch").value = "";
+    imageField.set(b ? b.imageUrl || "" : "");
+    updateChecklistSum();
+    modalCtl.open();
   }
-  function closeModal() { modal.classList.remove("open"); }
+  function closeModal() { modalCtl.close(); }
+
+  // جمع قیمت کتاب‌های انتخاب‌شده برای کمک به تعیین قیمت پک
+  function updateChecklistSum() {
+    const checked = Array.from(document.querySelectorAll("#productChecklist input:checked"));
+    const sum = checked.reduce((s, i) => s + Number(i.dataset.price), 0);
+    document.getElementById("checklistSum").textContent = checked.length
+      ? `${checked.length.toLocaleString("fa-IR")} کتاب انتخاب شده — جمع قیمت تکی: ${formatPrice(sum)}`
+      : "هنوز کتابی انتخاب نشده است.";
+  }
+  document.getElementById("productChecklist").addEventListener("change", updateChecklistSum);
+  document.getElementById("checklistSearch").addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll("#productChecklist label").forEach(l => { l.hidden = q && !l.dataset.title.includes(q); });
+  });
 
   async function deleteBundle(id) {
     const b = bundles.find(x => x.id === id);
@@ -149,7 +185,7 @@
 
   document.getElementById("addBundleBtn").addEventListener("click", () => openModal(null));
   document.getElementById("cancelModalBtn").addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.getElementById("closeModalBtn").addEventListener("click", closeModal);
 
   document.getElementById("bundleForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -162,6 +198,7 @@
       price: Number(document.getElementById("f_price").value),
       oldPrice: document.getElementById("f_oldPrice").value ? Number(document.getElementById("f_oldPrice").value) : null,
       color: document.getElementById("f_color").value,
+      imageUrl: imageField.get() || null,
       active: document.getElementById("f_active").value === "1",
       productIds
     };

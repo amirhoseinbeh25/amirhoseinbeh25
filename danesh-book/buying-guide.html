@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>راهنمای خرید | دانش بوک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -12,21 +13,8 @@
 
 <div id="site-header"></div>
 
-<main class="container page-content" style="max-width:800px;">
-  <div class="breadcrumb"><a href="index.html">خانه</a> / راهنمای خرید</div>
-  <h1>📘 راهنمای خرید از دانش بوک</h1>
-
-  <h3>۱. انتخاب کتاب درست</h3>
-  <p>پیش از خرید حتماً «پایه تحصیلی»، «رشته» و «سال چاپ» درج‌شده روی هر کتاب را بررسی کنید؛ چون کتاب‌های کمک درسی هرساله با تغییرات برنامه درسی به‌روزرسانی می‌شوند و نسخه قدیمی ممکن است با کتاب درسی مدرسه هم‌خوانی نداشته باشد.</p>
-
-  <h3>۲. افزودن به سبد خرید</h3>
-  <p>کتاب‌های مدنظر را به سبد خرید اضافه کنید. می‌توانید از «پک‌های آموزشی» برای خرید چند کتاب یک پایه با تخفیف ویژه استفاده کنید.</p>
-
-  <h3>۳. تکمیل اطلاعات و پرداخت</h3>
-  <p>در صفحه سبد خرید، نام، شماره تماس و آدرس را وارد کرده و به درگاه پرداخت امن منتقل می‌شوید. پس از پرداخت موفق، کد پیگیری سفارش به شما نمایش داده می‌شود.</p>
-
-  <h3>۴. پیگیری سفارش</h3>
-  <p>در صورت داشتن حساب کاربری، می‌توانید از صفحه «حساب من» وضعیت سفارش‌های خود را پیگیری کنید. همچنین پیامک اطلاع‌رسانی برای تغییر وضعیت سفارش ارسال می‌شود.</p>
+<main class="container page-content" id="pageRoot">
+  <div class="page-loading">در حال بارگذاری...</div>
 </main>
 
 <div id="site-footer"></div>
@@ -35,6 +23,13 @@
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/layout.js"></script>
-<script>(async()=>{try{CATEGORIES=await fetchCategories();}catch(e){} renderLayout();})();</script>
+<script>
+(async () => {
+  // متن این صفحه از پنل ادمین ← صفحات سایت قابل ویرایش است
+  const page = fetchPage("buying-guide").catch(() => null);
+  await initPage("buying-guide");
+  await renderCmsPage("buying-guide", "pageRoot", page);
+})();
+</script>
 </body>
 </html>
