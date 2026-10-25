@@ -49,8 +49,9 @@ danesh-book/
     ├── lib/{validate,settings}.js
     ├── middleware/{auth,rateLimit}.js
     ├── services/{notify,payment}.js
+    ├── lib/backup.js            ← پشتیبان‌گیری خودکار روزانه و دانلود از پنل
     └── routes/{auth,taxonomy,products,orders,dashboard,customers,bundles,settings,site,slides,menus,
-               pages,uploads,contact,newsletter,bulkOrders,posts,payment,returns}.js
+               pages,uploads,contact,newsletter,backup,bulkOrders,posts,payment,returns}.js
 ```
 
 سایت فروشگاه و پنل ادمین هر دو داده‌ها را به‌صورت زنده از API بک‌اند (`/api/...`) می‌خوانند؛ دیگر داده‌ای در فرانت‌اند هاردکد نیست.
@@ -157,6 +158,14 @@ ZARINPAL_SANDBOX=true   # برای تست در محیط آزمایشی زرین�
 | POST | `/api/contact`, `/api/newsletter` | عمومی (با محدودیت تعداد) |
 | GET/PUT/DELETE | `/api/contact`, `/api/newsletter` | ادمین |
 | GET | `/api/customers` | ادمین |
+| GET | `/api/backup`, `/api/backup/download` | ادمین |
+
+## دیتابیس و پشتیبان‌گیری
+
+- دیتابیس SQLite است (داخل خود Node.js 22) و در فایل `server/daneshbook.db` ساخته می‌شود؛ نیازی به ساخت دیتابیس MySQL در هاست نیست.
+- هر روز یک نسخه پشتیبان خودکار در `server/backups/` ساخته می‌شود (۱۴ نسخه آخر نگه داشته می‌شوند؛ این پوشه از وب در دسترس نیست).
+- از پنل ادمین ← «تنظیمات و ظاهر سایت» ← «پشتیبان‌گیری» می‌توانید یک نسخه کامل دانلود کنید.
+- بازگرداندن: فایل `server/daneshbook.db` را با فایل پشتیبان (با همین نام) جایگزین و برنامه را Restart کنید.
 
 ## به‌روزرسانی نسخه روی هاست (cPanel)
 

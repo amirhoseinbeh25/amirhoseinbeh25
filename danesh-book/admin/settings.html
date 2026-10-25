@@ -24,6 +24,7 @@
         <button data-tab="theme">🎨 رنگ‌بندی</button>
         <button data-tab="shop">🛒 فروشگاه</button>
         <button data-tab="account">🔐 حساب مدیر</button>
+        <button data-tab="backup">🗄 پشتیبان‌گیری</button>
       </div>
 
       <!-- ===== هدر ===== -->
@@ -269,6 +270,23 @@
         </div>
         <div class="modal-actions"><button type="submit" class="btn btn-primary">ذخیره حساب</button></div>
       </form>
+
+      <!-- ===== پشتیبان‌گیری ===== -->
+      <div class="panel" data-panel="backup">
+        <h2>🗄 پشتیبان‌گیری از اطلاعات سایت</h2>
+        <p class="panel-desc">همه اطلاعات سایت (کتاب‌ها، سفارش‌ها، مشتریان، تنظیمات و متن صفحات) در یک فایل دیتابیس نگه داشته می‌شود.
+          هر روز یک نسخه پشتیبان خودکار روی هاست ساخته می‌شود و ۱۴ نسخه آخر نگه داشته می‌شوند.</p>
+        <div class="alert alert-info">💾 <span>توصیه می‌شود هر هفته یک نسخه پشتیبان دانلود و روی کامپیوتر خودتان نگه دارید. عکس‌های آپلودشده جداگانه در پوشه <code>uploads</code> روی هاست هستند.</span></div>
+        <button type="button" class="btn btn-primary" id="downloadBackupBtn">⬇️ دانلود نسخه پشتیبان کامل</button>
+        <h3>نسخه‌های پشتیبان روی هاست</h3>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>تاریخ</th><th>نوع</th><th>حجم</th></tr></thead>
+            <tbody id="backupsBody"></tbody>
+          </table>
+        </div>
+        <small class="field-hint">بازگرداندن نسخه پشتیبان: در File Manager هاست، فایل <code>danesh-book/server/daneshbook.db</code> را با فایل پشتیبان (با همین نام) جایگزین کنید و در «Setup Node.js App» دکمه Restart را بزنید.</small>
+      </div>
 
     </div>
   </div>
@@ -549,7 +567,45 @@
     }
   });
 
-  initTabs($("settingsRoot"));
+  /* ----- پشتیبان‌گیری ----- */
+  async function loadBackups() {
+    try {
+      const list = await adminApi("/backup");
+      $("backupsBody").innerHTML = list.length
+        ? list.map(b => `
+          <tr>
+            <td>${esc(new Date(b.createdAt).toLocaleString("fa-IR"))}</td>
+            <td>${b.type === "auto" ? "خودکار" : "دستی (دانلودشده)"}</td>
+            <td>${(b.size / 1024).toLocaleString("fa-IR", { maximumFractionDigits: 0 })} KB</td>
+          </tr>`).join("")
+        : `<tr class="empty-row"><td colspan="3">هنوز نسخه پشتیبانی ساخته نشده است.</td></tr>`;
+    } catch (e) { showAdminToast(e.message, true); }
+  }
+
+  $("downloadBackupBtn").addEventListener("click", async () => {
+    const btn = $("downloadBackupBtn");
+    btn.disabled = true;
+    try {
+      const res = await fetch(API_BASE + "/backup/download", { headers: { Authorization: "Bearer " + getAdminToken() } });
+      if (!res.ok) throw new Error("ساخت نسخه پشتیبان انجام نشد.");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `daneshbook-backup-${new Date().toISOString().slice(0, 10)}.db`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      showAdminToast("نسخه پشتیبان دانلود شد ✓");
+      loadBackups();
+    } catch (e) {
+      showAdminToast(e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  initTabs($("settingsRoot"), (name) => { if (name === "backup") loadBackups(); });
   try { await loadAll(); } catch (e) { showAdminToast(e.message, true); }
 })();
 </script>

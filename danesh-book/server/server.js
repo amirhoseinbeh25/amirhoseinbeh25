@@ -6,8 +6,11 @@ try {
 } catch (e) { /* فایل .env اختیاری است */ }
 
 const app = require("./app");
+const { scheduleAutoBackups } = require("./lib/backup");
 
 const PORT = process.env.PORT || 4000;
+
+scheduleAutoBackups();
 
 app.listen(PORT, () => {
   console.log(`✅ سرور دانش بوک روی پورت ${PORT} اجرا شد`);

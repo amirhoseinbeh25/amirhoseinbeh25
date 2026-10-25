@@ -21,6 +21,7 @@ const pageRoutes = require("./routes/pages");
 const siteRoutes = require("./routes/site");
 const contactRoutes = require("./routes/contact");
 const newsletterRoutes = require("./routes/newsletter");
+const backupRoutes = require("./routes/backup");
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use("/api/pages", pageRoutes);
 app.use("/api/site", siteRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/backup", backupRoutes);
 
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) return res.status(404).json({ error: "مسیر مورد نظر پیدا نشد." });

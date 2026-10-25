@@ -6,6 +6,9 @@ const defaults = require("./defaults");
 const DB_PATH = path.join(__dirname, "daneshbook.db");
 const db = new DatabaseSync(DB_PATH);
 
+// اگر هاست چند پردازش از برنامه اجرا کند، به‌جای خطای «database is locked» تا ۵ ثانیه منتظر می‌ماند
+db.exec("PRAGMA busy_timeout = 5000");
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS categories (
     id    TEXT PRIMARY KEY,
@@ -379,3 +382,4 @@ function seedIfEmpty() {
 seedIfEmpty();
 
 module.exports = db;
+module.exports.DB_PATH = DB_PATH;
